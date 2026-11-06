@@ -36,7 +36,7 @@ services:
       retries: 20
 
   minio:
-    image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z
+    image: cgr.dev/chainguard/minio@sha256:0a01100085e30fb08d2f39e39c9f5c9d83a95707f220b007d813b690cd41622d
     restart: unless-stopped
     command: ["server", "/data", "--console-address", ":9001"]
     environment:
@@ -67,7 +67,7 @@ services:
 
   # Creates the bodies bucket and sets its expiry one day above the default retention ceiling, then exits.
   minio-init:
-    image: quay.io/minio/mc@sha256:a7fe349ef4bd8521fb8497f55c6042871b2ae640607cf99d9bede5e9bdf11727
+    image: cgr.dev/chainguard/minio@sha256:0a01100085e30fb08d2f39e39c9f5c9d83a95707f220b007d813b690cd41622d
     depends_on:
       minio:
         condition: service_healthy
