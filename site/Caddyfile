@@ -20,7 +20,9 @@
 		respond 200
 	}
 
-	# The guides moved under /docs.
+	# The guides and the reference moved under /docs.
+	redir /reference /docs/reference/ 301
+	redir /reference/ /docs/reference/ 301
 	redir /self-hosting /docs/self-hosting/ 301
 	redir /self-hosting/* /docs/self-hosting/ 301
 	redir /leaving /docs/leaving/ 301

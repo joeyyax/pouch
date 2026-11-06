@@ -8,7 +8,7 @@ docker build -f site/Dockerfile -t pouch-site . && docker run --rm -p 8080:8080 
 
 The build context is the repo root: the docs need `lib/api-docs/spec.ts` for the reference and the guides in `docs/`. `site/Dockerfile.dockerignore` keeps the context to those.
 
-Anything the site doesn't have redirects to app.pouch.email, so links from before the app moved keep working. `/self-hosting` and `/leaving` redirect to their pages under `/docs`. Self-hosted installs don't run it.
+Anything the site doesn't have redirects to app.pouch.email, so links from before the app moved keep working. `/reference`, `/self-hosting` and `/leaving` redirect to their pages under `/docs`. Self-hosted installs don't run it.
 
 Asset links carry `?v=` and the first 8 characters of the file's SHA-1. Update them when an asset changes: `shasum site/assets/<file> | cut -c1-8`.
 
