@@ -12,7 +12,7 @@ npm install @joeyyax/pouch
 
 ESM and CommonJS, with types. Copying `pouch.ts` into a project still works too.
 
-The package is versioned on its own, from 0.1.0. A version covers the `/v1` routes that exist when it's published; a new route ships in a minor release.
+The package is versioned on its own, from 0.1.0; 0.2.0 makes `baseUrl` required. A version covers the `/v1` routes that exist when it's published; a new route ships in a minor release.
 
 MIT licensed — see `LICENSE` in this directory. The server it talks to is AGPL-3.0; this client
 deliberately isn't, so importing it carries no obligation.
@@ -24,7 +24,7 @@ import { PouchClient, PouchError } from "@joeyyax/pouch";
 
 const pouch = new PouchClient({
   apiKey: process.env.POUCH_API_KEY!, // sk_live_... or sk_test_...
-  baseUrl: "https://pouch.email", // this is the default; set to http://localhost:3100 for local dev
+  baseUrl: process.env.POUCH_URL!, // your install: https://mail.example.com, or http://localhost:3100 in dev
 });
 
 try {
@@ -245,6 +245,7 @@ Every response carries `X-RateLimit-*` headers. Read them by passing `onRateLimi
 ```ts
 const pouch = new PouchClient({
   apiKey: process.env.POUCH_API_KEY!,
+  baseUrl: process.env.POUCH_URL!,
   onRateLimit: ({ limit, remaining, reset }) => {
     if (remaining !== null && remaining < 5) console.warn(`close to the limit: ${remaining}/${limit}`);
   },

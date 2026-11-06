@@ -24,7 +24,7 @@ await usesend.emails.send({
 
 ```ts
 import { PouchClient } from "./pouch";
-const pouch = new PouchClient({ apiKey: process.env.POUCH_API_KEY! });
+const pouch = new PouchClient({ apiKey: process.env.POUCH_API_KEY!, baseUrl: process.env.POUCH_URL! });
 
 await pouch.emails.send({
   from: "Acme <onboarding@example.com>",
@@ -37,7 +37,7 @@ await pouch.emails.send({
 **Pouch (REST)**
 
 ```bash
-curl https://pouch.email/v1/emails \
+curl $POUCH_URL/v1/emails \
   -H "Authorization: Bearer $POUCH_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"from":"Acme <onboarding@example.com>","to":"ada@example.com","subject":"Welcome","html":"<p>Thanks for signing up.</p>"}'
@@ -94,7 +94,7 @@ Import them with `POST /v1/suppressions` (a key with no domain scope, at most 5,
 Import bounced contacts with `reason: "hard_bounce"`. Unsubscribed contacts stop every send once they're suppressions, transactional mail included, so import them into a list instead (`POST /v1/lists/:id/members`) unless the person asked for no mail at all. A CSV with an `email` column imports directly:
 
 ```bash
-curl "https://pouch.email/v1/suppressions?reason=hard_bounce&source=usesend" \
+curl "$POUCH_URL/v1/suppressions?reason=hard_bounce&source=usesend" \
   -H "Authorization: Bearer $POUCH_API_KEY" -H "Content-Type: text/csv" --data-binary @bounced.csv
 ```
 

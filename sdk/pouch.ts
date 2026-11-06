@@ -1472,8 +1472,8 @@ function readRateLimit(headers: Headers): RateLimitInfo {
 export interface PouchClientOptions {
   /** A key from the dashboard: `sk_live_...` or `sk_test_...`. Test keys deliver nothing. */
   apiKey: string;
-  /** Default `https://pouch.email`. Point this at `http://localhost:3100` for local dev. */
-  baseUrl?: string;
+  /** Your install's URL, such as `https://mail.example.com` or `http://localhost:3100`. */
+  baseUrl: string;
   /** Override for testing, or to use a fetch implementation other than the global one. */
   fetch?: typeof fetch;
   /** Called after every response that carries rate-limit headers. */
@@ -1494,8 +1494,6 @@ interface RequestOptions {
   /** Return the body verbatim instead of parsing it as JSON. */
   text?: boolean;
 }
-
-const DEFAULT_BASE_URL = "https://pouch.email";
 
 /** `include` and `fields` as the comma-separated query values the API reads. */
 function shapeQuery(params?: ResponseShapeParams<string>): { include?: string; fields?: string } {
@@ -1648,8 +1646,9 @@ export class PouchClient {
 
   constructor(options: PouchClientOptions) {
     if (!options.apiKey) throw new Error("PouchClient requires an apiKey.");
+    if (!options.baseUrl) throw new Error("PouchClient requires a baseUrl: your install's URL.");
     this.apiKey = options.apiKey;
-    this.baseUrl = (options.baseUrl ?? DEFAULT_BASE_URL).replace(/\/$/, "");
+    this.baseUrl = options.baseUrl.replace(/\/$/, "");
     // Bound so it isn't called detached from its receiver — required by some fetch
     // implementations even though Node's undici tolerates the unbound form.
     this.fetchImpl = options.fetch ?? globalThis.fetch?.bind(globalThis);

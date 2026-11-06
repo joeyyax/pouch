@@ -19,7 +19,7 @@ curl https://app.mailpace.com/api/v1/send \
 
 ```ts
 import { PouchClient } from "./pouch";
-const pouch = new PouchClient({ apiKey: process.env.POUCH_API_KEY! });
+const pouch = new PouchClient({ apiKey: process.env.POUCH_API_KEY!, baseUrl: process.env.POUCH_URL! });
 
 await pouch.emails.send({
   from: "Acme <onboarding@example.com>",
@@ -32,7 +32,7 @@ await pouch.emails.send({
 **Pouch (REST)**
 
 ```bash
-curl https://pouch.email/v1/emails \
+curl $POUCH_URL/v1/emails \
   -H "Authorization: Bearer $POUCH_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"from":"Acme <onboarding@example.com>","to":"ada@example.com","subject":"Welcome","html":"<p>Thanks for signing up.</p>"}'
