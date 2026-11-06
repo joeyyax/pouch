@@ -1,3 +1,4 @@
+import type { z } from "zod";
 import type { ErrorCode } from "@/lib/api/errors";
 import { featureForPath } from "@/lib/features/registry";
 import { adoptDomainSchema, createDomainSchema, listDomainsSchema, patchDomainSchema } from "@/lib/schemas/domain";
@@ -169,8 +170,8 @@ export interface RouteSpec {
   path: string;
   summary: string;
   auth: string;
-  request?: { schemaName: string; fields: ApiField[]; note?: string };
-  query?: { schemaName: string; fields: ApiField[] };
+  request?: { schemaName: string; schema: z.ZodType; fields: ApiField[]; note?: string };
+  query?: { schemaName: string; schema: z.ZodType; fields: ApiField[] };
   response: { status: number; description: string; fields: ResponseField[]; note?: string };
   errors: ErrorCode[];
 }
@@ -1130,7 +1131,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     path: "/v1/domains",
     summary: "Add a domain",
     auth: "Bearer key with no domain scope",
-    request: { schemaName: "createDomainSchema", fields: fieldsFromSchema(createDomainSchema, "createDomainSchema") },
+    request: { schemaName: "createDomainSchema", schema: createDomainSchema, fields: fieldsFromSchema(createDomainSchema, "createDomainSchema") },
     response: {
       status: 201,
       description: "The created domain, with the DNS records to publish.",
@@ -1143,7 +1144,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     path: "/v1/domains",
     summary: "List domains",
     auth: "Bearer key",
-    query: { schemaName: "listDomainsSchema", fields: fieldsFromSchema(listDomainsSchema, "listDomainsSchema") },
+    query: { schemaName: "listDomainsSchema", schema: listDomainsSchema, fields: fieldsFromSchema(listDomainsSchema, "listDomainsSchema") },
     response: {
       status: 200,
       description: "A page of the key's domains, newest first.",
@@ -1166,6 +1167,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     auth: "Bearer key scoped to the domain",
     request: {
       schemaName: "patchDomainSchema",
+      schema: patchDomainSchema,
       fields: fieldsFromSchema(patchDomainSchema, "patchDomainSchema"),
       note: "provider_id records a pending move; the domain keeps sending on its current provider until it verifies, and null cancels a move in progress. bulk_allowed turns bulk sending on or off; turning it on is refused when the provider can't do bulk at all, and while the domain has no valid DMARC record. layout sets the frame: fields left out keep their stored value, a domain without a layout needs name, accent and footer, and null removes it. Layout applies first, so a layout that fails validation changes nothing.",
     },
@@ -1216,6 +1218,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     auth: "Bearer key scoped to the domain",
     request: {
       schemaName: "updateInboundSchema",
+      schema: updateInboundSchema,
       fields: fieldsFromSchema(updateInboundSchema, "updateInboundSchema"),
       note: "webhook_url is required the first time inbound is enabled on a domain. Enabling adds the provider's own inbound DNS record to dns_records, on a subdomain (inbound.<domain> by default, or subdomain) so the domain's own mailbox is untouched. On SES, enabling also creates the receipt rule that routes the subdomain's mail; the provider needs an inbound bucket first.",
     },
@@ -1227,7 +1230,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     path: "/v1/domains/:id/dmarc_reports",
     summary: "List a domain's DMARC reports",
     auth: "Bearer key scoped to the domain",
-    query: { schemaName: "listDmarcReportsSchema", fields: fieldsFromSchema(listDmarcReportsSchema, "listDmarcReportsSchema") },
+    query: { schemaName: "listDmarcReportsSchema", schema: listDmarcReportsSchema, fields: fieldsFromSchema(listDmarcReportsSchema, "listDmarcReportsSchema") },
     response: {
       status: 200,
       description: "Aggregate reports mailbox providers sent to the domain's report address, newest first, kept as long as the organization keeps bodies. Empty until an admin sets up a report host and the domain publishes the address.",
@@ -1252,7 +1255,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     path: "/v1/stats",
     summary: "Read stats",
     auth: "Bearer key",
-    query: { schemaName: "readStatsSchema", fields: fieldsFromSchema(readStatsSchema, "readStatsSchema") },
+    query: { schemaName: "readStatsSchema", schema: readStatsSchema, fields: fieldsFromSchema(readStatsSchema, "readStatsSchema") },
     response: {
       status: 200,
       description: "Messages accepted in the window, against the window before it, in UTC buckets. A domain-scoped key counts its domains.",
@@ -1267,6 +1270,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     auth: "Bearer key scoped to the from domain",
     request: {
       schemaName: "sendEmailSchema",
+      schema: sendEmailSchema,
       fields: fieldsFromSchema(sendEmailSchema, "sendEmailSchema"),
       note: "html or text is required; at least one must be set. Accepts an Idempotency-Key header — a repeat within 24 hours returns the original response. layout is a boolean or an object: true uses the domain's layout as configured, an object of { name, logo, accent, footer } (all optional) overrides those fields for this send only.",
     },
@@ -1295,7 +1299,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     path: "/v1/emails",
     summary: "List messages",
     auth: "Bearer key",
-    query: { schemaName: "listMessagesSchema", fields: fieldsFromSchema(listMessagesSchema, "listMessagesSchema") },
+    query: { schemaName: "listMessagesSchema", schema: listMessagesSchema, fields: fieldsFromSchema(listMessagesSchema, "listMessagesSchema") },
     response: {
       status: 200,
       description: "A page of the key's messages, newest first.",
@@ -1362,7 +1366,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     path: "/v1/events",
     summary: "Watch every message the key can see",
     auth: "Bearer key",
-    query: { schemaName: "listEventsSchema", fields: fieldsFromSchema(listEventsSchema, "listEventsSchema") },
+    query: { schemaName: "listEventsSchema", schema: listEventsSchema, fields: fieldsFromSchema(listEventsSchema, "listEventsSchema") },
     response: {
       status: 200,
       description: "text/event-stream, held open indefinitely — the client closes it, not the server.",
@@ -1376,7 +1380,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     path: "/v1/inbound",
     summary: "List inbound mail",
     auth: "Bearer key",
-    query: { schemaName: "listInboundSchema", fields: fieldsFromSchema(listInboundSchema, "listInboundSchema") },
+    query: { schemaName: "listInboundSchema", schema: listInboundSchema, fields: fieldsFromSchema(listInboundSchema, "listInboundSchema") },
     response: { status: 200, description: "A page of mail the key's domains received, newest first, while it's retained.", fields: inboundPageFields },
     errors: ["validation_failed", "key_not_scoped"],
   },
@@ -1395,6 +1399,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     auth: "Bearer live key scoped to the domain",
     request: {
       schemaName: "createAddressSchema",
+      schema: createAddressSchema,
       fields: fieldsFromSchema(createAddressSchema, "createAddressSchema"),
       note: "The domain needs inbound enabled. Mail to the address emits address.received to the creating key's endpoints. After expiry or revocation, mail is dropped silently and counted; nothing is refused or bounced.",
     },
@@ -1406,7 +1411,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     path: "/v1/addresses",
     summary: "List addresses",
     auth: "Bearer live key",
-    query: { schemaName: "listAddressesSchema", fields: fieldsFromSchema(listAddressesSchema, "listAddressesSchema") },
+    query: { schemaName: "listAddressesSchema", schema: listAddressesSchema, fields: fieldsFromSchema(listAddressesSchema, "listAddressesSchema") },
     response: { status: 200, description: "A page of the addresses on the key's domains, newest first.", fields: addressPageFields },
     errors: ["validation_failed", "key_not_scoped"],
   },
@@ -1425,6 +1430,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     auth: "Bearer live key scoped to the address's domain",
     request: {
       schemaName: "updateAddressSchema",
+      schema: updateAddressSchema,
       fields: fieldsFromSchema(updateAddressSchema, "updateAddressSchema"),
       note: "Moving an expired address's expiry forward makes it active again, within the organization's limit. A revoked address can't be edited.",
     },
@@ -1448,7 +1454,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     path: "/v1/addresses/:id/messages",
     summary: "List an address's mail",
     auth: "Bearer live key scoped to the address's domain",
-    query: { schemaName: "listAddressMessagesSchema", fields: fieldsFromSchema(listAddressMessagesSchema, "listAddressMessagesSchema") },
+    query: { schemaName: "listAddressMessagesSchema", schema: listAddressMessagesSchema, fields: fieldsFromSchema(listAddressMessagesSchema, "listAddressMessagesSchema") },
     response: {
       status: 200,
       description:
@@ -1464,6 +1470,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     auth: "Bearer live key scoped to the address's domain",
     request: {
       schemaName: "replyFromAddressSchema",
+      schema: replyFromAddressSchema,
       fields: fieldsFromSchema(replyFromAddressSchema, "replyFromAddressSchema"),
       note: "Sends from the address to the message's Reply-To, or its sender, with In-Reply-To and References set from it. Every rule of POST /v1/emails applies, Idempotency-Key included. The address has to be active.",
     },
@@ -1496,6 +1503,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     auth: "Bearer live key scoped to the address's domain",
     request: {
       schemaName: "addForwardTargetSchema",
+      schema: addForwardTargetSchema,
       fields: fieldsFromSchema(addForwardTargetSchema, "addForwardTargetSchema"),
       note: "Mails a confirmation link to the mailbox from the system from address. Nothing forwards until the mailbox confirms. A forward comes from the address, with Reply-To set to the original sender. Spam, DMARC failures and viruses never forward.",
     },
@@ -1549,7 +1557,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     path: "/v1/providers",
     summary: "List providers",
     auth: "Bearer key with no domain scope",
-    query: { schemaName: "listProvidersSchema", fields: fieldsFromSchema(listProvidersSchema, "listProvidersSchema") },
+    query: { schemaName: "listProvidersSchema", schema: listProvidersSchema, fields: fieldsFromSchema(listProvidersSchema, "listProvidersSchema") },
     response: { status: 200, description: "A page of the organization's providers, newest first.", fields: providerPageFields },
     errors: ["validation_failed", "key_not_scoped"],
   },
@@ -1566,7 +1574,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     path: "/v1/exports",
     summary: "Request an export",
     auth: "Bearer key",
-    request: { schemaName: "createExportSchema", fields: fieldsFromSchema(createExportSchema, "createExportSchema") },
+    request: { schemaName: "createExportSchema", schema: createExportSchema, fields: fieldsFromSchema(createExportSchema, "createExportSchema") },
     response: {
       status: 202,
       description: "The queued export. Poll GET /v1/exports/:id until status is ready, failed or expired.",
@@ -1580,7 +1588,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     path: "/v1/exports",
     summary: "List exports",
     auth: "Bearer key",
-    query: { schemaName: "listExportsSchema", fields: fieldsFromSchema(listExportsSchema, "listExportsSchema") },
+    query: { schemaName: "listExportsSchema", schema: listExportsSchema, fields: fieldsFromSchema(listExportsSchema, "listExportsSchema") },
     response: {
       status: 200,
       description: "A page of the organization's exports, newest first.",
@@ -1603,6 +1611,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     auth: "Bearer key with no domain scope",
     request: {
       schemaName: "importSuppressionsSchema",
+      schema: importSuppressionsSchema,
       fields: fieldsFromSchema(importSuppressionsSchema, "importSuppressionsSchema"),
       note: `Takes up to ${SUPPRESSION_IMPORT_LIMIT} rows per call as JSON, or a text/csv body with an address (or email) column and optional reason, detail and source columns, with reason and source in the query string. A CSV reason cell that isn't hard_bounce, complaint or manual (or HardBounce, SpamComplaint, bounce and similar) falls back to the default reason and is kept as the detail. Addresses are normalized the same way a send is. An address already suppressed keeps its existing row. A bad row is reported, not fatal to the rest, and the valid rows commit together.`,
     },
@@ -1614,7 +1623,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     path: "/v1/suppressions",
     summary: "List suppressions",
     auth: "Bearer key with no domain scope",
-    query: { schemaName: "listSuppressionsSchema", fields: fieldsFromSchema(listSuppressionsSchema, "listSuppressionsSchema") },
+    query: { schemaName: "listSuppressionsSchema", schema: listSuppressionsSchema, fields: fieldsFromSchema(listSuppressionsSchema, "listSuppressionsSchema") },
     response: {
       status: 200,
       description: "A page of the organization's suppressions, newest first.",
@@ -1669,7 +1678,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     path: "/v1/lists",
     summary: "Create a list",
     auth: "Bearer key",
-    request: { schemaName: "createListSchema", fields: fieldsFromSchema(createListSchema, "createListSchema") },
+    request: { schemaName: "createListSchema", schema: createListSchema, fields: fieldsFromSchema(createListSchema, "createListSchema") },
     response: { status: 201, description: "The created list.", fields: LIST_RESPONSE_FIELDS },
     errors: ["validation_failed", "not_found", "key_not_scoped"],
   },
@@ -1678,7 +1687,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     path: "/v1/lists",
     summary: "List lists",
     auth: "Bearer key",
-    query: { schemaName: "listListsSchema", fields: fieldsFromSchema(listListsSchema, "listListsSchema") },
+    query: { schemaName: "listListsSchema", schema: listListsSchema, fields: fieldsFromSchema(listListsSchema, "listListsSchema") },
     response: { status: 200, description: "A page of the organization's lists, newest first.", fields: listPageFields },
     errors: ["validation_failed"],
   },
@@ -1697,6 +1706,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     auth: "Bearer key scoped to the list's domain",
     request: {
       schemaName: "updateListSchema",
+      schema: updateListSchema,
       fields: fieldsFromSchema(updateListSchema, "updateListSchema"),
       note: "double_opt_in governs adds from here on. A membership stores the mode it was added under, so nothing already on the list changes status.",
     },
@@ -1718,6 +1728,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     auth: "Bearer key scoped to the list's domain",
     request: {
       schemaName: "addMemberSchema",
+      schema: addMemberSchema,
       fields: fieldsFromSchema(addMemberSchema, "addMemberSchema"),
       note: "A single { address, ... } JSON body adds one member and returns 201 with the membership. A { members: [...], confirmed } JSON body, or a text/csv body (a header row with an address column, an optional confirmed column and any other column becoming an attribute), imports up to 5000 at once — same header shape GET /v1/lists/:id/export writes, so a re-upload of an export round-trips. Both import forms return 200 with { imported: Membership[], added, already_present, invalid, errors: [{ line, address, message }] }, where imported holds every named membership, new or not; a bad row is reported, not fatal to the rest. Never resurrects an address that already unsubscribed.",
     },
@@ -1729,7 +1740,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     path: "/v1/lists/:id/members",
     summary: "List members",
     auth: "Bearer key scoped to the list's domain",
-    query: { schemaName: "listMembersSchema", fields: fieldsFromSchema(listMembersSchema, "listMembersSchema") },
+    query: { schemaName: "listMembersSchema", schema: listMembersSchema, fields: fieldsFromSchema(listMembersSchema, "listMembersSchema") },
     response: { status: 200, description: "A page of the list's members, newest first.", fields: membershipPageFields },
     errors: ["validation_failed", "not_found", "key_not_scoped"],
   },
@@ -1740,6 +1751,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     auth: "Bearer key scoped to the list's domain",
     request: {
       schemaName: "updateMemberSchema",
+      schema: updateMemberSchema,
       fields: fieldsFromSchema(updateMemberSchema, "updateMemberSchema"),
       note: "Replaces the attribute map outright rather than merging it, so a key left out is gone. Address, status and source aren't editable: a different address is a different member, and consent moves through the confirm and unsubscribe doors.",
     },
@@ -1785,7 +1797,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     path: "/v1/lists/:id/unsubscribe",
     summary: "Unsubscribe an address from a list",
     auth: "Bearer key scoped to the list's domain",
-    request: { schemaName: "unsubscribeAddressSchema", fields: fieldsFromSchema(unsubscribeAddressSchema, "unsubscribeAddressSchema") },
+    request: { schemaName: "unsubscribeAddressSchema", schema: unsubscribeAddressSchema, fields: fieldsFromSchema(unsubscribeAddressSchema, "unsubscribeAddressSchema") },
     response: { status: 200, description: "Confirms the unsubscribe. Emits email.unsubscribed.", fields: UNSUBSCRIBE_RESPONSE_FIELDS },
     errors: ["validation_failed", "not_found", "key_not_scoped"],
   },
@@ -1794,7 +1806,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     path: "/v1/domains/:id/unsubscribe",
     summary: "Unsubscribe an address from every list on a domain",
     auth: "Bearer key scoped to the domain",
-    request: { schemaName: "unsubscribeAddressSchema", fields: fieldsFromSchema(unsubscribeAddressSchema, "unsubscribeAddressSchema") },
+    request: { schemaName: "unsubscribeAddressSchema", schema: unsubscribeAddressSchema, fields: fieldsFromSchema(unsubscribeAddressSchema, "unsubscribeAddressSchema") },
     response: { status: 200, description: "Confirms the unsubscribe. Emits email.unsubscribed.", fields: UNSUBSCRIBE_RESPONSE_FIELDS },
     errors: ["validation_failed", "not_found", "key_not_scoped"],
   },
@@ -1805,6 +1817,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     auth: "Bearer key scoped to the from domain",
     request: {
       schemaName: "createBatchSchema",
+      schema: createBatchSchema,
       fields: fieldsFromSchema(createBatchSchema, "createBatchSchema"),
       note: "Exactly one of list or recipients. attributes are substituted into {{name}} placeholders in subject, html and text. Every message carries a service-signed List-Unsubscribe and List-Unsubscribe-Post — this route takes no headers field.",
     },
@@ -1824,7 +1837,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     path: "/v1/confirm",
     summary: "Redeem a double opt-in confirmation",
     auth: "None — the token is the credential",
-    request: { schemaName: "confirmSchema", fields: fieldsFromSchema(confirmSchema, "confirmSchema") },
+    request: { schemaName: "confirmSchema", schema: confirmSchema, fields: fieldsFromSchema(confirmSchema, "confirmSchema") },
     response: { status: 200, description: "Confirms the membership. Emits list.subscribed.", fields: CONFIRM_RESPONSE_FIELDS },
     errors: ["validation_failed", "invalid_token"],
   },
@@ -1833,7 +1846,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     path: "/v1/unsubscribe",
     summary: "Redeem an unsubscribe token",
     auth: "None, CORS-open — the redemption target for a domain's branded unsubscribe_url page",
-    request: { schemaName: "unsubscribeRedeemSchema", fields: fieldsFromSchema(unsubscribeRedeemSchema, "unsubscribeRedeemSchema") },
+    request: { schemaName: "unsubscribeRedeemSchema", schema: unsubscribeRedeemSchema, fields: fieldsFromSchema(unsubscribeRedeemSchema, "unsubscribeRedeemSchema") },
     response: {
       status: 200,
       description: "Confirms the unsubscribe. Emits email.unsubscribed.",
@@ -1849,6 +1862,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     auth: "Bearer key with no domain scope",
     request: {
       schemaName: "createKeySchema",
+      schema: createKeySchema,
       fields: fieldsFromSchema(createKeySchema, "createKeySchema"),
       note: "The secret is in this response and nowhere else. A test-mode key can only create test-mode keys, and a key limited to domains can't manage keys at all.",
     },
@@ -1860,7 +1874,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     path: "/v1/keys",
     summary: "List keys",
     auth: "Bearer key with no domain scope",
-    query: { schemaName: "listKeysSchema", fields: fieldsFromSchema(listKeysSchema, "listKeysSchema") },
+    query: { schemaName: "listKeysSchema", schema: listKeysSchema, fields: fieldsFromSchema(listKeysSchema, "listKeysSchema") },
     response: { status: 200, description: "A page of the organization's keys, newest first. Admin keys are never listed.", fields: keyPageFields },
     errors: ["validation_failed", "key_not_scoped"],
   },
@@ -1879,6 +1893,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     auth: "Bearer key with no domain scope",
     request: {
       schemaName: "updateKeySchema",
+      schema: updateKeySchema,
       fields: fieldsFromSchema(updateKeySchema, "updateKeySchema"),
       note: "Name, rate limit and domain scope. Never the secret: a leaked key is revoked and re-minted, not patched. A revoked key can't be edited.",
     },
@@ -1904,6 +1919,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     auth: "Bearer key with no domain scope",
     request: {
       schemaName: "createWebhookEndpointSchema",
+      schema: createWebhookEndpointSchema,
       fields: fieldsFromSchema(createWebhookEndpointSchema, "createWebhookEndpointSchema"),
       note: "An endpoint belongs to a key: only a send made with that key produces events for it.",
     },
@@ -1915,7 +1931,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     path: "/v1/webhook_endpoints",
     summary: "List webhook endpoints",
     auth: "Bearer key with no domain scope",
-    query: { schemaName: "listWebhookEndpointsSchema", fields: fieldsFromSchema(listWebhookEndpointsSchema, "listWebhookEndpointsSchema") },
+    query: { schemaName: "listWebhookEndpointsSchema", schema: listWebhookEndpointsSchema, fields: fieldsFromSchema(listWebhookEndpointsSchema, "listWebhookEndpointsSchema") },
     response: {
       status: 200,
       description: "A page of the organization's key-scoped endpoints, newest first. A domain's inbound endpoint isn't one of them.",
@@ -1938,6 +1954,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     auth: "Bearer key with no domain scope",
     request: {
       schemaName: "updateWebhookEndpointSchema",
+      schema: updateWebhookEndpointSchema,
       fields: fieldsFromSchema(updateWebhookEndpointSchema, "updateWebhookEndpointSchema"),
       note: "disabled: true stops delivery and keeps the endpoint. The secret is unchanged — rotate it through its own route.",
     },
@@ -1976,7 +1993,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     path: "/v1/webhook_endpoints/:id/deliveries",
     summary: "List an endpoint's deliveries",
     auth: "Bearer key with no domain scope",
-    query: { schemaName: "listWebhookDeliveriesSchema", fields: fieldsFromSchema(listWebhookDeliveriesSchema, "listWebhookDeliveriesSchema") },
+    query: { schemaName: "listWebhookDeliveriesSchema", schema: listWebhookDeliveriesSchema, fields: fieldsFromSchema(listWebhookDeliveriesSchema, "listWebhookDeliveriesSchema") },
     response: {
       status: 200,
       description: "A page of the endpoint's deliveries, newest first, without payloads unless include=payload asks.",
@@ -1997,7 +2014,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     path: "/v1/activity",
     summary: "List activity",
     auth: "Bearer key with no domain scope",
-    query: { schemaName: "listActivitySchema", fields: fieldsFromSchema(listActivitySchema, "listActivitySchema") },
+    query: { schemaName: "listActivitySchema", schema: listActivitySchema, fields: fieldsFromSchema(listActivitySchema, "listActivitySchema") },
     response: { status: 200, description: "A page of the organization's activity log, newest first.", fields: activityPageFields },
     errors: ["validation_failed", "key_not_scoped"],
   },
@@ -2024,6 +2041,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     auth: "Bearer key with no domain scope",
     request: {
       schemaName: "updateOrganizationSettingsSchema",
+      schema: updateOrganizationSettingsSchema,
       fields: fieldsFromSchema(updateOrganizationSettingsSchema, "updateOrganizationSettingsSchema"),
       note: "Lowering body_retention_days shortens how long every body stays readable, existing ones included. The slug is read-only here.",
     },
@@ -2035,7 +2053,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     path: "/v1/admin/providers",
     summary: "List every provider",
     auth: ADMIN,
-    query: { schemaName: "listAdminProvidersSchema", fields: fieldsFromSchema(listAdminProvidersSchema, "listAdminProvidersSchema") },
+    query: { schemaName: "listAdminProvidersSchema", schema: listAdminProvidersSchema, fields: fieldsFromSchema(listAdminProvidersSchema, "listAdminProvidersSchema") },
     response: { status: 200, description: "A page of providers, newest first. An organization's own row on a shared provider is an assignment, not a provider, and isn't listed.", fields: adminProviderPageFields },
     errors: [...ADMIN_ERRORS, "validation_failed"],
   },
@@ -2046,6 +2064,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     auth: ADMIN,
     request: {
       schemaName: "createAdminProviderSchema",
+      schema: createAdminProviderSchema,
       fields: fieldsFromSchema(createAdminProviderSchema, "createAdminProviderSchema"),
       note: "Credentials are checked live first. A shareable adapter belongs to the service and runs its setup before responding.",
     },
@@ -2071,6 +2090,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     auth: ADMIN,
     request: {
       schemaName: "patchAdminProviderSchema",
+      schema: patchAdminProviderSchema,
       fields: fieldsFromSchema(patchAdminProviderSchema, "patchAdminProviderSchema"),
       note: "New credentials are checked live before they replace the old ones. On a shared provider they replace every organization's copy too.",
     },
@@ -2153,6 +2173,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     auth: ADMIN,
     request: {
       schemaName: "adoptDomainSchema",
+      schema: adoptDomainSchema,
       fields: fieldsFromSchema(adoptDomainSchema, "adoptDomainSchema"),
       note: "Tags the provider's existing domain for the organization and attaches it, keeping its signing keys, so the domain never stops sending. POST /v1/domains answers domain_unavailable for the same name: adoption is admin-only. An identity tagged for another organization stays refused.",
     },
@@ -2178,7 +2199,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     path: "/v1/admin/providers/:id/organizations",
     summary: "List a provider's organizations",
     auth: ADMIN,
-    query: { schemaName: "listProviderOrganizationsSchema", fields: fieldsFromSchema(listProviderOrganizationsSchema, "listProviderOrganizationsSchema") },
+    query: { schemaName: "listProviderOrganizationsSchema", schema: listProviderOrganizationsSchema, fields: fieldsFromSchema(listProviderOrganizationsSchema, "listProviderOrganizationsSchema") },
     response: { status: 200, description: "A page of assignments, newest first.", fields: assignmentPageFields },
     errors: [...ADMIN_ERRORS, "not_found", "validation_failed"],
   },
@@ -2189,6 +2210,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     auth: ADMIN,
     request: {
       schemaName: "assignOrganizationSchema",
+      schema: assignOrganizationSchema,
       fields: fieldsFromSchema(assignOrganizationSchema, "assignOrganizationSchema"),
       note: "Makes no provider call: the organization's space at the provider is created when it adds its first domain. Assigning again returns the same assignment.",
     },
@@ -2216,7 +2238,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     path: "/v1/admin/organizations",
     summary: "List every organization",
     auth: ADMIN,
-    query: { schemaName: "listAdminOrganizationsSchema", fields: fieldsFromSchema(listAdminOrganizationsSchema, "listAdminOrganizationsSchema") },
+    query: { schemaName: "listAdminOrganizationsSchema", schema: listAdminOrganizationsSchema, fields: fieldsFromSchema(listAdminOrganizationsSchema, "listAdminOrganizationsSchema") },
     response: { status: 200, description: "A page of organizations, newest first.", fields: adminOrganizationPageFields },
     errors: [...ADMIN_ERRORS, "validation_failed"],
   },
@@ -2233,7 +2255,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     path: "/v1/admin/organizations/:id",
     summary: "Set an organization's default provider",
     auth: ADMIN,
-    request: { schemaName: "patchAdminOrganizationSchema", fields: fieldsFromSchema(patchAdminOrganizationSchema, "patchAdminOrganizationSchema") },
+    request: { schemaName: "patchAdminOrganizationSchema", schema: patchAdminOrganizationSchema, fields: fieldsFromSchema(patchAdminOrganizationSchema, "patchAdminOrganizationSchema") },
     response: { status: 200, description: "The updated organization.", fields: ADMIN_ORGANIZATION_FIELDS },
     errors: [...ADMIN_ERRORS, "validation_failed", "not_found"],
   },
@@ -2262,6 +2284,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     auth: ADMIN,
     request: {
       schemaName: "suspendOrganizationSchema",
+      schema: suspendOrganizationSchema,
       fields: fieldsFromSchema(suspendOrganizationSchema, "suspendOrganizationSchema"),
       note: "A manual suspension: new sends are refused and queued mail fails. An existing suspension is kept as it is.",
     },
@@ -2283,6 +2306,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     auth: ADMIN,
     request: {
       schemaName: "createAdminOrganizationSchema",
+      schema: createAdminOrganizationSchema,
       fields: fieldsFromSchema(createAdminOrganizationSchema, "createAdminOrganizationSchema"),
       note: "The key's creator becomes the owner, and the organization is assigned the default provider when one is set.",
     },
@@ -2294,7 +2318,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     path: "/v1/admin/organizations/:id/members",
     summary: "List an organization's members",
     auth: ADMIN,
-    query: { schemaName: "listMembershipsSchema", fields: fieldsFromSchema(listMembershipsSchema, "listMembershipsSchema") },
+    query: { schemaName: "listMembershipsSchema", schema: listMembershipsSchema, fields: fieldsFromSchema(listMembershipsSchema, "listMembershipsSchema") },
     response: { status: 200, description: "A page of members, oldest first.", fields: memberPageFields },
     errors: [...ADMIN_ERRORS, "validation_failed", "not_found"],
   },
@@ -2303,7 +2327,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     path: "/v1/admin/organizations/:id/members/:userId",
     summary: "Change a member's role",
     auth: ADMIN,
-    request: { schemaName: "patchMembershipSchema", fields: fieldsFromSchema(patchMembershipSchema, "patchMembershipSchema") },
+    request: { schemaName: "patchMembershipSchema", schema: patchMembershipSchema, fields: fieldsFromSchema(patchMembershipSchema, "patchMembershipSchema") },
     response: { status: 200, description: "The member, with the new role.", fields: MEMBER_RESPONSE_FIELDS },
     errors: [...ADMIN_ERRORS, "validation_failed", "not_found"],
   },
@@ -2327,6 +2351,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     auth: ADMIN,
     request: {
       schemaName: "createInvitationSchema",
+      schema: createInvitationSchema,
       fields: fieldsFromSchema(createInvitationSchema, "createInvitationSchema"),
       note: "Mails a one-time link that expires in 7 days. An address already in the organization, or already holding a live invitation to it, is refused — resend or revoke that one instead. An address that already has an account joins it rather than getting a second account. 503 provider_unavailable when the system from address isn't set up; nothing is created.",
     },
@@ -2338,7 +2363,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     path: "/v1/admin/organizations/:id/invitations",
     summary: "List an organization's invitations",
     auth: ADMIN,
-    query: { schemaName: "listInvitationsSchema", fields: fieldsFromSchema(listInvitationsSchema, "listInvitationsSchema") },
+    query: { schemaName: "listInvitationsSchema", schema: listInvitationsSchema, fields: fieldsFromSchema(listInvitationsSchema, "listInvitationsSchema") },
     response: { status: 200, description: "A page of invitations, newest first.", fields: invitationPageFields },
     errors: [...ADMIN_ERRORS, "validation_failed", "not_found"],
   },
@@ -2372,7 +2397,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     path: "/v1/admin/users",
     summary: "List accounts",
     auth: ADMIN,
-    query: { schemaName: "listAdminUsersSchema", fields: fieldsFromSchema(listAdminUsersSchema, "listAdminUsersSchema") },
+    query: { schemaName: "listAdminUsersSchema", schema: listAdminUsersSchema, fields: fieldsFromSchema(listAdminUsersSchema, "listAdminUsersSchema") },
     response: { status: 200, description: "A page of accounts, newest first.", fields: accountPageFields },
     errors: [...ADMIN_ERRORS, "validation_failed"],
   },
@@ -2391,6 +2416,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
     auth: ADMIN,
     request: {
       schemaName: "patchAdminUserSchema",
+      schema: patchAdminUserSchema,
       fields: fieldsFromSchema(patchAdminUserSchema, "patchAdminUserSchema"),
       note: "Revoking revokes the admin keys this account created, including the one making the call. The last admin can't be demoted.",
     },
@@ -2419,7 +2445,8 @@ function withShapeQuery(route: RouteSpec): RouteSpec {
   const errors: ErrorCode[] = route.errors.includes("validation_failed") ? route.errors : ["validation_failed", ...route.errors];
   if (route.query) return { ...route, errors };
   const schemaName = `${shape.resource} fields`;
-  return { ...route, query: { schemaName, fields: fieldsFromSchema(shapeQuerySchema(shape), schemaName) }, errors };
+  const schema = shapeQuerySchema(shape);
+  return { ...route, query: { schemaName, schema, fields: fieldsFromSchema(schema, schemaName) }, errors };
 }
 
 /** A route an optional feature owns answers `feature_disabled` while it's off. */
@@ -2429,8 +2456,3 @@ function withFeature(route: RouteSpec): RouteSpec {
 }
 
 export const ROUTES: RouteSpec[] = DECLARED_ROUTES.map(withShapeQuery).map(withFeature);
-
-/** A route's anchor on /reference. */
-export function routeAnchor(route: Pick<RouteSpec, "method" | "path">): string {
-  return `${route.method.toLowerCase()}-${route.path.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "")}`;
-}
