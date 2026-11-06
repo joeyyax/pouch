@@ -1,4 +1,5 @@
 import { baseUrl } from "@/lib/api/urls";
+import type { SmtpEndpoint } from "@/lib/dashboard/views/smtp";
 
 /** Stands in for a key's secret in an example. */
 export const KEY_PLACEHOLDER = "$KEY";
@@ -28,9 +29,9 @@ export function readExample(secret: string, path: string): string {
 
 /** One tab of a runnable example. */
 export interface SnippetLanguage {
-  id: "curl" | "typescript";
+  id: "curl" | "typescript" | "smtp-env" | "email-url" | "grafana";
   label: string;
-  language: "bash" | "typescript";
+  language: "bash" | "ini" | "typescript";
   code: string;
 }
 
@@ -64,4 +65,43 @@ export function messageReadSnippets(secret: string, id: string, withBody = false
   const path = `/v1/emails/${id}${withBody ? "?include=body" : ""}`;
   const call = withBody ? `await pouch.emails.get(${JSON.stringify(id)}, { include: ["body"] });` : `await pouch.emails.get(${JSON.stringify(id)});`;
   return [curl(readExample(secret, path)), typescript(secret, [`const message = ${call}`])];
+}
+
+function env(id: SnippetLanguage["id"], label: string, lines: string[]): SnippetLanguage {
+  return { id, label, language: "ini", code: lines.join("\n") };
+}
+
+function userinfo(value: string): string {
+  return value === KEY_PLACEHOLDER ? value : encodeURIComponent(value);
+}
+
+/** A key's SMTP settings as env lines: a generic block, `EMAIL_URL` and Grafana's `GF_SMTP_*`. */
+export function smtpSnippets(
+  endpoint: SmtpEndpoint & { host: string },
+  username: string,
+  secret: string,
+  from: string,
+): SnippetLanguage[] {
+  const { host, port } = endpoint;
+  const starttls = endpoint.tls === "starttls";
+  return [
+    env("smtp-env", "Env", [
+      `SMTP_HOST=${host}`,
+      `SMTP_PORT=${port}`,
+      `SMTP_USER=${username}`,
+      `SMTP_PASSWORD=${secret}`,
+      `SMTP_FROM=${from}`,
+    ]),
+    env("email-url", "EMAIL_URL", [
+      `EMAIL_URL=${starttls ? "smtp+tls" : "smtp"}://${userinfo(username)}:${userinfo(secret)}@${host}:${port}`,
+    ]),
+    env("grafana", "Grafana", [
+      "GF_SMTP_ENABLED=true",
+      `GF_SMTP_HOST=${host}:${port}`,
+      `GF_SMTP_USER=${username}`,
+      `GF_SMTP_PASSWORD=${secret}`,
+      `GF_SMTP_FROM_ADDRESS=${from}`,
+      `GF_SMTP_STARTTLS_POLICY=${starttls ? "MandatoryStartTLS" : "NoStartTLS"}`,
+    ]),
+  ];
 }

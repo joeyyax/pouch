@@ -24,6 +24,7 @@ import { Time } from "../_ui/time";
 import { RoleGate } from "../_ui/role-gate";
 import { createKeyAction, type CreatedKey, type CreateKeyState } from "./actions";
 import { DomainScopeField } from "./domain-scope-field";
+import { SmtpDetails } from "./smtp-details";
 import { keepValues } from "../_ui/keep-values";
 import { INACTIVE_ROW, settled } from "../_ui/inactive";
 import { formatNumber } from "@/lib/format/number";
@@ -340,6 +341,10 @@ function CreatedPanel({ created, onClose }: { created: CreatedKey; onClose: () =
         onClose={onClose}
       >
         <FirstSend created={created} />
+        <div className="flex flex-col gap-2">
+          <p className="type-label text-muted-foreground">Over SMTP</p>
+          <SmtpDetails smtp={created.smtp} keyId={created.id} secret={created.secret} newTab />
+        </div>
       </SecretReveal>
     </>
   );
@@ -379,7 +384,7 @@ function FirstSend({ created }: { created: CreatedKey }) {
   return (
     <div className="flex flex-col gap-2">
       <p className="type-label text-muted-foreground">First send</p>
-      <Snippet languages={created.send} />
+      <Snippet languages={created.send} reference={null} />
       <p className="type-body-sm text-foreground-soft">
         Swap in your own address and run it, or send a test from{" "}
         <Link href={`/domains/${from.id}/sending`} {...nextTab}>

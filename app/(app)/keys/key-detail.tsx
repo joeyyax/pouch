@@ -32,7 +32,9 @@ import { useTimeZone } from "../_ui/time-zone";
 import { useAction } from "../_ui/use-action";
 import { RoleGate } from "../_ui/role-gate";
 import { revokeKeyAction, updateKeyAction } from "./actions";
+import type { KeySmtp } from "@/lib/dashboard/views/smtp";
 import { WebhookEndpoints } from "./webhook-endpoints";
+import { SmtpDetails } from "./smtp-details";
 import { DomainScopeField } from "./domain-scope-field";
 import { keepValues } from "../_ui/keep-values";
 import { formatNumber } from "@/lib/format/number";
@@ -44,12 +46,14 @@ export function KeyDetail({
   endpoints,
   deliveriesByEndpoint,
   domainOptions,
+  smtp,
   canManage,
 }: {
   apiKey: KeyDetailData;
   endpoints: WebhookEndpointView[];
   deliveriesByEndpoint: Record<string, WebhookDeliveryView[]>;
   domainOptions: KeyDomainOption[];
+  smtp: KeySmtp;
   canManage: boolean;
 }) {
   const zone = useTimeZone();
@@ -224,7 +228,15 @@ export function KeyDetail({
         </Card>
 
         {!apiKey.revokedAt ? (
-          <WebhookEndpoints apiKeyId={apiKey.id} endpoints={endpoints} deliveriesByEndpoint={deliveriesByEndpoint} canManage={canManage} />
+          <>
+            <Card className="p-5">
+              <SectionHeader title="SMTP" description="For software that only speaks SMTP." />
+              <div className="mt-4">
+                <SmtpDetails smtp={smtp} keyId={apiKey.id} secret={null} />
+              </div>
+            </Card>
+            <WebhookEndpoints apiKeyId={apiKey.id} endpoints={endpoints} deliveriesByEndpoint={deliveriesByEndpoint} canManage={canManage} />
+          </>
         ) : null}
       </div>
 

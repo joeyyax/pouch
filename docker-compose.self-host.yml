@@ -97,6 +97,8 @@ services:
       SPAMHAUS_DQS_KEY: ${SPAMHAUS_DQS_KEY:-}
       STORAGE_ASSETS_BUCKET: ${STORAGE_ASSETS_BUCKET:-}
       STORAGE_ASSETS_BASE_URL: ${STORAGE_ASSETS_BASE_URL:-}
+      # The SMTP host the key pages name. Unset, they say it isn't set.
+      SMTP_TLS_HOST: ${SMTP_TLS_HOST:-}
       ADMIN_EMAIL: ${ADMIN_EMAIL}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
       ADMIN_NAME: ${ADMIN_NAME:-}

@@ -3,6 +3,8 @@ import { requireOrganization, sessionActor } from "@/lib/dashboard/session";
 import { canWriteInOrganization } from "@/lib/auth/permissions";
 import { listDomainOptions } from "@/lib/dashboard/domain-options";
 import { readKey } from "@/lib/dashboard/keys";
+import { KEY_PLACEHOLDER } from "@/lib/dashboard/curl";
+import { keySmtp } from "@/lib/dashboard/smtp";
 import { listDeliveries, listEndpointViews } from "@/lib/dashboard/webhooks";
 import { KeyDetail } from "../key-detail";
 
@@ -28,6 +30,7 @@ export default async function KeyPage({ params }: { params: Promise<{ id: string
       endpoints={endpoints}
       deliveriesByEndpoint={deliveriesByEndpoint}
       domainOptions={domainOptions}
+      smtp={keySmtp(apiKey, KEY_PLACEHOLDER, domainOptions)}
       canManage={canWriteInOrganization(session.role)}
     />
   );
