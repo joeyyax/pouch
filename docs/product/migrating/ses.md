@@ -115,7 +115,7 @@ Export Pouch's own list from the suppressions screen with **Export**, or page th
 
 ## SMTP
 
-For anything that only speaks SMTP, swap SES's SMTP endpoint and per-region credentials for Pouch's ingress: STARTTLS on port 587, `AUTH PLAIN` with the key id (`key_…`) as username and the key as password. One endpoint regardless of which region your SES account lives in. Reply codes and detail: the API reference's SMTP section.
+For anything that only speaks SMTP, swap SES's SMTP endpoint and per-region credentials for Pouch's ingress: STARTTLS on port 587, `AUTH PLAIN` with the key id (`key_…`) as username and the key as password. One endpoint regardless of which region your SES account lives in. Reply codes and detail: the SMTP guide at pouch.email/docs/smtp.
 
 ## Cutover checklist
 

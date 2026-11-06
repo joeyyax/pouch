@@ -1,6 +1,7 @@
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { NextConfig } from "next";
+import { REFERENCE_URL } from "./lib/api-docs/links";
 
 const root = dirname(fileURLToPath(import.meta.url));
 
@@ -18,6 +19,10 @@ const nextConfig: NextConfig = {
   // The public API is `/v1/*`; the handlers live under the `/api/v1` route class.
   async rewrites() {
     return [{ source: "/v1/:path*", destination: "/api/v1/:path*" }];
+  },
+
+  async redirects() {
+    return [{ source: "/reference", destination: REFERENCE_URL, permanent: false }];
   },
 };
 

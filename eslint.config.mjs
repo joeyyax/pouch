@@ -81,5 +81,5 @@ export default defineConfig([
   // every one of them and the suite fails on generated code.
   // The Cloudflare Queue consumer Worker is a separate deployable with its own tsconfig and
   // Workers-runtime globals; it isn't part of this Next.js program.
-  globalIgnores([".next/**", "out/**", "build/**", "drizzle/**", "next-env.d.ts", ".claude/**", "cloudflare/**"]),
+  globalIgnores([".next/**", "out/**", "build/**", "drizzle/**", "next-env.d.ts", ".claude/**", "cloudflare/**", "docs-site/**"]),
 ]);

@@ -40,7 +40,19 @@ lib/
   worker/          what loops are built from: IntervalLoop for sweeps, rollingPass for queues that wait on others
 worker/            the loops the worker runs; talks to the app only through Postgres and Redis
 docs/              product, API and engineering docs
+docs-site/         pouch.email/docs: Fumadocs, built into the site image (site/README.md)
+site/              pouch.email's landing page and the Caddy image that serves it and the docs
 ```
+
+## API docs
+
+`lib/api-docs/spec.ts` is the source: each route's request and query zod schemas, response fields and errors. Everything else reads it.
+
+- `/openapi.json` on every install (`lib/api-docs/openapi.ts`), with the install's `APP_URL` as its server. `tests/unit/openapi.test.ts` holds it to the spec and the handlers under `app/api/v1`.
+- pouch.email/docs/reference, rendered by fumadocs-openapi from the same document with the server left as a variable the reader fills in.
+- `/llms.txt`, `/llms-full.txt` and the MCP tools.
+
+`lib/api-docs/links.ts` maps a route to its docs page. The app's `/reference` redirects to the docs site.
 
 ## Setup
 
