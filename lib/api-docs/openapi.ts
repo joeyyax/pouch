@@ -164,7 +164,7 @@ export function openApiDocument(serverUrl?: string): Schema {
     paths,
     components: {
       securitySchemes: {
-        bearer: { type: "http", scheme: "bearer", description: "An API key: Authorization: Bearer <key>." },
+        bearer: { type: "http", scheme: "bearer", description: "An API key in the Authorization header." },
       },
       schemas: {
         Error: {

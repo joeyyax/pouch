@@ -1,0 +1,74 @@
+@import "tailwindcss";
+@import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/preset.css";
+@import "fumadocs-openapi/css/preset.css";
+
+/* Pouch's tokens, from site/assets/pouch.css. */
+@theme {
+  --font-sans: var(--font-instrument), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, monospace;
+
+  --color-fd-background: oklch(97.6% 0.0035 265);
+  --color-fd-foreground: oklch(23.5% 0.073 271);
+  --color-fd-muted: oklch(95% 0.012 275);
+  --color-fd-muted-foreground: oklch(52.5% 0.035 273);
+  --color-fd-popover: oklch(100% 0 0);
+  --color-fd-popover-foreground: oklch(23.5% 0.073 271);
+  --color-fd-card: oklch(100% 0 0);
+  --color-fd-card-foreground: oklch(23.5% 0.073 271);
+  --color-fd-border: oklch(91% 0.014 285);
+  --color-fd-primary: oklch(44% 0.165 280);
+  --color-fd-primary-foreground: oklch(100% 0 0);
+  --color-fd-secondary: oklch(95% 0.012 275);
+  --color-fd-secondary-foreground: oklch(23.5% 0.073 271);
+  --color-fd-accent: oklch(94.5% 0.026 285);
+  --color-fd-accent-foreground: oklch(37.5% 0.14 281);
+  --color-fd-ring: oklch(44% 0.165 280);
+}
+
+.dark {
+  --color-fd-background: oklch(16.2% 0.021 275);
+  --color-fd-foreground: oklch(95.7% 0.015 278);
+  --color-fd-muted: oklch(24% 0.035 275);
+  --color-fd-muted-foreground: oklch(66.1% 0.042 276);
+  --color-fd-popover: oklch(20.4% 0.026 274);
+  --color-fd-popover-foreground: oklch(95.7% 0.015 278);
+  --color-fd-card: oklch(20.4% 0.026 274);
+  --color-fd-card-foreground: oklch(95.7% 0.015 278);
+  --color-fd-border: oklch(28.2% 0.048 276);
+  --color-fd-primary: oklch(75% 0.11 283);
+  --color-fd-primary-foreground: oklch(16.2% 0.021 275);
+  --color-fd-secondary: oklch(24% 0.035 275);
+  --color-fd-secondary-foreground: oklch(95.7% 0.015 278);
+  --color-fd-accent: oklch(27% 0.065 282);
+  --color-fd-accent-foreground: oklch(75% 0.11 283);
+  --color-fd-ring: oklch(65% 0.155 281);
+}
+
+.dark #nd-sidebar {
+  --color-fd-muted: oklch(24% 0.035 275);
+  --color-fd-secondary: oklch(24% 0.035 275);
+  --color-fd-muted-foreground: oklch(66.1% 0.042 276);
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+html > body[data-scroll-locked] {
+  margin-right: 0px !important;
+  --removed-body-scroll-bar-size: 0px !important;
+}
+
+h1,
+.prose h2,
+.prose h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+h1 {
+  font-weight: 750;
+  letter-spacing: -0.03em;
+}
