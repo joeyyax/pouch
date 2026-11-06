@@ -205,6 +205,7 @@ export async function checkStorage(timeoutMs = 2000, bucket: () => string = stor
     return { ok: true, detail: null };
   } catch (err) {
     const status = (err as { $metadata?: { httpStatusCode?: number } })?.$metadata?.httpStatusCode ?? 0;
+    log.warn(`storage check failed (status ${status}): ${safeErrorMessage(err)}`);
     if (status === 403) return { ok: false, detail: "Credentials were rejected." };
     if (status === 404) return { ok: false, detail: "Bucket not found." };
     return { ok: false, detail: "Storage endpoint unreachable." };

@@ -927,15 +927,15 @@ The dashboard shows what's going out and whether it's running smoothly. A health
 
 ## A health check changing state pushes once, from the worker
 
-`HealthWatchLoop` (`worker/health-watch.ts`) runs the registry every `WORKER_HEALTH_WATCH_INTERVAL_MS` (60 s) and calls `watchChecks` (`lib/health/watch.ts`). A check that starts failing pushes once, a recovery pushes once and a check that keeps its state pushes nothing. The last state of each check lives in Redis, with a process copy for when Redis is the failing check, and one replica runs a pass per interval.
+`HealthWatchLoop` (`worker/health-watch.ts`) runs the registry every `WORKER_HEALTH_WATCH_INTERVAL_MS` (60 s) and calls `watchChecks` (`lib/health/watch.ts`). A check pushes once on its second failing pass in a row, a recovery pushes once and a check that keeps its state pushes nothing. The last state of each check lives in Redis, with a process copy for when Redis is the failing check, and one replica runs a pass per interval.
 
 **Why the worker:** the app is stateless and multi-instance, so a timer there would push once per instance. The worker already owns the slow loops.
 
-**Why these rules:** a check seen for the first time pushes only if it's failing, so a restart into a healthy service is silent and a restart into an outage isn't. The state is written before the push, so a push that fails is logged and never repeated. The `worker` check is left out: it reads the heartbeat of the process running the watcher, and a Redis restart would make it flap for one beat interval.
+**Why these rules:** one failing pass stays silent because a blip that clears by the next pass isn't worth two pushes. An outage pushes up to a minute later for it. A check seen for the first time counts as passing, so a restart into a healthy service is silent and a restart into an outage pushes on the second pass. The state is written before the push, so a push that fails is logged and never repeated. The shared hash holds only `ok` and `failing`, with one-pass failures in their own set, so the release still running mid-deploy reads it the way it always has. The `worker` check is left out: it reads the heartbeat of the process running the watcher, and a Redis restart would make it flap for one beat interval.
 
 **Not a duplicate:** the existing pushes cover provider quota, reputation and findings, and the email alert covers a provider backing off for 30 minutes. None fires when a registry check fails, so a down Postgres, Redis, storage bucket or provider in use had no alert.
 
-**Revisit when** a check flaps often enough to be noise: require two failing passes before the first push.
+**Revisit when** a check that fails for one pass at a time turns out to be a real problem nobody heard about.
 
 ## Job heartbeats are rows in Postgres, and a run that threw reads failing
 

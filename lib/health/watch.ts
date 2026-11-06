@@ -1,7 +1,7 @@
 /**
- * Pushes to ntfy when a registered check changes state: once when it starts failing, once when
- * it recovers, nothing in between. Push is the channel because the mail that would carry an
- * alert is what's down (docs/engineering.md).
+ * Pushes to ntfy when a registered check changes state: once on its second failing pass in a row,
+ * once when it recovers, nothing in between. Push is the channel because the mail that would carry
+ * an alert is what's down (docs/engineering.md).
  */
 import { baseUrl } from "@/lib/api/urls";
 import { logger } from "@/lib/logger";
@@ -12,12 +12,13 @@ import { safeErrorMessage } from "@/lib/errors/scrub";
 
 const log = logger.child("health:watch");
 
-export type CheckState = "ok" | "failing";
+/** `suspect`: one failing pass, not announced. */
+export type CheckState = "ok" | "suspect" | "failing";
 
 export interface HealthTransition {
   check: string;
   critical: boolean;
-  to: CheckState;
+  to: "ok" | "failing";
   detail: string | null;
 }
 
@@ -27,18 +28,30 @@ export interface WatchStore {
   write: (state: Record<string, CheckState>) => Promise<void>;
 }
 
+function nextState(previous: CheckState, ok: boolean): CheckState {
+  if (ok) return "ok";
+  return previous === "ok" ? "suspect" : "failing";
+}
+
 /**
- * A check seen for the first time announces only if it's failing: a worker booting into an
- * outage is news, one booting into a healthy service isn't.
+ * The state each check moves to, and what's worth announcing. A check seen for the first time
+ * counts as ok, so booting into an outage announces on the second pass and booting healthy never.
  */
-export function transitionsOf(previous: Record<string, CheckState>, checks: Record<string, CheckReport>): HealthTransition[] {
-  const found: HealthTransition[] = [];
+function advance(
+  previous: Record<string, CheckState>,
+  checks: Record<string, CheckReport>,
+): { state: Record<string, CheckState>; transitions: HealthTransition[] } {
+  const state: Record<string, CheckState> = {};
+  const transitions: HealthTransition[] = [];
   for (const [check, report] of Object.entries(checks)) {
-    const to: CheckState = report.ok ? "ok" : "failing";
     const from = previous[check] ?? "ok";
-    if (from !== to) found.push({ check, critical: report.critical, to, detail: report.detail });
+    const to = nextState(from, report.ok);
+    state[check] = to;
+    if ((from === "suspect" && to === "failing") || (from === "failing" && to === "ok")) {
+      transitions.push({ check, critical: report.critical, to, detail: report.detail });
+    }
   }
-  return found;
+  return { state, transitions };
 }
 
 export async function pushTransition(transition: HealthTransition): Promise<void> {
@@ -61,17 +74,39 @@ export async function watchChecks(
   checks: Record<string, CheckReport>,
   push: (transition: HealthTransition) => Promise<void> = pushTransition,
 ): Promise<HealthTransition[]> {
-  const previous = await store.read();
-  const found = transitionsOf(previous, checks);
-  await store.write(Object.fromEntries(Object.entries(checks).map(([check, report]) => [check, report.ok ? "ok" : "failing"])));
-  for (const transition of found) {
+  const { state, transitions } = advance(await store.read(), checks);
+  await store.write(state);
+  for (const transition of transitions) {
     await push(transition).catch((err: Error) => log.warn(`push for ${transition.check} failed: ${safeErrorMessage(err)}`));
   }
-  return found;
+  return transitions;
 }
 
 const STATE_KEY = "health:watch:state";
+const SUSPECT_KEY = "health:watch:suspect";
 const memory: { state: Record<string, CheckState> } = { state: {} };
+
+/**
+ * `STATE_KEY` keeps only `ok` and `failing`, so a release from before `suspect` still reads it
+ * correctly mid-deploy. Suspicion lives in its own set.
+ */
+export function toStored(state: Record<string, CheckState>): { state: Record<string, "ok" | "failing">; suspect: string[] } {
+  const stored: Record<string, "ok" | "failing"> = {};
+  const suspect: string[] = [];
+  for (const [check, value] of Object.entries(state)) {
+    stored[check] = value === "failing" ? "failing" : "ok";
+    if (value === "suspect") suspect.push(check);
+  }
+  return { state: stored, suspect };
+}
+
+export function fromStored(stored: Record<string, string>, suspect: string[]): Record<string, CheckState> {
+  const state: Record<string, CheckState> = {};
+  for (const [check, value] of Object.entries(stored)) {
+    state[check] = value === "failing" ? "failing" : suspect.includes(check) ? "suspect" : "ok";
+  }
+  return state;
+}
 
 /**
  * Redis holds the state so replicas share one view; the process copy covers Redis being down,
@@ -80,8 +115,11 @@ const memory: { state: Record<string, CheckState> } = { state: {} };
 export const watchStore: WatchStore = {
   async read() {
     try {
-      const stored = (await redis()?.hgetall(STATE_KEY)) as Record<string, CheckState> | undefined;
-      if (stored && Object.keys(stored).length > 0) return stored;
+      const client = redis();
+      if (client) {
+        const [stored, suspect] = await Promise.all([client.hgetall(STATE_KEY), client.smembers(SUSPECT_KEY)]);
+        if (Object.keys(stored).length > 0) return fromStored(stored, suspect);
+      }
     } catch (err) {
       log.warn(`reading the watch state failed: ${safeErrorMessage(err)}`);
     }
@@ -91,7 +129,11 @@ export const watchStore: WatchStore = {
     memory.state = state;
     try {
       const client = redis();
-      if (client) await client.multi().del(STATE_KEY).hset(STATE_KEY, state).exec();
+      if (!client) return;
+      const stored = toStored(state);
+      const tx = client.multi().del(STATE_KEY).hset(STATE_KEY, stored.state).del(SUSPECT_KEY);
+      if (stored.suspect.length > 0) tx.sadd(SUSPECT_KEY, ...stored.suspect);
+      await tx.exec();
     } catch (err) {
       log.warn(`storing the watch state failed: ${safeErrorMessage(err)}`);
     }
