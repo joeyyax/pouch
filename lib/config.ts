@@ -151,7 +151,7 @@ export const CONFIG_VARS: ConfigVar[] = [
   { name: "ORGANIZATION_CREATION", category: "optional", processes: ["app"], effect: "Admin settings → Access decides, open by default" },
   { name: "SMTP_TLS_CERT_PATH", category: "optional", processes: ["smtp"], effect: "SMTP has no certificate, so AUTH is off in production" },
   { name: "SMTP_TLS_KEY_PATH", category: "optional", processes: ["smtp"], effect: "SMTP has no certificate, so AUTH is off in production" },
-  { name: "SMTP_TLS_HOST", category: "optional", processes: ["smtp"], effect: "SMTP greets with the container's hostname" },
+  { name: "SMTP_TLS_HOST", category: "optional", processes: ["app", "smtp"], effect: "SMTP greets with the container's hostname and key pages name no SMTP host" },
   { name: "SMTP_IMPLICIT_TLS_PORT", category: "optional", processes: ["smtp"], effect: "implicit TLS (465) is off" },
 
   // Defaults
@@ -186,7 +186,7 @@ export const CONFIG_VARS: ConfigVar[] = [
   { name: "DATABASE_POOL_MAX", category: "optional", processes: SERVICES, effect: "each process holds up to 10 Postgres connections" },
 
   // SMTP tuning
-  { name: "SMTP_SUBMISSION_PORT", category: "optional", processes: ["smtp"], effect: "defaults to 587" },
+  { name: "SMTP_SUBMISSION_PORT", category: "optional", processes: ["app", "smtp"], effect: "defaults to 587" },
   { name: "SMTP_HEALTH_PORT", category: "optional", processes: ["smtp"], effect: "defaults to 3102" },
   { name: "SMTP_MAX_CLIENTS", category: "optional", processes: ["smtp"], effect: "defaults to 100" },
   { name: "SMTP_MAX_MESSAGE_BYTES", category: "optional", processes: ["smtp"], effect: "defaults to 30 MB" },

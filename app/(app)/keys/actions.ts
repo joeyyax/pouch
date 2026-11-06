@@ -6,6 +6,8 @@ import { ApiError } from "@/lib/api/errors";
 import { recordActivity } from "@/lib/activity/record";
 import { sendSnippets, type SnippetLanguage } from "@/lib/dashboard/curl";
 import { listDomainOptions } from "@/lib/dashboard/domain-options";
+import { keySmtp } from "@/lib/dashboard/smtp";
+import type { KeySmtp } from "@/lib/dashboard/views/smtp";
 import { createKey, revokeKey, updateKey, type KeyCaller } from "@/lib/keys";
 import { createKeySchema, updateKeySchema } from "@/lib/schemas/key";
 import { requireOrganization, requireOrganizationWrite, sessionActor } from "@/lib/dashboard/session";
@@ -77,6 +79,7 @@ export interface CreatedKey {
   sendFrom: { id: string; name: string; verified: boolean } | null;
   /** A first send with this key from `sendFrom`. Null unless that domain is verified. */
   send: SnippetLanguage[] | null;
+  smtp: KeySmtp;
 }
 
 export type CreateKeyState = ActionState | { status: "created"; key: CreatedKey };
@@ -116,6 +119,7 @@ export async function createKeyAction(_previous: CreateKeyState, form: FormData)
         secret: minted.secret,
         sendFrom,
         send: sendFrom?.verified ? sendSnippets(minted.secret, sendFrom.name) : null,
+        smtp: keySmtp({ id: minted.id, domainIds: minted.domain_ids }, minted.secret, options),
       },
     };
   } catch (error) {

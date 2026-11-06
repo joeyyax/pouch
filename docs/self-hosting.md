@@ -47,6 +47,8 @@ Dashboard search runs on Postgres. For typo-tolerant matches, point `MEILISEARCH
 
 A host that can open 465 turns on implicit TLS with `SMTP_IMPLICIT_TLS_PORT` and publishes that port too.
 
+The key pages show `SMTP_TLS_HOST` as the host to connect to. Unset, they say the install hasn't named one.
+
 ## The image
 
 It ships full `node_modules` rather than Next's `output: standalone`, because `scripts/migrate.ts` and `worker/index.ts` run through `tsx` at runtime. It's a bigger image than it could be; it's also the one that boots the worker and the migrations with no build-time tracing to get wrong.

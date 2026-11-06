@@ -19,7 +19,22 @@ function Example({ language }: { language: SnippetLanguage }) {
 }
 
 /** A runnable request, one tab per language. */
-export function Snippet({ languages, className }: { languages: SnippetLanguage[]; className?: string }) {
+export function Snippet({
+  languages,
+  label = "Language",
+  reference = "/reference",
+  newTab = false,
+  className,
+}: {
+  languages: SnippetLanguage[];
+  /** Names the tab list. */
+  label?: string;
+  /** Where "Full API reference" links. */
+  reference?: string;
+  /** Opens the reference in a new tab, for a screen that can't be left. */
+  newTab?: boolean;
+  className?: string;
+}) {
   const [first] = languages;
   if (!first) return null;
 
@@ -29,7 +44,7 @@ export function Snippet({ languages, className }: { languages: SnippetLanguage[]
         <Example language={first} />
       ) : (
         <TabsRoot defaultValue={first.id}>
-          <TabsList size="sm" aria-label="Language">
+          <TabsList size="sm" aria-label={label}>
             {languages.map((language) => (
               <TabsTrigger key={language.id} value={language.id}>
                 {language.label}
@@ -43,7 +58,10 @@ export function Snippet({ languages, className }: { languages: SnippetLanguage[]
           ))}
         </TabsRoot>
       )}
-      <Link href="/reference" className="type-body-sm self-start text-primary-strong underline underline-offset-4">
+      <Link
+        href={reference}
+        {...(newTab ? { target: "_blank", rel: "noopener" } : {})}
+        className="type-body-sm self-start text-primary-strong underline underline-offset-4">
         Full API reference
       </Link>
     </div>
