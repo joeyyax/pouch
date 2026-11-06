@@ -37,19 +37,15 @@ export interface SnippetLanguage {
 /** The variable a caller's code keeps its key in. Pouch never reads it. */
 export const CALLER_KEY_VAR = "POUCH_API_KEY";
 
-/** Where the SDK points when no `baseUrl` is given. */
-const SDK_DEFAULT_BASE_URL = "https://pouch.email";
-
 function curl(code: string): SnippetLanguage {
   return { id: "curl", label: "curl", language: "bash", code };
 }
 
 /** The SDK client a placeholder key reads from the environment, or a real one names inline. */
 function typescript(secret: string, body: string[]): SnippetLanguage {
-  const base = appUrl();
   const options = [
     `apiKey: ${secret === KEY_PLACEHOLDER ? `process.env.${CALLER_KEY_VAR}!` : JSON.stringify(secret)}`,
-    ...(base === SDK_DEFAULT_BASE_URL ? [] : [`baseUrl: ${JSON.stringify(base)}`]),
+    `baseUrl: ${JSON.stringify(appUrl())}`,
   ];
   const client = ["const pouch = new PouchClient({", ...options.map((option) => `  ${option},`), "});"];
   const code = [`import { PouchClient } from "@joeyyax/pouch";`, "", ...client, "", ...body].join("\n");

@@ -18,12 +18,12 @@ describe("sendSnippets", () => {
     expect(placeholder).toMatchObject({ id: "typescript", language: "typescript" });
     expect(placeholder!.code).toContain('import { PouchClient } from "@joeyyax/pouch";');
     expect(placeholder!.code).toContain(`apiKey: process.env.${CALLER_KEY_VAR}!`);
-    expect(placeholder!.code).not.toContain("baseUrl");
+    expect(placeholder!.code).toContain('baseUrl: "https://pouch.email",');
     expect(placeholder!.code).toContain('from: "hi@example.com",');
     expect(sendSnippets("sk_live_abc", "example.com")[1]!.code).toContain('apiKey: "sk_live_abc"');
   });
 
-  it("names the base URL when the install isn't pouch.email", () => {
+  it("names the install's own base URL", () => {
     vi.stubEnv("NEXT_PUBLIC_APP_URL", "");
     vi.stubEnv("APP_URL", "http://localhost:3100");
     expect(sendSnippets("$KEY", "example.com")[1]!.code).toContain('baseUrl: "http://localhost:3100"');

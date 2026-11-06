@@ -200,14 +200,9 @@ describe("PouchClient construction", () => {
     expect(() => new PouchClient({})).toThrow();
   });
 
-  it("defaults to https://pouch.email when no base URL is given", async () => {
-    const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({ id: "msg_1" }, 200));
-    const sdk = new PouchClient({ apiKey: "sk_test_abc", fetch: fetchImpl });
-
-    await sdk.emails.get("msg_1");
-
-    const [url] = fetchImpl.mock.calls[0] as [URL, RequestInit];
-    expect(url.origin).toBe("https://pouch.email");
+  it("requires a baseUrl", () => {
+    // @ts-expect-error missing required option
+    expect(() => new PouchClient({ apiKey: "sk_test_abc" })).toThrow("baseUrl");
   });
 
   it("strips a trailing slash from a custom base URL", async () => {

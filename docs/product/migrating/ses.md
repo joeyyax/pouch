@@ -28,7 +28,7 @@ await ses.send(new SendEmailCommand({
 
 ```ts
 import { PouchClient } from "./pouch";
-const pouch = new PouchClient({ apiKey: process.env.POUCH_API_KEY! });
+const pouch = new PouchClient({ apiKey: process.env.POUCH_API_KEY!, baseUrl: process.env.POUCH_URL! });
 
 await pouch.emails.send({
   from: "Acme <onboarding@example.com>",
@@ -41,7 +41,7 @@ await pouch.emails.send({
 **Pouch (REST)**
 
 ```bash
-curl https://pouch.email/v1/emails \
+curl $POUCH_URL/v1/emails \
   -H "Authorization: Bearer $POUCH_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"from":"Acme <onboarding@example.com>","to":"ada@example.com","subject":"Welcome","html":"<p>Thanks for signing up.</p>"}'
@@ -105,7 +105,7 @@ Import them with `POST /v1/suppressions` (a key with no domain scope, at most 5,
 aws sesv2 list-suppressed-destinations --reasons BOUNCE COMPLAINT --output json |
 jq '{source: "ses", suppressions: [.SuppressedDestinationSummaries[] | {address: .EmailAddress,
   reason: (if .Reason == "COMPLAINT" then "complaint" else "hard_bounce" end)}]}' |
-curl https://pouch.email/v1/suppressions \
+curl $POUCH_URL/v1/suppressions \
   -H "Authorization: Bearer $POUCH_API_KEY" -H "Content-Type: application/json" -d @-
 ```
 
