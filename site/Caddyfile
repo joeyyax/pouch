@@ -9,6 +9,7 @@
 
 	@assets path /assets/* /favicon.svg
 	header @assets Cache-Control "public, max-age=3600"
+	header /docs/_next/static/* Cache-Control "public, max-age=31536000, immutable"
 	header {
 		X-Content-Type-Options nosniff
 		Referrer-Policy strict-origin-when-cross-origin
@@ -19,10 +20,25 @@
 		respond 200
 	}
 
+	# The guides moved under /docs.
+	redir /self-hosting /docs/self-hosting/ 301
+	redir /self-hosting/* /docs/self-hosting/ 301
+	redir /leaving /docs/leaving/ 301
+	redir /leaving/* /docs/leaving/ 301
+
+	handle /docs/* {
+		file_server
+	}
+
 	handle {
 		# Anything the site doesn't have was an app link before the app moved.
 		@app not file {path} {path}/index.html
 		redir @app https://app.pouch.email{uri} 302
+		file_server
+	}
+
+	handle_errors 404 {
+		rewrite * /docs/404.html
 		file_server
 	}
 }
