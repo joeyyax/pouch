@@ -384,7 +384,7 @@ function FirstSend({ created }: { created: CreatedKey }) {
   return (
     <div className="flex flex-col gap-2">
       <p className="type-label text-muted-foreground">First send</p>
-      <Snippet languages={created.send} newTab />
+      <Snippet languages={created.send} reference={null} />
       <p className="type-body-sm text-foreground-soft">
         Swap in your own address and run it, or send a test from{" "}
         <Link href={`/domains/${from.id}/sending`} {...nextTab}>

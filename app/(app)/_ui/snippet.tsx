@@ -29,8 +29,8 @@ export function Snippet({
   languages: SnippetLanguage[];
   /** Names the tab list. */
   label?: string;
-  /** Where "Full API reference" links. */
-  reference?: string;
+  /** Where "Full API reference" links. Null leaves the link out. */
+  reference?: string | null;
   /** Opens the reference in a new tab, for a screen that can't be left. */
   newTab?: boolean;
   className?: string;
@@ -58,12 +58,15 @@ export function Snippet({
           ))}
         </TabsRoot>
       )}
-      <Link
-        href={reference}
-        {...(newTab ? { target: "_blank", rel: "noopener" } : {})}
-        className="type-body-sm self-start text-primary-strong underline underline-offset-4">
-        Full API reference
-      </Link>
+      {reference ? (
+        <Link
+          href={reference}
+          {...(newTab ? { target: "_blank", rel: "noopener" } : {})}
+          className="type-body-sm self-start text-primary-strong underline underline-offset-4"
+        >
+          Full API reference
+        </Link>
+      ) : null}
     </div>
   );
 }
