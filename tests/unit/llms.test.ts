@@ -1,14 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { llmsFull, llmsIndex } from "@/lib/api-docs/llms";
-import { ROUTES, routeAnchor } from "@/lib/api-docs/spec";
+import { referenceUrl } from "@/lib/api-docs/links";
+import { ROUTES } from "@/lib/api-docs/spec";
 
 const BASE = "https://pouch.test";
 
 describe("llms.txt", () => {
-  it("lists every route with a link to its reference anchor", () => {
+  it("lists every route with a link to its reference page", () => {
     const text = llmsIndex(BASE);
     expect(text.startsWith("# Pouch\n\n> ")).toBe(true);
-    for (const route of ROUTES) expect(text).toContain(`[${route.method} ${route.path}](${BASE}/reference#${routeAnchor(route)})`);
+    for (const route of ROUTES) expect(text).toContain(`[${route.method} ${route.path}](${referenceUrl(route)})`);
     expect(text).toContain(`${BASE}/llms-full.txt`);
   });
 

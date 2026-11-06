@@ -1,8 +1,9 @@
-/** llms.txt and llms-full.txt, from the same route spec as /reference. */
+/** llms.txt and llms-full.txt, from the same route spec as /openapi.json. */
 import { brand } from "@/lib/brand";
 import { ERROR_CODES } from "@/lib/api/errors";
 import type { ApiField } from "./introspect";
-import { BODY_CODES, CODES, GLOBAL_CODES, ROUTES, routeAnchor, type ResponseField, type RouteSpec } from "./spec";
+import { REFERENCE_URL, referenceUrl } from "./links";
+import { BODY_CODES, CODES, GLOBAL_CODES, ROUTES, type ResponseField, type RouteSpec } from "./spec";
 
 function basics(base: string): string {
   return [
@@ -20,7 +21,7 @@ function basics(base: string): string {
 }
 
 function routeLine(base: string, route: RouteSpec): string {
-  return `- [${route.method} ${route.path}](${base}/reference#${routeAnchor(route)}): ${route.summary}`;
+  return `- [${route.method} ${route.path}](${referenceUrl(route)}): ${route.summary}`;
 }
 
 export function llmsIndex(base: string): string {
@@ -29,7 +30,7 @@ export function llmsIndex(base: string): string {
     "",
     "## Docs",
     "",
-    `- [API reference](${base}/reference): every endpoint, field and error, generated from the request schemas`,
+    `- [API reference](${REFERENCE_URL}): every endpoint, field and error, generated from the request schemas`,
     `- [Full reference as text](${base}/llms-full.txt): the same, in one file`,
     "",
     "## Endpoints",
