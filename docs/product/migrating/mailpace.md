@@ -91,7 +91,7 @@ Export Pouch's own list from the suppressions screen with **Export**, or page th
 
 ## SMTP
 
-Mailpace has its own SMTP relay; Pouch's ingress is the drop-in replacement for anything that only speaks SMTP: STARTTLS on port 587, `AUTH PLAIN` with the key id (`key_…`) as username and the key as password. Note Pouch's 50-recipient cap here matches Mailpace's own limit, so nothing changes for a Mailpace-backed domain specifically. Reply codes and detail: the API reference's SMTP section.
+Mailpace has its own SMTP relay; Pouch's ingress is the drop-in replacement for anything that only speaks SMTP: STARTTLS on port 587, `AUTH PLAIN` with the key id (`key_…`) as username and the key as password. Note Pouch's 50-recipient cap here matches Mailpace's own limit, so nothing changes for a Mailpace-backed domain specifically. Reply codes and detail: the SMTP guide at pouch.email/docs/smtp.
 
 ## Cutover checklist
 

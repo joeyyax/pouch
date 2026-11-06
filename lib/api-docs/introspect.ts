@@ -54,8 +54,8 @@ function constraintsFor(prop: JsonSchemaProp): string[] {
  * Fails when a field, or a field nested inside an object/array-of-objects field, has no
  * `.describe()`. This is the enforcement docs/api/conventions.md promises: "A field without a
  * `.describe()` fails the docs build." Every schema in lib/schemas/ is walked by this at adapter
- * load, so a missing description throws before the reference page (or the check script) can
- * render — see api-docs.test.ts for the regression test.
+ * load, so a missing description throws before /openapi.json, llms.txt or the check script can
+ * build — see api-docs.test.ts for the regression test.
  */
 function assertDescribed(prop: JsonSchemaProp, path: string): void {
   if (!prop.description) {
