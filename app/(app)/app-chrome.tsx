@@ -15,6 +15,7 @@ import { OrganizationList, type SwitcherOrganization } from "./organization-swit
 import { RouteAnnouncer, useRouteAnnouncer } from "@/components/ui/route-announcer";
 import { SignOutButton } from "./sign-out-button";
 import { UserMenu } from "./user-menu";
+import { REFERENCE_URL } from "@/lib/api-docs/links";
 
 // Activity and Settings are org-scoped, same as the switcher that drives them — they live in
 // the user menu, not here. This stays pure work: the screens a member spends their day in.
@@ -107,7 +108,7 @@ export function AppChrome({
         footer={
           <div className="flex flex-col gap-3">
             <Link
-              href="/reference"
+              href={REFERENCE_URL}
               className={cn(
                 "squircle flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-tertiary transition-colors hover:bg-muted hover:text-foreground",
                 FOCUS_RING,
@@ -177,7 +178,7 @@ function AccountSheetSection({
           </Link>
         </>
       ) : null}
-      <Link href="/reference" className={SHEET_ROW_CLASSES}>
+      <Link href={REFERENCE_URL} className={SHEET_ROW_CLASSES}>
         <Icon name="code" className="size-5 shrink-0" />
         API reference
       </Link>
