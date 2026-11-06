@@ -176,6 +176,11 @@ export interface RouteSpec {
   errors: ErrorCode[];
 }
 
+/** An object label with each member's type: `{ name: string, priority: integer }`. */
+function shapeOf(fields: Pick<ResponseField, "name" | "type">[]): string {
+  return `{ ${fields.map((field) => `${field.name}: ${field.type}`).join(", ")} }`;
+}
+
 const DNS_RECORD_FIELDS: ResponseField[] = [
   { name: "type", type: "TXT | CNAME | MX", description: "DNS record type." },
   { name: "name", type: "string", description: "Record name to publish." },
@@ -197,28 +202,30 @@ const SETUP_STEP_FIELDS: ResponseField[] = [
   { name: "message", type: "string", description: "What's left to do, and where." },
 ];
 
+const DNS_RECORDS_TYPE = `${shapeOf(DNS_RECORD_FIELDS)}[]`;
+
 const PENDING_BINDING_FIELDS: ResponseField[] = [
   { name: "provider_id", type: "string", description: "The provider this domain is moving to." },
-  { name: "dns_records", type: "same shape as the domain's dns_records", description: "Records the target provider asked for." },
-  { name: "missing_records", type: "same shape as dns_records", description: "Records the target provider still can't see." },
+  { name: "dns_records", type: DNS_RECORDS_TYPE, description: "Records the target provider asked for." },
+  { name: "missing_records", type: DNS_RECORDS_TYPE, description: "Records the target provider still can't see." },
   { name: "started_at", type: "string", description: "ISO 8601 timestamp the move was requested." },
 ];
 
 const DMARC_FIELDS = [
-  "status",
-  "record_name",
-  "source",
-  "record",
-  "policy",
-  "subdomain_policy",
-  "percent",
-  "rua",
-  "ruf",
-  "adkim",
-  "aspf",
-  "alignment",
-  "findings",
-  "recommended",
+  "status: found | missing | multiple | invalid | unresolved",
+  "record_name: string | null",
+  "source: domain | organizational | null",
+  "record: string | null",
+  "policy: none | quarantine | reject | null",
+  "subdomain_policy: none | quarantine | reject | null",
+  "percent: integer | null",
+  "rua: string[]",
+  "ruf: string[]",
+  "adkim: relaxed | strict | null",
+  "aspf: relaxed | strict | null",
+  "alignment: object | null",
+  "findings: { kind: string, severity: problem | note, message: string }[]",
+  "recommended: string | null",
 ];
 
 const DMARC_RESPONSE_FIELD: ResponseField = {
@@ -228,7 +235,18 @@ const DMARC_RESPONSE_FIELD: ResponseField = {
     "The domain's DMARC record, read live from DNS: its own, then its organizational domain's. status: found, missing, multiple (receivers ignore them all), invalid or unresolved (the lookup didn't answer). record_name, source (domain or organizational) and record say where it was read and what it says. policy, subdomain_policy, percent, rua, ruf, adkim and aspf are its tags, null or empty without a usable record. alignment: { dkim, spf, passes }, each with the domains the setup authenticates as, the mode and whether they align; passes when either does. findings: { kind, severity, message }, where severity problem needs a change and note doesn't. recommended: the record to publish at _dmarc.<domain>, the recommended one when there's no usable record, or the published one with the domain's report address added to rua; null when nothing needs to change. A missing record never blocks verification.",
 };
 
-const DMARC_REPORT_RECORD_FIELDS = ["source_ip", "count", "origin", "disposition", "dkim", "spf", "header_from", "envelope_from", "dkim_results", "spf_results"];
+const DMARC_REPORT_RECORD_FIELDS = [
+  "source_ip: string",
+  "count: integer",
+  "origin: provider | other | forwarded | unauthenticated",
+  "disposition: string",
+  "dkim: pass | fail",
+  "spf: pass | fail",
+  "header_from: string",
+  "envelope_from: string | null",
+  "dkim_results: object[]",
+  "spf_results: object[]",
+];
 
 const DMARC_REPORT_RESPONSE_FIELDS: ResponseField[] = [
   { name: "id", type: "string", description: "Opaque id, prefixed dmr_." },
@@ -238,7 +256,7 @@ const DMARC_REPORT_RESPONSE_FIELDS: ResponseField[] = [
   { name: "report_id", type: "string", description: "The reporter's own id. Unique per domain and reporter." },
   { name: "begins_at", type: "string", description: "ISO 8601 start of the period the report covers." },
   { name: "ends_at", type: "string", description: "ISO 8601 end of the period. The list sorts on it, newest first." },
-  { name: "policy", type: "{ domain, p, sp, pct, adkim, aspf }", description: "The DMARC policy the reporter found published." },
+  { name: "policy", type: "{ domain: string, p: string, sp: string | null, pct: integer | null, adkim: string | null, aspf: string | null }", description: "The DMARC policy the reporter found published." },
   { name: "message_count", type: "integer", description: "Messages the report counts for this domain." },
   { name: "received_at", type: "string", description: "ISO 8601 timestamp it arrived." },
   {
@@ -250,7 +268,7 @@ const DMARC_REPORT_RESPONSE_FIELDS: ResponseField[] = [
 ];
 
 const dmarcReportPageFields: ResponseField[] = [
-  { name: "data", type: `{ ${DMARC_REPORT_RESPONSE_FIELDS.map((f) => f.name).join(", ")} }[]`, description: "The page of reports, newest first." },
+  { name: "data", type: `${shapeOf(DMARC_REPORT_RESPONSE_FIELDS)}[]`, description: "The page of reports, newest first." },
   { name: "next_cursor", type: "string | null", description: "Id to pass as cursor for the next page. Null on the last page." },
   ...DMARC_REPORT_RESPONSE_FIELDS.map((field) => ({ ...field, name: `data[].${field.name}` })),
 ];
@@ -261,9 +279,9 @@ const DOMAIN_RESPONSE_FIELDS: ResponseField[] = [
   { name: "id", type: "string", description: "Opaque id, prefixed dom_." },
   { name: "name", type: "string", description: "The domain name." },
   { name: "status", type: "pending | verified | failed", description: "Lifecycle status." },
-  { name: "dns_records", type: `{ ${DNS_RECORD_FIELDS.map((f) => f.name).join(", ")} }[]`, description: "The complete list to publish: DKIM for the domain, plus whatever else the provider needs and a recommended DMARC record at _dmarc.<domain> (required: false), carrying the domain's report address in rua once an admin has set up reports. A record marked merge joins one the name may already have." },
-  { name: "missing_records", type: "same shape as dns_records", description: "Records the provider still can't see. Filled by a verify call. Never lists the DMARC record; dmarc reports it." },
-  { name: "setup", type: `{ ${SETUP_STEP_FIELDS.map((f) => f.name).join(", ")} }[]`, description: "What the provider can't finish through its API. A step in the provider's console reads as waiting on an admin; a webhooks step on a provider that wires its own events clears with a verify call." },
+  { name: "dns_records", type: DNS_RECORDS_TYPE, description: "The complete list to publish: DKIM for the domain, plus whatever else the provider needs and a recommended DMARC record at _dmarc.<domain> (required: false), carrying the domain's report address in rua once an admin has set up reports. A record marked merge joins one the name may already have." },
+  { name: "missing_records", type: DNS_RECORDS_TYPE, description: "Records the provider still can't see. Filled by a verify call. Never lists the DMARC record; dmarc reports it." },
+  { name: "setup", type: `${shapeOf(SETUP_STEP_FIELDS)}[]`, description: "What the provider can't finish through its API. A step in the provider's console reads as waiting on an admin; a webhooks step on a provider that wires its own events clears with a verify call." },
   { name: "errors", type: "string[]", description: "Provider reasons for a failed status. Empty once verification succeeds." },
   { name: "verified_at", type: "string | null", description: "ISO 8601 timestamp, or null." },
   { name: "last_checked_at", type: "string | null", description: "ISO 8601 timestamp of the last verify check, or null." },
@@ -271,12 +289,12 @@ const DOMAIN_RESPONSE_FIELDS: ResponseField[] = [
   { name: "provider_id", type: "string", description: "The provider this domain sends through now, prefixed pac_. A move changes it once the target verifies." },
   {
     name: "pending",
-    type: `{ ${PENDING_BINDING_FIELDS.map((f) => f.name).join(", ")} } | null`,
+    type: `${shapeOf(PENDING_BINDING_FIELDS)} | null`,
     description: "A move to another provider in progress, started by PATCH. Null when there isn't one.",
   },
   {
     name: "stall",
-    type: "{ reason, message, stalled_at } | null",
+    type: "{ reason: string, message: string, stalled_at: string } | null",
     description: "Sending is held on this domain: sends are still accepted, queued ones wait until a person clears the hold. Null when sending normally.",
   },
   {
@@ -286,7 +304,7 @@ const DOMAIN_RESPONSE_FIELDS: ResponseField[] = [
   },
   {
     name: "layout",
-    type: "{ name, logo, accent, footer } | null",
+    type: "{ name: string | null, logo: string | null, accent: string | null, footer: string | null } | null",
     description: "The frame a send with layout: true is wrapped in, and what a send's layout overrides fall back to. Null when there isn't one; set with PATCH.",
   },
   {
@@ -298,13 +316,13 @@ const DOMAIN_RESPONSE_FIELDS: ResponseField[] = [
 ];
 
 const DOMAIN_REPUTATION_FIELDS = [
-  "findings",
-  "windows",
-  "reasons",
-  "signals",
-  "blocklists",
-  "provider_findings",
-  "tenant_volume",
+  "findings: object[]",
+  "windows: object",
+  "reasons: object[]",
+  "signals: object | null",
+  "blocklists: object",
+  "provider_findings: object[]",
+  "tenant_volume: object | null",
 ];
 
 const DOMAIN_READ_RESPONSE_FIELDS: ResponseField[] = [
@@ -318,24 +336,26 @@ const DOMAIN_READ_RESPONSE_FIELDS: ResponseField[] = [
   },
 ];
 
-const FINDING_FIELDS = ["kind", "standing", "title", "body", "action"];
+const FINDING_FIELDS = ["kind: string", `standing: ${STANDING_TYPE}`, "title: string", "body: string", "action: string | null"];
 
 const REPUTATION_RESPONSE_FIELDS: ResponseField[] = [
   { name: "object", type: "reputation", description: "Always reputation, the same object the reputation_changed webhooks carry." },
-  { name: "subject", type: "{ type, id, name }", description: "The organization: type is organization, id is prefixed org_." },
+  { name: "subject", type: "{ type: organization, id: string, name: string }", description: "The organization: type is organization, id is prefixed org_." },
   { name: "standing", type: STANDING_TYPE, description: "The organization's standing: its own findings, or its worst domain, with a paused domain counting as at_risk. paused means the organization is suspended." },
   { name: "reason", type: "string | null", description: "One sentence on why the organization isn't healthy. Null when it is." },
   { name: "findings", type: `{ ${FINDING_FIELDS.join(", ")} }[]`, description: "The organization's own findings, worst first. Domain findings are on each domain." },
-  { name: "domains", type: "{ id, name, standing }[]", description: "Domains that aren't healthy, worst first. Empty when every domain is healthy." },
+  { name: "domains", type: `{ id: string, name: string, standing: ${STANDING_TYPE} }[]`, description: "Domains that aren't healthy, worst first. Empty when every domain is healthy." },
 ];
 
-const STATUS_COUNT_FIELDS = "{ total, queued, sent, deferred, delivered, bounced, complained, failed, abandoned }";
-const LATENCY_FIELDS = "{ p50_ms, p95_ms, p99_ms, count }";
+const STATUS_COUNT_FIELDS =
+  "{ total: integer, queued: integer, sent: integer, deferred: integer, delivered: integer, bounced: integer, complained: integer, failed: integer, abandoned: integer }";
+const LATENCY_FIELDS = "{ p50_ms: integer | null, p95_ms: integer | null, p99_ms: integer | null, count: integer }";
+const TOTAL_BUCKETS = "{ start: string, total: integer }[]";
 
 const STATS_RESPONSE_FIELDS: ResponseField[] = [
   {
     name: "window",
-    type: "{ since, until, previous_since, previous_until, bucket }",
+    type: "{ since: string, until: string, previous_since: string, previous_until: string, bucket: hour | day }",
     description: "What was counted: messages accepted from since until until, against previous_since until previous_until. bucket is hour or day, in UTC; the first bucket starts at the hour or day since falls in.",
   },
   { name: "mode", type: "live | test | all", description: "Which mail was counted." },
@@ -345,30 +365,31 @@ const STATS_RESPONSE_FIELDS: ResponseField[] = [
     description: "Messages accepted in the window, by the status they have now. abandoned is the part of sent the provider never reported on. With status, only those statuses count.",
   },
   { name: "previous_counts", type: STATUS_COUNT_FIELDS, description: "The same for the window before." },
-  { name: "attempts", type: "{ per_send, previous_per_send }", description: "Attempts per message that reached the provider, this window and the one before. Null with none." },
-  { name: "buckets", type: `({ start } & ${STATUS_COUNT_FIELDS})[]`, description: "The counts per bucket, oldest first, empty buckets included." },
-  { name: "previous_buckets", type: `({ start } & ${STATUS_COUNT_FIELDS})[]`, description: "With include=previous_buckets. The window before, aligned with buckets by index." },
+  { name: "attempts", type: "{ per_send: number | null, previous_per_send: number | null }", description: "Attempts per message that reached the provider, this window and the one before. Null with none." },
+  { name: "buckets", type: `({ start: string } & ${STATUS_COUNT_FIELDS})[]`, description: "The counts per bucket, oldest first, empty buckets included." },
+  { name: "previous_buckets", type: `({ start: string } & ${STATUS_COUNT_FIELDS})[]`, description: "With include=previous_buckets. The window before, aligned with buckets by index." },
   {
     name: "latency",
-    type: `{ queue, provider, end_to_end }, each ${LATENCY_FIELDS}`,
+    type: `{ queue: ${LATENCY_FIELDS}, provider: ${LATENCY_FIELDS}, end_to_end: ${LATENCY_FIELDS} }`,
     description: "With include=latency. Accepted to handed over, handed over to delivered and accepted to delivered, in milliseconds. Read from hourly histograms, so within 2.2% of the exact value. Null quantiles with no samples.",
   },
   {
     name: "domains",
-    type: `{ domain_id, name, counts, previous_total, queue_p95_ms, last_sent_at, buckets }[]`,
+    type: `{ domain_id: string, name: string, counts: ${STATUS_COUNT_FIELDS}, previous_total: integer, queue_p95_ms: integer | null, last_sent_at: string | null, buckets: ${TOTAL_BUCKETS} }[]`,
     description: "With include=domains. Every domain with mail in this window or the one before, busiest first. buckets holds totals aligned with buckets.",
   },
-  { name: "keys", type: "{ key_id, total, buckets }[]", description: "With include=keys. Every key that sent in the window, busiest first; key_id is null for mail sent without one." },
-  { name: "reasons", type: "{ reason, count }[]", description: "With include=reasons. The receiving servers' words for bounces and complaints on this window's messages, verbatim, most common first, at most 20." },
+  { name: "keys", type: `{ key_id: string | null, total: integer, buckets: ${TOTAL_BUCKETS} }[]`, description: "With include=keys. Every key that sent in the window, busiest first; key_id is null for mail sent without one." },
+  { name: "reasons", type: "{ reason: string, count: integer }[]", description: "With include=reasons. The receiving servers' words for bounces and complaints on this window's messages, verbatim, most common first, at most 20." },
   {
     name: "queue",
-    type: "{ queued, due, backing_off, held, in_progress, silent, oldest_queued_at, oldest_due_at, oldest_held_at, held_by_domain, organization_held, organization_fails }",
+    type:
+      "{ queued: integer, due: integer, backing_off: integer, held: integer, in_progress: integer, silent: integer, oldest_queued_at: string | null, oldest_due_at: string | null, oldest_held_at: string | null, held_by_domain: { domain_id: string, count: integer, oldest_queued_at: string }[], organization_held: boolean, organization_fails: boolean }",
     description: "With include=queue. The queue right now, whatever the window. held is what GET /v1/emails?held=true lists. silent was handed over between an hour and a day ago with no word back.",
   },
-  { name: "inbound", type: "{ total, buckets }", description: "With include=inbound. Mail received in the window, with totals aligned with buckets. A test key gets key_not_scoped." },
+  { name: "inbound", type: `{ total: integer, buckets: ${TOTAL_BUCKETS} }`, description: "With include=inbound. Mail received in the window, with totals aligned with buckets. A test key gets key_not_scoped." },
   {
     name: "domain_days",
-    type: "{ domain_id, day, computed_at, delivered_count, delivery_ms, hourly_volume }[]",
+    type: "{ domain_id: string, day: string, computed_at: string, delivered_count: integer, delivery_ms: object | null, hourly_volume: integer[] }[]",
     description: "With include=domain_days. One row per domain per UTC day in the window: delivery_ms holds min, p10, p25, p50, p75, p90, p99 and max of sent to delivered over the 7 days before computed_at; hourly_volume holds sends by UTC hour of day over the 28 days before. Live mail only.",
   },
 ];
@@ -394,7 +415,7 @@ const MESSAGE_RESPONSE_FIELDS: ResponseField[] = [
   { name: "headers", type: "object", description: "Custom headers as accepted. Empty when the send had none." },
   {
     name: "layout",
-    type: "boolean | { name, logo, accent, footer }",
+    type: "boolean | { name: string | null, logo: string | null, accent: string | null, footer: string | null }",
     description: "As the send asked for it: false, true for the domain's layout as configured, or the fields it overrode for this send.",
   },
   { name: "key_id", type: "string | null", description: "The key that sent it, prefixed key_. Null for mail sent without a key, from the dashboard or by the service itself." },
@@ -407,7 +428,7 @@ const MESSAGE_RESPONSE_FIELDS: ResponseField[] = [
   },
   {
     name: "warnings",
-    type: `{ ${WARNING_FIELDS.map((f) => f.name).join(", ")} }[]`,
+    type: `${shapeOf(WARNING_FIELDS)}[]`,
     description: "Hints from the recipient's send history, as they stood when this message was accepted. Empty when there's nothing worth flagging. Never changes whether the message was accepted.",
   },
   { name: "provider_message_id", type: "string | null", description: "The provider's own id for the message, once sent." },
@@ -428,46 +449,46 @@ const MESSAGE_RESPONSE_FIELDS: ResponseField[] = [
   },
   {
     name: "size",
-    type: "{ body_bytes, attachment_bytes }",
+    type: "{ body_bytes: integer | null, attachment_bytes: integer | null }",
     description:
       "Bytes as accepted. body_bytes is the UTF-8 size of the html and text parts before the domain's layout, attachment_bytes the decoded size of the attachments, 0 with none. Each is null on a message accepted before sizes were recorded.",
   },
   { name: "resent_from", type: "string | null", description: "The message this one was resent from, prefixed msg_. Null for an original send." },
   {
     name: "resends",
-    type: "{ id, status, created_at }[]",
+    type: "{ id: string, status: string, created_at: string }[]",
     description: "The copies resent from this message, oldest first. Returned by GET /v1/emails/:id, and by the list with include=resends.",
   },
   {
     name: "events",
-    type: "{ id, status, reason, occurred_at }[]",
+    type: "{ id: string, status: string, reason: string | null, occurred_at: string }[]",
     description: "Every lifecycle transition, oldest first. Returned by GET /v1/emails/:id, and by the list with include=events.",
   },
   {
     name: "occurrences",
-    type: "{ id, kind, reason, occurred_at, detail }[]",
+    type: "{ id: string, kind: retry | backoff | suppressed | body_shredded | webhook_delivered | abandoned, reason: string | null, occurred_at: string, detail: object }[]",
     description:
       "With include=occurrences. What happened without changing the status, oldest first. kind is retry ({ attempt, next_attempt_at }), backoff ({ until, count }), suppressed ({ address, suppression_reason }), body_shredded ({ retention_days }), webhook_delivered ({ event_type, host, status_code }) or abandoned ({}).",
   },
   {
     name: "stall",
-    type: "{ kind, reason, message, stalled_at } | null",
+    type: "{ kind: domain | organization, reason: string, message: string, stalled_at: string } | null",
     description: "Returned by GET /v1/emails/:id only. Null unless status is queued and held. `kind` is \"domain\" when the message's own domain is paused, or \"organization\" when its organization is suspended for reputation or by the provider. `reason` is provider_paused under a provider suspension. `reason`, `message` and `stalled_at` otherwise match a domain response's stall field.",
   },
   {
     name: "body",
-    type: "{ html, text, attachments: { filename, content_type, size, download_url }[] } | null",
+    type: "{ html: string | null, text: string | null, attachments: { filename: string, content_type: string, size: integer, download_url: string }[] } | null",
     description: "With include=body. html as accepted, before the domain's layout wraps it. Each download_url is a signed link valid for 15 minutes, minted on every read. Null when the body can't be read, and body_unavailable says why.",
   },
   {
     name: "rendered",
-    type: "{ html, framed, frame_changed } | null",
+    type: "{ html: string | null, framed: boolean, frame_changed: boolean | null } | null",
     description:
       "With include=rendered. html is the html part as the recipient got it, framed in the domain's layout when the send asked for one. frame_changed is true when the layout or its template changed after the message was accepted, so the frame isn't the one sent, and null when that can't be told. Null when the body can't be read, and body_unavailable says why.",
   },
   {
     name: "body_unavailable",
-    type: "{ reason, message, ended_at } | null",
+    type: "{ reason: withheld | shredded | expired | unavailable, message: string, ended_at: string | null } | null",
     description: "With include=body or include=rendered. Null when body is there. reason is withheld (the message is sensitive and its body is never returned), shredded (past retention, key destroyed), expired (past retention) or unavailable (storage didn't answer; read again). ended_at is when the body stopped being readable, or null.",
   },
 ];
@@ -483,7 +504,7 @@ const STREAM_FRAME_FIELDS: ResponseField[] = [
     description: "The transition this frame reports. Also sent as the frame's SSE event name. The three delivered/bounced/complained values match the webhook event of the same name.",
   },
   { name: "created_at", type: "string", description: "ISO 8601 timestamp the transition happened." },
-  { name: "data", type: `{ ${MESSAGE_BASE_FIELDS.map((f) => f.name).join(", ")} }`, description: "The message, in the same shape GET /v1/emails/:id returns — and the same shape a webhook posts." },
+  { name: "data", type: shapeOf(MESSAGE_BASE_FIELDS), description: "The message, in the same shape GET /v1/emails/:id returns — and the same shape a webhook posts." },
 ];
 
 const DELETE_DOMAIN_RESPONSE_FIELDS: ResponseField[] = [
@@ -532,7 +553,7 @@ const INBOUND_RESPONSE_FIELDS: ResponseField[] = [
   },
   {
     name: "attachments",
-    type: `{ ${INBOUND_ATTACHMENT_FIELDS.map((f) => f.name).join(", ")} }[]`,
+    type: `${shapeOf(INBOUND_ATTACHMENT_FIELDS)}[]`,
     description: "Content isn't inlined; each attachment's download_url fetches it.",
   },
   {
@@ -542,7 +563,7 @@ const INBOUND_RESPONSE_FIELDS: ResponseField[] = [
   },
   {
     name: "verdicts",
-    type: "{ spam, virus, spf, dkim, dmarc } | null",
+    type: "{ spam: string | null, virus: string | null, spf: string | null, dkim: string | null, dmarc: string | null } | null",
     description: "The provider's scan results, each pass, fail, gray, processing_failed or null. Null when the provider doesn't scan. Check spf, dkim and dmarc before trusting from.",
   },
   { name: "address_ids", type: "string[]", description: "Addresses this message was delivered to, prefixed adr_. Empty for mail no address took." },
@@ -578,7 +599,7 @@ const ADDRESS_RESPONSE_FIELDS: ResponseField[] = [
   { name: "key_id", type: "string | null", description: "The key that created it. That key's endpoints subscribed to address.received hear its mail." },
   {
     name: "counts",
-    type: "{ received, received_today, dropped_expired, dropped_over_limit, dropped_virus, forwarded }",
+    type: "{ received: integer, received_today: integer, dropped_expired: integer, dropped_over_limit: integer, dropped_virus: integer, forwarded: integer }",
     description:
       "Messages delivered, over its life and on the current UTC day, and messages dropped after expiry or revocation, past the cap or the daily limit, or for failing a virus scan. forwarded counts copies sent on to forward targets.",
   },
@@ -606,7 +627,7 @@ const FORWARD_TARGET_RESPONSE_FIELDS: ResponseField[] = [
   { name: "last_forwarded_at", type: "string | null", description: "ISO 8601 timestamp, or null." },
   {
     name: "last_failure",
-    type: "{ code, message, at } | null",
+    type: "{ code: string, message: string, at: string } | null",
     description: "The last forward the send path refused, such as recipient_suppressed, with its error code and message.",
   },
   { name: "created_at", type: "string", description: "ISO 8601 timestamp." },
@@ -628,8 +649,6 @@ const inboundPageFields: ResponseField[] = [
   { name: "next_cursor", type: "string | null", description: "Id to pass as cursor for the next page. Null on the last page." },
 ];
 
-const DNS_RECORD_TYPE_FIELDS = DNS_RECORD_FIELDS.map((f) => f.name).join(", ");
-
 const INBOUND_STATUS_RESPONSE_FIELDS: ResponseField[] = [
   { name: "domain_id", type: "string", description: "The domain this status is for." },
   { name: "enabled", type: "boolean", description: "Whether this domain accepts mail." },
@@ -642,7 +661,7 @@ const INBOUND_STATUS_RESPONSE_FIELDS: ResponseField[] = [
     type: "string | null",
     description: `Where this domain's provider should be told to POST inbound mail — a manual step in the provider's console for an adapter without an inbound API. Null when ${brand.name} routes the provider's mail itself.`,
   },
-  { name: "dns_records", type: `{ ${DNS_RECORD_TYPE_FIELDS} }[]`, description: "Includes the provider's inbound record once enabled, alongside the domain's send records." },
+  { name: "dns_records", type: DNS_RECORDS_TYPE, description: "Includes the provider's inbound record once enabled, alongside the domain's send records." },
   {
     name: "webhook_secret",
     type: "string",
@@ -708,7 +727,7 @@ const LIST_READ_FIELDS: ResponseField[] = [
   ...LIST_RESPONSE_FIELDS,
   {
     name: "member_counts",
-    type: "{ pending, subscribed, unsubscribed }",
+    type: "{ pending: integer, subscribed: integer, unsubscribed: integer }",
     description: "With include=member_counts. Members of the list by status, counted on read.",
   },
 ];
@@ -788,7 +807,7 @@ const SUPPRESSION_RESPONSE_FIELDS: ResponseField[] = [
   { name: "created_at", type: "string", description: "ISO 8601 timestamp." },
 ];
 
-const RECIPIENT_MESSAGE_FIELDS = "{ id, subject, domain_id, status, test_mode, created_at }";
+const RECIPIENT_MESSAGE_FIELDS = "{ id: string, subject: string, domain_id: string, status: string, test_mode: boolean, created_at: string }";
 
 const RECIPIENT_RESPONSE_FIELDS: ResponseField[] = [
   { name: "address", type: "string", description: "Normalized address: domain part lowercased, local part kept." },
@@ -798,7 +817,7 @@ const RECIPIENT_RESPONSE_FIELDS: ResponseField[] = [
   { name: "domain_ids", type: "string[]", description: "Domains that have sent to it." },
   {
     name: "messages",
-    type: "{ total, delivered, bounced, complained, failed }",
+    type: "{ total: integer, delivered: integer, bounced: integer, complained: integer, failed: integer }",
     description: "Messages addressed to it, test mode included, counted by status. The rest are still in flight. List them with GET /v1/emails and to.",
   },
   { name: "bounce_count", type: "integer", description: "Bounce events naming this address." },
@@ -808,12 +827,16 @@ const RECIPIENT_RESPONSE_FIELDS: ResponseField[] = [
   { name: "last_complained_at", type: "string | null", description: "The newest complaint event's timestamp." },
   {
     name: "suppression",
-    type: `{ ${[...SUPPRESSION_RESPONSE_FIELDS.map((f) => f.name), "added_by", "source_message"].join(", ")} } | null`,
-    description: `The suppression a send to it fails on, or null. added_by names who added it by hand. source_message is ${RECIPIENT_MESSAGE_FIELDS} for the message that bounced or complained, or null.`,
+    type: `${shapeOf([
+      ...SUPPRESSION_RESPONSE_FIELDS,
+      { name: "added_by", type: "string | null" },
+      { name: "source_message", type: `${RECIPIENT_MESSAGE_FIELDS} | null` },
+    ])} | null`,
+    description: `The suppression a send to it fails on, or null. added_by names who added it by hand. source_message is the message that bounced or complained, or null.`,
   },
   {
     name: "unsubscribes",
-    type: "{ lists: { list_id, unsubscribed_at }[], domains: { domain_id, unsubscribed_at }[] }",
+    type: "{ lists: { list_id: string, unsubscribed_at: string }[], domains: { domain_id: string, unsubscribed_at: string }[] }",
     description: "Lists it unsubscribed from, and domains it stopped outright.",
   },
   { name: "history", type: `${RECIPIENT_MESSAGE_FIELDS}[]`, description: "With include=history. The latest 50 messages to it, newest first." },
@@ -829,7 +852,7 @@ const SUPPRESSION_IMPORT_FIELDS: ResponseField[] = [
   { name: "added", type: "integer", description: "Rows added to the list." },
   { name: "already_present", type: "integer", description: "Rows already on the list, or repeated earlier in this request. Their existing row is left as it was." },
   { name: "invalid", type: "integer", description: "Rows skipped because they couldn't be read. Equals the length of errors." },
-  { name: "errors", type: "{ line, address, message }[]", description: "One entry per invalid row. line is the file's line for a CSV body and null for JSON." },
+  { name: "errors", type: "{ line: integer | null, address: string, message: string }[]", description: "One entry per invalid row. line is the file's line for a CSV body and null for JSON." },
 ];
 
 const ADMIN_PROVIDER_FIELDS: ResponseField[] = [
@@ -979,7 +1002,7 @@ const webhookEndpointPageFields: ResponseField[] = [
   { name: "next_cursor", type: "string | null", description: "Id to pass as cursor for the next page. Null on the last page." },
 ];
 
-const WEBHOOK_ATTEMPT_FIELDS = ["id", "attempt", "status_code", "error", "duration_ms", "created_at"];
+const WEBHOOK_ATTEMPT_FIELDS = ["id: string", "attempt: integer", "status_code: integer | null", "error: string | null", "duration_ms: integer | null", "created_at: string"];
 
 const WEBHOOK_DELIVERY_RESPONSE_FIELDS: ResponseField[] = [
   { name: "id", type: "string", description: "Opaque id, prefixed whd_. The X-Webhook-Id header carries it." },
@@ -1019,7 +1042,7 @@ const ACTIVITY_RESPONSE_FIELDS: ResponseField[] = [
   { name: "outcome", type: ACTIVITY_OUTCOMES.join(" | "), description: "Whether it worked." },
   {
     name: "actor",
-    type: "{ type, id, label }",
+    type: "{ type: string, id: string, label: string }",
     description: `Who did it. type is ${ACTIVITY_ACTOR_TYPES.join(", ")}. id is null for the worker. label is the name when it happened.`,
   },
   { name: "applies_to", type: "string | null", description: "The subject's id, its type implied by the action. Null for an organization-wide action." },
@@ -1051,12 +1074,12 @@ const ORGANIZATION_RESPONSE_FIELDS: ResponseField[] = [
   { name: "updated_at", type: "string", description: "ISO 8601 timestamp." },
   {
     name: "address_counts",
-    type: "{ active, expired, revoked }",
+    type: "{ active: integer, expired: integer, revoked: integer }",
     description: "With include=address_counts. The organization's addresses by status, counted on read. active is what address_limit caps.",
   },
 ];
 
-const OPERATOR_MEMBERSHIP_FIELDS = ["organization_id", "organization_name", "role"];
+const OPERATOR_MEMBERSHIP_FIELDS = ["organization_id: string", "organization_name: string", "role: owner | member"];
 
 const ACCOUNT_RESPONSE_FIELDS: ResponseField[] = [
   { name: "id", type: "string", description: "The account's id." },
@@ -1628,7 +1651,7 @@ const DECLARED_ROUTES: RouteSpec[] = [
       status: 200,
       description: "A page of the organization's suppressions, newest first.",
       fields: [
-        { name: "data", type: `{ ${SUPPRESSION_RESPONSE_FIELDS.map((f) => f.name).join(", ")} }[]`, description: "Suppressions on this page." },
+        { name: "data", type: `${shapeOf(SUPPRESSION_RESPONSE_FIELDS)}[]`, description: "Suppressions on this page." },
         { name: "next_cursor", type: "string | null", description: "Pass as cursor for the next page. Null on the last page." },
       ],
     },

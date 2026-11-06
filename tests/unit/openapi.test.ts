@@ -46,6 +46,25 @@ describe("/openapi.json", () => {
     }
   });
 
+  it("types every response property, nested ones included", () => {
+    const untyped: string[] = [];
+    const walk = (schema: Record<string, unknown> | undefined, path: string) => {
+      if (!schema) return;
+      for (const [name, property] of Object.entries((schema.properties ?? {}) as Record<string, Record<string, unknown>>)) {
+        if (!("type" in property) && !("anyOf" in property)) untyped.push(`${path}.${name}`);
+        walk(property, `${path}.${name}`);
+      }
+      walk(schema.items as Record<string, unknown> | undefined, `${path}[]`);
+      for (const option of (schema.anyOf ?? []) as Record<string, unknown>[]) walk(option, path);
+    };
+    for (const { method, path, operation } of operations) {
+      for (const [status, response] of Object.entries(operation.responses as Record<string, { content?: Record<string, { schema: Record<string, unknown> }> }>)) {
+        if (Number(status) < 300) walk(response.content?.["application/json"]?.schema, `${method} ${path}`);
+      }
+    }
+    expect(untyped).toEqual([]);
+  });
+
   it("names a docs page for every route", () => {
     for (const route of ROUTES) expect(referenceUrl(route)).toMatch(/^https:\/\/pouch\.email\/docs\/reference\/[a-z-]+\/[a-z0-9-]+\/$/);
   });

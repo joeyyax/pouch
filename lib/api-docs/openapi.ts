@@ -33,13 +33,15 @@ function splitTop(value: string, sep: string): string[] {
   return out;
 }
 
-/** Reads the type labels response fields carry: `string | null`, `a | b`, `{ id, name }[]`, `Domain[]`. */
+const LITERAL = /^([a-z][a-z0-9_.]*|[A-Z][A-Z0-9]*)$/;
+
+/** Reads the type labels response fields carry: `string | null`, `a | b`, `{ id: string }[]`, `Domain[]`. */
 function labelSchema(label: string): Schema | null {
   const parts = splitTop(label, " | ").filter((part) => part !== "undefined");
   if (parts.length > 1) {
     const nullable = parts.includes("null");
     const rest = parts.filter((part) => part !== "null");
-    if (rest.every((part) => /^[a-z][a-z0-9_.]*$/.test(part) && !BASE_TYPES.has(part))) {
+    if (rest.every((part) => LITERAL.test(part) && !BASE_TYPES.has(part))) {
       return nullable ? { type: ["string", "null"], enum: [...rest, null] } : { type: "string", enum: rest };
     }
     const options = rest.map(labelSchema);
@@ -52,26 +54,44 @@ function labelSchema(label: string): Schema | null {
   if (BASE_TYPES.has(part)) return { type: part };
   if (part.endsWith("[]")) {
     const items = labelSchema(part.slice(0, -2).replace(/^\((.*)\)$/, "$1"));
-    return items ? { type: "array", items } : { type: "array" };
+    return items ? { type: "array", items } : null;
   }
-  if (/^[A-Z]\w*$/.test(part)) return { type: "object", title: part };
+  const joined = splitTop(part, " & ");
+  if (joined.length > 1) {
+    const objects = joined.map(labelSchema);
+    if (objects.some((object) => !object?.properties)) return null;
+    return { type: "object", properties: Object.assign({}, ...objects.map((object) => object!.properties)) };
+  }
+  if (/^[A-Z][a-z]\w*$/.test(part)) return { type: "object", title: part };
   if (part.startsWith("{") && part.endsWith("}")) {
     const properties: Record<string, Schema> = {};
     for (const entry of splitTop(part.slice(1, -1).trim(), ",")) {
       const [name, ...type] = splitTop(entry, ":");
-      if (!name || !/^\w+$/.test(name)) return { type: "object" };
-      properties[name] = type.length > 0 ? (labelSchema(type.join(":")) ?? {}) : {};
+      const member = type.length > 0 ? labelSchema(type.join(":")) : null;
+      if (!name || !/^\w+$/.test(name) || !member) return null;
+      properties[name] = member;
     }
     return { type: "object", properties };
   }
-  if (/^[a-z][a-z0-9_.]*$/.test(part)) return { type: "string", const: part };
+  if (LITERAL.test(part)) return { type: "string", const: part };
   return null;
 }
 
+/** `data[].id` describes a member of `data`. */
 function responseSchema(fields: ResponseField[]): Schema {
   const properties: Record<string, Schema> = {};
   for (const field of fields) {
-    properties[field.name] = { ...(labelSchema(field.type) ?? {}), description: field.description };
+    const schema = labelSchema(field.type);
+    if (!schema) throw new Error(`${field.name} has a type label the OpenAPI document can't read: ${field.type}`);
+    const [parent, child] = field.name.split(/\[\]\.|\./);
+    if (!child) {
+      properties[field.name] = { ...schema, description: field.description };
+      continue;
+    }
+    const container = properties[parent!];
+    const target = (container?.type === "array" ? container.items : container) as { properties?: Record<string, Schema> } | undefined;
+    if (!target?.properties) throw new Error(`${field.name} names a member of ${parent}, which has none.`);
+    target.properties[child] = { ...schema, description: field.description };
   }
   return { type: "object", properties };
 }
