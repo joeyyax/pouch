@@ -40,7 +40,7 @@ ol.timeline::after { content: ""; position: absolute; left: 5px; top: 8px; width
 @keyframes chip-pop { 0% { transform: scale(0.9); } 100% { transform: scale(1); } }
 
 /* Supported providers, then the open slot. */
-.providers { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding-bottom: 88px; }
+.providers { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding-bottom: 40px; }
 .providers .label { margin-right: 6px; }
 .pill { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 999px; background: var(--card); box-shadow: var(--shadow-card); font-weight: 600; font-size: 14px; }
 .pill .dot { width: 7px; height: 7px; border-radius: 99px; background: var(--success-ink); }
@@ -160,3 +160,10 @@ button.pill { border: 0; font-family: inherit; color: inherit; cursor: help; }
 .doc th { font: 600 11px/1.4 var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--tertiary); }
 .doc td:first-child { white-space: nowrap; }
 .doc td { color: var(--foreground-soft); }
+
+/* Under the hero: what sets Pouch apart. */
+.specs { padding: 24px; }
+.specs p { margin-top: 8px; font-size: 14.5px; color: var(--foreground-soft); }
+.details { padding-bottom: 88px; }
+.also { margin-top: 20px; font-size: 14px; color: var(--foreground-soft); }
+.also .label { color: var(--muted-foreground); margin-right: 8px; }

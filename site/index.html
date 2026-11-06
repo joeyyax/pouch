@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Pouch · Transactional email on a provider you own</title>
+<title>Pouch · One API for every project's email</title>
 <meta name="description" content="Pouch is an open-source send API, message log and dashboard for the email provider you already use: Amazon SES, Mailpace or Cloudflare.">
 <link rel="canonical" href="https://pouch.email/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Pouch">
-<meta property="og:title" content="Pouch · Transactional email on a provider you own">
+<meta property="og:title" content="Pouch · One API for every project's email">
 <meta property="og:description" content="Pouch is an open-source send API, message log and dashboard for the email provider you already use: Amazon SES, Mailpace or Cloudflare.">
 <meta property="og:url" content="https://pouch.email/">
 <meta name="twitter:card" content="summary">
@@ -18,9 +18,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=Instrument+Sans:ital,wght@0,400..700;1,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/pouch.css">
-<link rel="stylesheet" href="/assets/site.css">
-<script src="/assets/site.js" defer></script>
+<link rel="stylesheet" href="/assets/pouch.css?v=a1c8fbe2">
+<link rel="stylesheet" href="/assets/site.css?v=f765a2cf">
+<script src="/assets/site.js?v=29a33c61" defer></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -37,8 +37,8 @@
   <section class="wrap hero">
     <div>
       <span class="kicker">Open source · Self-hosted</span>
-      <h1 class="type-h1">Transactional email on a provider you own.</h1>
-      <p class="type-subhead">Pouch is a send API, message log and dashboard for the email provider you already use.</p>
+      <h1 class="type-h1">One API for every project's email.</h1>
+      <p class="type-subhead">Pouch sends through your own Amazon SES, Mailpace or Cloudflare account and logs every message and what happened to it.</p>
       <div class="actions">
         <a class="btn btn-primary" href="https://github.com/joeyyax/pouch">View on GitHub</a>
         <span class="copy-field"><span><span class="prompt">$</span> npm i @joeyyax/pouch</span><button type="button" aria-label="Copy" data-copy="npm i @joeyyax/pouch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></span>
@@ -68,6 +68,36 @@
     <button type="button" class="pill" popovertarget="t-mailpace"><span class="dot"></span>Mailpace</button>
     <button type="button" class="pill" popovertarget="t-cloudflare"><span class="dot"></span>Cloudflare Email Service</button>
     <a class="pill open" href="#pluggable">+ Your provider</a>
+  </section>
+
+  <section class="wrap details" id="details" aria-label="What sets Pouch apart">
+    <div class="grid3" style="margin-top:0">
+      <div class="card specs">
+        <h3 class="type-h3">Switch providers without a deploy</h3>
+        <p>A domain's provider is a setting. Your code calls the same API either way.</p>
+      </div>
+      <div class="card specs">
+        <h3 class="type-h3">Pauses before your provider does</h3>
+        <p>A domain stops releasing mail at half the bounce or complaint rate SES reviews accounts at.</p>
+      </div>
+      <div class="card specs">
+        <h3 class="type-h3">Bodies you can really delete</h3>
+        <p>Each message is encrypted with its own key. Retention shreds the key, backups included.</p>
+      </div>
+      <div class="card specs">
+        <h3 class="type-h3">The record stays yours</h3>
+        <p>Every send is a row in your Postgres, kept past your provider's retention. Export CSV, NDJSON or <code>.eml</code> any time.</p>
+      </div>
+      <div class="card specs">
+        <h3 class="type-h3">Addresses your code creates</h3>
+        <p>Inbound addresses with an expiry that code can read, reply from and forward.</p>
+      </div>
+      <div class="card specs">
+        <h3 class="type-h3">Built in for agents</h3>
+        <p>An MCP server that sends, reads the log and waits for mail to arrive.</p>
+      </div>
+    </div>
+    <p class="also"><span class="label">Also</span> Passkeys and sign-in links · DMARC reports · blocklist checks · signed webhooks · SMTP · TypeScript SDK · push alerts when a check fails</p>
   </section>
 
   <section class="band" style="background: var(--background-deep)">
