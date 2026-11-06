@@ -1,0 +1,1 @@
+CREATE INDEX "messages_withheld_idx" ON "messages" USING btree ("organization_id","created_at") WHERE "messages"."body_withheld" is not null;

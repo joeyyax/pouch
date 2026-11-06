@@ -1,0 +1,3 @@
+ALTER TABLE "messages" ADD COLUMN "resent_from" text;--> statement-breakpoint
+ALTER TABLE "messages" ADD CONSTRAINT "messages_resent_from_messages_id_fk" FOREIGN KEY ("resent_from") REFERENCES "public"."messages"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX "messages_resent_from_idx" ON "messages" USING btree ("resent_from") WHERE "messages"."resent_from" is not null;

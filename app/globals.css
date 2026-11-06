@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+/* The kit, installed from the @uikit registry. Never edited here; fixes go to uikit. Order is
+   the kit's own — theme → tokens → typography → layout → surfaces → effects → environments →
+   base. */
+@import "./styles/theme.css";
+@import "./styles/tokens.css";
+@import "./styles/typography.css";
+@import "./styles/layout.css";
+@import "./styles/surfaces.css";
+@import "./styles/effects.css";
+@import "./styles/environments.css";
+@import "./styles/base.css";
+
+/* Pouch's own values for every token the kit reads. */
+@import "./brand.css";
+
+@import "./code.css";

@@ -1,0 +1,1 @@
+CREATE INDEX "message_events_outcome_idx" ON "message_events" USING btree ("organization_id","occurred_at") WHERE "message_events"."status" in ('bounced', 'complained');

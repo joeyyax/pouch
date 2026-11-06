@@ -1,0 +1,2 @@
+ALTER TABLE "provider_accounts" ADD COLUMN "provider_identity" text;--> statement-breakpoint
+CREATE INDEX "provider_accounts_identity_idx" ON "provider_accounts" USING btree ("module","provider_identity") WHERE "provider_accounts"."provider_identity" is not null;

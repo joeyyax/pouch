@@ -1,0 +1,1 @@
+ALTER TABLE "service_settings" ADD COLUMN "system_alerts_to" text[];

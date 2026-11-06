@@ -1,0 +1,1 @@
+ALTER TABLE "domains" ADD COLUMN "verification_errors" jsonb DEFAULT '[]'::jsonb NOT NULL;

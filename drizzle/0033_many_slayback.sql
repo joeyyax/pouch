@@ -1,0 +1,1 @@
+ALTER TABLE "domains" ADD COLUMN "bulk_allowed" boolean DEFAULT false NOT NULL;

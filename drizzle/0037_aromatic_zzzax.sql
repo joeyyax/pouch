@@ -1,0 +1,2 @@
+DROP INDEX "list_memberships_confirmation_due_idx";--> statement-breakpoint
+CREATE INDEX "list_memberships_confirmation_due_idx" ON "list_memberships" USING btree ("status","double_opt_in","confirmation_sent_at","confirmation_attempts","created_at");

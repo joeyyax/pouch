@@ -1,0 +1,3 @@
+ALTER TABLE "dns_provider_records" ADD COLUMN "provider_account_id" text;--> statement-breakpoint
+ALTER TABLE "dns_provider_records" ADD CONSTRAINT "dns_provider_records_provider_account_id_provider_accounts_id_fk" FOREIGN KEY ("provider_account_id") REFERENCES "public"."provider_accounts"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX "dns_provider_records_provider_account_idx" ON "dns_provider_records" USING btree ("provider_account_id");

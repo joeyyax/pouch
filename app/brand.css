@@ -1,0 +1,170 @@
+/* Pouch's brand: every value the kit reads that a brand would change. Started from
+   @uikit/brand (Quiet Canvas) and owned here. lib/brand-palette.ts mirrors these as hex.
+   A token set for light needs its dark value too: :root and .dark match the same element. */
+
+:root {
+  /* Pill geometry — radius-xl/2xl land in the 18–22px pill-card zone. */
+  --radius: 1.05rem;
+
+  /* The signal color as a ground, for .surface-brand. Same in both themes. */
+  --brand: oklch(44% 0.165 280);
+
+  /* Ground: cream, never pure white; cards lift to white over it. */
+  --background: oklch(97.6% 0.0035 265);
+  --foreground: oklch(23.5% 0.073 271); /* ink-navy #121a40 */
+  --card: oklch(100% 0 0);
+  --card-foreground: oklch(23.5% 0.073 271);
+
+  /* Signal: ink indigo. Reserved for actions, links, kickers — never decoration. */
+  --primary: oklch(44% 0.165 280); /* ink indigo #463faa — 7.7:1 on cream */
+  --primary-foreground: oklch(100% 0 0);
+  --secondary: oklch(95% 0.012 275);
+  --secondary-foreground: oklch(23.5% 0.073 271);
+  --muted: oklch(95% 0.006 265);
+  --muted-foreground: oklch(52.5% 0.035 273);
+  --accent: oklch(94.5% 0.026 285);
+  --accent-foreground: oklch(37.5% 0.14 281);
+  --border: oklch(93.1% 0.012 291);
+  --ring: oklch(44% 0.165 280);
+
+  --primary-strong: oklch(37.5% 0.14 281); /* indigo #383188 — 10:1 on cream */
+  --danger: oklch(50.9% 0.164 20); /* rose */
+  --warning: oklch(52.6% 0.154 42); /* amber */
+  --success: oklch(51.1% 0.123 155);
+  --success-soft: oklch(95.4% 0.024 159);
+  --success-ink: oklch(46.7% 0.106 156);
+  --warning-soft: oklch(95.5% 0.026 55);
+  --danger-soft: oklch(93.9% 0.031 35);
+  --foreground-soft: oklch(43.8% 0.034 274);
+  /* the workhorse text-emphasis tier — quiet steel ink; indigo stays reserved */
+  --tertiary: oklch(45% 0.045 272);
+  /* Backdrop — flat near-black (#07080f equivalent). Modals, sheets and the jump bar use --scrim. */
+  --backdrop: oklch(13.7% 0.016 277);
+  /* The modal and sheet scrim, alpha included. */
+  --scrim: oklch(13.7% 0.016 277 / 0.5);
+  /* marker inks — only ever drawn translucent behind text */
+  --hl-gold: oklch(84% 0.169 90);
+  --hl-sky: oklch(80% 0.115 232);
+  --hl-mint: oklch(85% 0.148 158);
+  --hl-rose: oklch(82% 0.103 12);
+  --background-deep: oklch(94.6% 0.007 265);
+
+  /* --font-instrument, --font-bricolage and --font-caveat come from next/font in the layout. */
+  --font-sans: var(--font-instrument), ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-display-var: var(--font-bricolage), ui-sans-serif, system-ui,
+    -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-hand-var: var(--font-caveat), "Comic Sans MS", cursive;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, monospace;
+}
+
+/* Ink-navy dark mode. Screen only, like the kit's own .dark: paper prints light. */
+@media screen {
+  .dark {
+    --background: oklch(16.2% 0.021 275); /* #0b0d17 */
+    --foreground: oklch(95.7% 0.015 278);
+    --card: oklch(20.4% 0.026 274);
+    --card-foreground: oklch(95.7% 0.015 278);
+
+    --primary: oklch(65% 0.155 281); /* periwinkle #8081ea */
+    --primary-foreground: oklch(16.2% 0.021 275);
+    --secondary: oklch(24% 0.035 275);
+    --secondary-foreground: oklch(95.7% 0.015 278);
+    --muted: oklch(23% 0.03 275);
+    --muted-foreground: oklch(62% 0.048 277);
+    --accent: oklch(27% 0.065 282);
+    --accent-foreground: oklch(75% 0.11 283);
+    --border: oklch(28.2% 0.048 276);
+    --ring: oklch(65% 0.155 281);
+
+    --primary-strong: oklch(75% 0.11 283);
+    --danger: oklch(74.2% 0.158 17);
+    --warning: oklch(79.7% 0.135 55);
+    --success: oklch(78.2% 0.16 157.5);
+    --success-soft: oklch(30% 0.06 158);
+    --success-ink: oklch(78.2% 0.16 157.5);
+    --warning-soft: oklch(30% 0.05 55);
+    --danger-soft: oklch(29% 0.05 30);
+    --foreground-soft: oklch(66.1% 0.042 276);
+    --tertiary: oklch(70% 0.055 274);
+    /* brighter + more saturated than light mode: a translucent mark over the
+       near-black ground darkens toward its own shadow, so each ink sits hotter
+       here to still read as itself. */
+    --hl-gold: oklch(86% 0.176 92);
+    --hl-sky: oklch(82% 0.109 232);
+    --hl-mint: oklch(86% 0.17 158);
+    --hl-rose: oklch(83% 0.096 12);
+    --background-deep: oklch(13.5% 0.02 275);
+    /* The backdrop is near the page's own color here, so the scrim goes to black and stronger. */
+    --scrim: oklch(0% 0 0 / 0.72);
+  }
+}
+
+/* The mark's motion (components/logo.tsx). The flap hinges on the body's top edge. Nothing
+   moves under reduced motion. */
+.pouch-mark-flap {
+  transform-box: view-box;
+  transform-origin: 16px var(--mark-hinge);
+}
+.pouch-mark-letter {
+  opacity: 0;
+  fill: color-mix(in oklch, var(--primary) 35%, white);
+  transform-box: view-box;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pouch-mark[data-motion~="hover"] .pouch-mark-flap {
+    transition: transform 220ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  @media (hover: hover) {
+    :is(a, button):hover > .pouch-mark[data-motion~="hover"] .pouch-mark-flap {
+      transform: translateY(-1.2px) scaleY(0.7);
+      transition: transform 280ms cubic-bezier(0.3, 0.7, 0.3, 1);
+    }
+  }
+  :is(a, button):focus-visible > .pouch-mark[data-motion~="hover"] .pouch-mark-flap {
+    transform: translateY(-1.2px) scaleY(0.7);
+    transition: transform 280ms cubic-bezier(0.3, 0.7, 0.3, 1);
+  }
+
+  .pouch-mark[data-motion~="sent"] {
+    transform-origin: 50% 84%;
+    animation: pouch-mark-settle 900ms ease-out;
+  }
+  .pouch-mark[data-motion~="sent"] .pouch-mark-flap {
+    animation: pouch-mark-flap-sent 900ms cubic-bezier(0.3, 0.7, 0.3, 1);
+  }
+  .pouch-mark[data-motion~="sent"] .pouch-mark-letter {
+    animation: pouch-mark-letter 900ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .pouch-mark[data-motion~="wait"] .pouch-mark-flap {
+    animation: pouch-mark-flap-wait 2400ms ease-in-out infinite;
+  }
+  .pouch-mark[data-motion~="sent"][data-motion~="wait"] .pouch-mark-flap {
+    animation:
+      pouch-mark-flap-sent 900ms cubic-bezier(0.3, 0.7, 0.3, 1),
+      pouch-mark-flap-wait 2400ms ease-in-out 900ms infinite;
+  }
+}
+
+@keyframes pouch-mark-flap-sent {
+  0% { transform: scaleY(1); }
+  28%, 66% { transform: scaleY(-0.7); }
+  100% { transform: scaleY(1); }
+}
+@keyframes pouch-mark-letter {
+  0%, 22% { opacity: 0; transform: translateY(-3px); }
+  32% { opacity: 1; transform: translateY(0); }
+  62% { opacity: 1; transform: translateY(20px); }
+  64%, 100% { opacity: 0; transform: translateY(20px); }
+}
+@keyframes pouch-mark-settle {
+  0%, 70% { transform: none; }
+  84% { transform: scale(1.03, 0.95); }
+  100% { transform: none; }
+}
+@keyframes pouch-mark-flap-wait {
+  0%, 100% { transform: none; }
+  50% { transform: translateY(-1.4px) scaleY(0.88); }
+}

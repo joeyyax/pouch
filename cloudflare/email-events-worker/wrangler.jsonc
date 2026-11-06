@@ -1,0 +1,22 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "pouch-cloudflare-email-events",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-01",
+  "queues": {
+    "consumers": [
+      {
+        "queue": "pouch-email-sending-events",
+        "max_batch_size": 25,
+        "max_batch_timeout": 5,
+        "max_retries": 5,
+        "dead_letter_queue": "pouch-email-sending-events-dlq"
+      }
+    ]
+  },
+  "vars": {
+    // The Pouch webhook this Worker forwards to. Ends in the provider id Pouch issued
+    // when this Cloudflare provider was created.
+    "POUCH_WEBHOOK_URL": "https://mail.example.com/api/webhooks/cloudflare/pac_replace_me"
+  }
+}

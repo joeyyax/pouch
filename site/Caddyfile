@@ -1,0 +1,28 @@
+{
+	admin off
+	auto_https off
+}
+
+:8080 {
+	root * /srv
+	encode zstd gzip
+
+	@assets path /assets/* /favicon.svg
+	header @assets Cache-Control "public, max-age=3600"
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+
+	handle /healthz {
+		respond 200
+	}
+
+	handle {
+		# Anything the site doesn't have was an app link before the app moved.
+		@app not file {path} {path}/index.html
+		redir @app https://app.pouch.email{uri} 302
+		file_server
+	}
+}

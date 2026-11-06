@@ -1,0 +1,92 @@
+# Pouch settings. Copy to pouch.yml, or point CONFIG_FILE at another path, and uncomment what to pin.
+#
+# A value here wins over Admin settings → General, where it shows locked. Its environment variable
+# still wins over the file. Pouch reads the file at startup: a change takes a restart, and an unknown
+# key or a value out of bounds stops the app, the worker and SMTP from starting, naming the key.
+#
+# Secrets never go here. They stay in the environment. Admin settings → General → Export settings
+# downloads this shape, with each value off its default set.
+
+# Sending
+# Batches to many recipients. Each domain still opts in on its own.
+# bulk: true
+# Subscriber lists. Needs bulk.
+# lists: true
+# The largest message, body and decoded attachments, 1 to 30 MB. Lower only: providers take no more.
+# max_message_mb: 30
+# Requests a minute a new key gets when it's created without one, 1 to 10000.
+# key_rate_limit_default: 3000
+
+# Reputation: where the stall guard holds a domain's queue. Each goes lower than its default, never higher.
+# Bounce rate, 0.5 to 2.5 percent in steps of 0.1.
+# stall_bounce_percent: 2.5
+# Complaint rate, 0.01 to 0.05 percent in steps of 0.01.
+# stall_complaint_percent: 0.05
+# Bounces that hold a queue below 50 resolved messages, 1 to 3.
+# stall_bounce_count: 3
+# Resolved messages before a count holds a queue, 1 to 10.
+# stall_count_volume_floor: 10
+
+# Receiving
+# Mail to a domain's inbound host.
+# inbound: true
+# Addresses code creates on an inbound host. Needs inbound.
+# addresses: true
+# Active addresses per organization, unless an admin set its own. Needs addresses.
+# address_limit_default: 500
+# Messages one address takes per UTC day, unless an admin set the organization's own. Needs addresses.
+# address_daily_message_limit_default: 100
+
+# Monitoring
+# Patterns in send metadata, on the overview and in the digest.
+# observations: true
+# Aggregate reports on the report host, the address in each domain's DMARC record and what they raise.
+# dmarc_reports: true
+
+# Access
+# The MCP endpoint at /mcp.
+# mcp: true
+# An email and password on /login. One sign-in method always stays on.
+# sign_in_password: true
+# A passkey on /login.
+# sign_in_passkey: true
+# A link emailed from the system from address. It never creates an account.
+# sign_in_magic_link: true
+# How long a session lasts without use, 1 to 90 days. Read when the app starts.
+# session_days: 7
+# Who creates organizations: closed (admins only), owners (admins and organization owners) or open (anyone signed in).
+# organization_creation: open
+
+# Retention
+# The most days an organization can keep bodies readable, 7 to 730. Move the bucket's lifecycle rule first above 365.
+# body_retention_max_days: 365
+# The most days a domain can hold inbound mail, 1 to 365.
+# inbound_retention_max_days: 30
+# Days the activity log keeps setup changes, 365 to 1825.
+# activity_retention_days: 730
+# Days the activity log keeps routine events, 7 to 730. Sign-ins stay at least 90.
+# activity_churn_retention_days: 90
+
+# Notifications
+# Owners are emailed when a domain or organization nears a pause, lands on a blocklist or sends unusually.
+# notification_standing_at_risk: true
+# Owners are emailed when a domain or organization stops sending.
+# notification_standing_paused: true
+# Owners are emailed when a paused domain or organization sends again.
+# notification_standing_resumed: true
+# Owners are emailed when one address gets an unusual number of sensitive messages.
+# notification_account_targeted: true
+# Owners are emailed when a tag that sends every day sends nothing for a day.
+# notification_tag_quiet: true
+# Owners are emailed when DMARC reports show someone else sending as a domain.
+# notification_domain_spoofed: true
+# Owners are emailed when a domain's mail takes far longer to deliver than usual.
+# notification_delivery_time: true
+# Owners are emailed when a domain's DMARC reports have read healthy long enough to tighten its policy.
+# notification_dmarc_policy_ready: true
+# Hours before owners are emailed about the same standing again, 1 to 168. A worse standing always emails.
+# standing_alert_repeat_hours: 24
+# Minutes a provider backs off with no successful send before admins get an alert, 15 to 1440.
+# provider_backoff_alert_minutes: 30
+# The UTC hour admins' digests send, 0 to 23.
+# digest_hour: 0

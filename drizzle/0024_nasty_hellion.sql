@@ -1,0 +1,1 @@
+ALTER TABLE "provider_accounts" ADD COLUMN "backing_off_since" timestamp with time zone;

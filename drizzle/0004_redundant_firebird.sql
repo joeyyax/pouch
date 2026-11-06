@@ -1,0 +1,1 @@
+ALTER TABLE "domains" ADD COLUMN "missing_records" jsonb DEFAULT '[]'::jsonb NOT NULL;

@@ -1,0 +1,249 @@
+# The stack, behind no particular reverse proxy:
+#   docker compose -f docker-compose.self-host.yml up -d
+#
+# One image built from the Dockerfile runs the app (mail), the worker and the SMTP ingress.
+# Postgres and Valkey run alongside, bundled — the default, and what most deployments should
+# run. Secrets come from the environment, never this file. The app is published on APP_PORT
+# (3100); put your own TLS terminator in front of it.
+#
+# Already have a managed Postgres or Redis? Set DATABASE_URL and/or REDIS_URL and start only
+# the app services — `--no-deps` is required, or `depends_on` pulls postgres/redis in anyway:
+# `docker compose -f docker-compose.self-host.yml up -d --no-deps mail mail-worker`.
+#
+# docker-compose.traefik.yml is the same services behind an existing Traefik. The files are kept
+# in step by tests/unit/compose-env-parity.test.ts.
+# See docs/self-hosting.md.
+
+# Settings file, optional: pouch.yml pins Admin settings → General values (pouch.example.yml). Create it
+# beside this file, then add the same mount to mail, mail-worker and mail-smtp:
+#     volumes:
+#       - ./pouch.yml:/app/pouch.yml:ro
+# Create the file before the first start: Docker turns a missing source into a directory, and a
+# directory there stops all three. Set CONFIG_FILE to read it from another path.
+
+# Env every process that touches a message needs: the database, the queue, error reporting,
+# and what the send path stores and encrypts a body with. mail, mail-worker and mail-smtp all
+# merge this in with `<<: *mail-env` and add only what's specific to them below — mail-smtp
+# went without it once (#8) because there was nowhere this was written down as shared.
+x-mail-env: &mail-env
+  TZ: America/Los_Angeles
+  LOG_LEVEL: ${LOG_LEVEL:-info}
+  DATABASE_URL: ${DATABASE_URL:-postgresql://mail:${POSTGRES_PASSWORD}@postgres:5432/mail}
+  REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+  ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+  GLITCHTIP_DSN: ${GLITCHTIP_DSN:-}
+  GLITCHTIP_ENVIRONMENT: ${GLITCHTIP_ENVIRONMENT:-production}
+  STORAGE_ENDPOINT: ${STORAGE_ENDPOINT}
+  STORAGE_BUCKET: ${STORAGE_BUCKET}
+  STORAGE_REGION: ${STORAGE_REGION:-auto}
+  STORAGE_ACCESS_KEY_ID: ${STORAGE_ACCESS_KEY_ID}
+  STORAGE_SECRET_ACCESS_KEY: ${STORAGE_SECRET_ACCESS_KEY}
+  STORAGE_FORCE_PATH_STYLE: ${STORAGE_FORCE_PATH_STYLE:-false}
+  MEILISEARCH_URL: ${MEILISEARCH_URL:-}
+  MEILISEARCH_API_KEY: ${MEILISEARCH_API_KEY:-}
+  MEILISEARCH_INDEX_PREFIX: ${MEILISEARCH_INDEX_PREFIX:-pouch_}
+  MEILISEARCH_TIMEOUT_MS: ${MEILISEARCH_TIMEOUT_MS:-300}
+  CONFIG_FILE: ${CONFIG_FILE:-}
+  FEATURE_BULK: ${FEATURE_BULK:-}
+  FEATURE_LISTS: ${FEATURE_LISTS:-}
+  FEATURE_INBOUND: ${FEATURE_INBOUND:-}
+  FEATURE_ADDRESSES: ${FEATURE_ADDRESSES:-}
+  FEATURE_OBSERVATIONS: ${FEATURE_OBSERVATIONS:-}
+  FEATURE_DMARC_REPORTS: ${FEATURE_DMARC_REPORTS:-}
+  FEATURE_MCP: ${FEATURE_MCP:-}
+  MAX_MESSAGE_MB: ${MAX_MESSAGE_MB:-}
+  KEY_RATE_LIMIT_DEFAULT: ${KEY_RATE_LIMIT_DEFAULT:-}
+  ADDRESS_LIMIT_DEFAULT: ${ADDRESS_LIMIT_DEFAULT:-}
+  ADDRESS_DAILY_MESSAGE_LIMIT_DEFAULT: ${ADDRESS_DAILY_MESSAGE_LIMIT_DEFAULT:-}
+  BODY_RETENTION_MAX_DAYS: ${BODY_RETENTION_MAX_DAYS:-}
+  INBOUND_RETENTION_MAX_DAYS: ${INBOUND_RETENTION_MAX_DAYS:-}
+  ACTIVITY_RETENTION_DAYS: ${ACTIVITY_RETENTION_DAYS:-}
+  ACTIVITY_CHURN_RETENTION_DAYS: ${ACTIVITY_CHURN_RETENTION_DAYS:-}
+  STALL_BOUNCE_PERCENT: ${STALL_BOUNCE_PERCENT:-}
+  STALL_COMPLAINT_PERCENT: ${STALL_COMPLAINT_PERCENT:-}
+  STALL_BOUNCE_COUNT: ${STALL_BOUNCE_COUNT:-}
+  STALL_COUNT_VOLUME_FLOOR: ${STALL_COUNT_VOLUME_FLOOR:-}
+  SIGN_IN_PASSWORD: ${SIGN_IN_PASSWORD:-}
+  SIGN_IN_PASSKEY: ${SIGN_IN_PASSKEY:-}
+  SIGN_IN_MAGIC_LINK: ${SIGN_IN_MAGIC_LINK:-}
+  SESSION_DAYS: ${SESSION_DAYS:-}
+  NOTIFICATION_STANDING_AT_RISK: ${NOTIFICATION_STANDING_AT_RISK:-}
+  NOTIFICATION_STANDING_PAUSED: ${NOTIFICATION_STANDING_PAUSED:-}
+  NOTIFICATION_STANDING_RESUMED: ${NOTIFICATION_STANDING_RESUMED:-}
+  NOTIFICATION_ACCOUNT_TARGETED: ${NOTIFICATION_ACCOUNT_TARGETED:-}
+  NOTIFICATION_TAG_QUIET: ${NOTIFICATION_TAG_QUIET:-}
+  NOTIFICATION_DOMAIN_SPOOFED: ${NOTIFICATION_DOMAIN_SPOOFED:-}
+  NOTIFICATION_DELIVERY_TIME: ${NOTIFICATION_DELIVERY_TIME:-}
+  NOTIFICATION_DMARC_POLICY_READY: ${NOTIFICATION_DMARC_POLICY_READY:-}
+  STANDING_ALERT_REPEAT_HOURS: ${STANDING_ALERT_REPEAT_HOURS:-}
+  PROVIDER_BACKOFF_ALERT_MINUTES: ${PROVIDER_BACKOFF_ALERT_MINUTES:-}
+  DIGEST_HOUR: ${DIGEST_HOUR:-}
+  ORGANIZATION_CREATION: ${ORGANIZATION_CREATION:-}
+
+services:
+  mail:
+    build:
+      context: .
+      args:
+        GIT_SHA: ${GIT_SHA:-}
+    restart: unless-stopped
+    environment:
+      <<: *mail-env
+      APP_URL: ${APP_URL}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      NTFY_URL: ${NTFY_URL:-}
+      NTFY_TOPIC: ${NTFY_TOPIC:-}
+      NTFY_TOKEN: ${NTFY_TOKEN:-}
+      SPAMHAUS_DQS_KEY: ${SPAMHAUS_DQS_KEY:-}
+      STORAGE_ASSETS_BUCKET: ${STORAGE_ASSETS_BUCKET:-}
+      STORAGE_ASSETS_BASE_URL: ${STORAGE_ASSETS_BASE_URL:-}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      ADMIN_NAME: ${ADMIN_NAME:-}
+      SEED_ORGANIZATION_NAME: ${SEED_ORGANIZATION_NAME:-Pouch}
+      SEED_ORGANIZATION_SLUG: ${SEED_ORGANIZATION_SLUG:-default}
+      SEED_PROVIDER_ADAPTER: ${SEED_PROVIDER_ADAPTER:-ses}
+      SEED_PROVIDER_NAME: ${SEED_PROVIDER_NAME:-primary}
+      SEED_PROVIDER_CREDENTIALS: ${SEED_PROVIDER_CREDENTIALS}
+      SEED_PROVIDER_SETTINGS: ${SEED_PROVIDER_SETTINGS:-}
+      SEED_PROVIDER_CONCURRENCY: ${SEED_PROVIDER_CONCURRENCY:-16}
+      SEED_DOMAIN: ${SEED_DOMAIN}
+      SEED_KEY_NAME: ${SEED_KEY_NAME:-bootstrap}
+      SEED_KEY_MODE: live
+    ports:
+      - "${APP_PORT:-3100}:3100"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3100/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - internal
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  mail-worker:
+    build:
+      context: .
+      args:
+        GIT_SHA: ${GIT_SHA:-}
+    command: ["node", "--import", "tsx", "worker/index.ts"]
+    restart: unless-stopped
+    # Covers SHUTDOWN_DRAIN_TIMEOUT_MS (75s) plus six teardown hooks at 8s each.
+    stop_grace_period: 135s
+    environment:
+      <<: *mail-env
+      # The worker needs both: it signs list confirmation tokens (lib/lists/tokens.ts, which
+      # throws without the secret) and it serializes every webhook payload, whose `url` field
+      # comes from APP_URL and silently reads http://localhost:3100 without it.
+      APP_URL: ${APP_URL}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      NTFY_URL: ${NTFY_URL:-}
+      NTFY_TOPIC: ${NTFY_TOPIC:-}
+      NTFY_TOKEN: ${NTFY_TOKEN:-}
+      SPAMHAUS_DQS_KEY: ${SPAMHAUS_DQS_KEY:-}
+      MAILPACE_API_BASE: ${MAILPACE_API_BASE:-https://app.mailpace.com/api/v1}
+      WORKER_CONCURRENCY: ${WORKER_CONCURRENCY:-32}
+      WORKER_POLL_INTERVAL_MS: ${WORKER_POLL_INTERVAL_MS:-2000}
+      WORKER_VERIFY_INTERVAL_MS: ${WORKER_VERIFY_INTERVAL_MS:-60000}
+      WORKER_VERIFY_BATCH: ${WORKER_VERIFY_BATCH:-20}
+      WORKER_VERIFY_RECHECK_MS: ${WORKER_VERIFY_RECHECK_MS:-300000}
+      WORKER_VERIFY_SLOW_RECHECK_MS: ${WORKER_VERIFY_SLOW_RECHECK_MS:-3600000}
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3101/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - internal
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # SMTP ingress: STARTTLS on 587. Implicit TLS on 465 is off by default (docs/decisions.md);
+  # a host that can open 465 sets SMTP_IMPLICIT_TLS_PORT and publishes it. The port is
+  # published directly rather than going through a reverse proxy.
+  #
+  # Mount your certificate for SMTP_TLS_HOST at SMTP_CERT_DIR (./certs by default) as
+  # certificate.crt and privatekey.key, readable by uid 1001 — the `app` user the image runs
+  # as. A key is a bearer credential for the whole send API, so AUTH PLAIN never
+  # runs in the clear here. Without a certificate on disk, 587 opens with AUTH disabled,
+  # rejecting every send, rather than accepting keys unencrypted — see lib/smtp/server.ts's
+  # createSubmissionServer for why.
+  mail-smtp:
+    build:
+      context: .
+      args:
+        GIT_SHA: ${GIT_SHA:-}
+    command: ["node", "--import", "tsx", "smtp/index.ts"]
+    restart: unless-stopped
+    # Covers SHUTDOWN_DRAIN_TIMEOUT_MS (75s) plus three teardown hooks at 8s each.
+    stop_grace_period: 105s
+    environment:
+      <<: *mail-env
+      SMTP_SUBMISSION_PORT: 587
+      SMTP_TLS_CERT_PATH: ${SMTP_TLS_CERT_PATH:-/certs/certificate.crt}
+      SMTP_TLS_KEY_PATH: ${SMTP_TLS_KEY_PATH:-/certs/privatekey.key}
+      # Also the SMTP banner name (lib/smtp/server.ts) — without it smtp-server greets with
+      # the container id, which doesn't resolve and reads as unfinished to a connecting client.
+      SMTP_TLS_HOST: ${SMTP_TLS_HOST:-}
+    ports:
+      - "587:587"
+    volumes:
+      # Your certificate for SMTP_TLS_HOST. Without one, 587 opens with AUTH disabled.
+      - ${SMTP_CERT_DIR:-./certs}:/certs:ro
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3102/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - internal
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: mail
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: mail
+    volumes:
+      - mail-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mail -d mail"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks:
+      - internal
+
+  redis:
+    image: valkey/valkey:8-alpine
+    restart: unless-stopped
+    command: ["valkey-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks:
+      - internal
+
+volumes:
+  mail-postgres:
+
+networks:
+  internal:

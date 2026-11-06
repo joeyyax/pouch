@@ -1,0 +1,274 @@
+# Pouch's own production stack, deployed by Vardo. A worked example; self-hosting uses docker-compose.self-host.yml.
+# Not named docker-compose.vardo.yml: Vardo reads that name in a slot as its own overlay.
+# pouch and pouch-worker rotate blue/green; pouch-smtp, postgres and redis are x-vardo-shared.
+# Set the app's cert services to pouch-smtp so Vardo mounts smtp.pouch.email's cert at /certs.
+
+# Same as docker-compose.traefik.yml's anchor, so the env import maps 1:1.
+x-mail-env: &mail-env
+  TZ: America/Los_Angeles
+  LOG_LEVEL: ${LOG_LEVEL:-info}
+  DATABASE_URL: ${DATABASE_URL:-postgresql://mail:${POSTGRES_PASSWORD}@postgres:5432/mail}
+  REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+  ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+  GLITCHTIP_DSN: ${GLITCHTIP_DSN:-}
+  GLITCHTIP_ENVIRONMENT: ${GLITCHTIP_ENVIRONMENT:-production}
+  STORAGE_ENDPOINT: ${STORAGE_ENDPOINT}
+  STORAGE_BUCKET: ${STORAGE_BUCKET}
+  STORAGE_REGION: ${STORAGE_REGION:-auto}
+  STORAGE_ACCESS_KEY_ID: ${STORAGE_ACCESS_KEY_ID}
+  STORAGE_SECRET_ACCESS_KEY: ${STORAGE_SECRET_ACCESS_KEY}
+  STORAGE_FORCE_PATH_STYLE: ${STORAGE_FORCE_PATH_STYLE:-false}
+  MEILISEARCH_URL: ${MEILISEARCH_URL:-}
+  MEILISEARCH_API_KEY: ${MEILISEARCH_API_KEY:-}
+  MEILISEARCH_INDEX_PREFIX: ${MEILISEARCH_INDEX_PREFIX:-pouch_}
+  MEILISEARCH_TIMEOUT_MS: ${MEILISEARCH_TIMEOUT_MS:-300}
+  CONFIG_FILE: ${CONFIG_FILE:-}
+  FEATURE_BULK: ${FEATURE_BULK:-}
+  FEATURE_LISTS: ${FEATURE_LISTS:-}
+  FEATURE_INBOUND: ${FEATURE_INBOUND:-}
+  FEATURE_ADDRESSES: ${FEATURE_ADDRESSES:-}
+  FEATURE_OBSERVATIONS: ${FEATURE_OBSERVATIONS:-}
+  FEATURE_DMARC_REPORTS: ${FEATURE_DMARC_REPORTS:-}
+  FEATURE_MCP: ${FEATURE_MCP:-}
+  MAX_MESSAGE_MB: ${MAX_MESSAGE_MB:-}
+  KEY_RATE_LIMIT_DEFAULT: ${KEY_RATE_LIMIT_DEFAULT:-}
+  ADDRESS_LIMIT_DEFAULT: ${ADDRESS_LIMIT_DEFAULT:-}
+  ADDRESS_DAILY_MESSAGE_LIMIT_DEFAULT: ${ADDRESS_DAILY_MESSAGE_LIMIT_DEFAULT:-}
+  BODY_RETENTION_MAX_DAYS: ${BODY_RETENTION_MAX_DAYS:-}
+  INBOUND_RETENTION_MAX_DAYS: ${INBOUND_RETENTION_MAX_DAYS:-}
+  ACTIVITY_RETENTION_DAYS: ${ACTIVITY_RETENTION_DAYS:-}
+  ACTIVITY_CHURN_RETENTION_DAYS: ${ACTIVITY_CHURN_RETENTION_DAYS:-}
+  STALL_BOUNCE_PERCENT: ${STALL_BOUNCE_PERCENT:-}
+  STALL_COMPLAINT_PERCENT: ${STALL_COMPLAINT_PERCENT:-}
+  STALL_BOUNCE_COUNT: ${STALL_BOUNCE_COUNT:-}
+  STALL_COUNT_VOLUME_FLOOR: ${STALL_COUNT_VOLUME_FLOOR:-}
+  SIGN_IN_PASSWORD: ${SIGN_IN_PASSWORD:-}
+  SIGN_IN_PASSKEY: ${SIGN_IN_PASSKEY:-}
+  SIGN_IN_MAGIC_LINK: ${SIGN_IN_MAGIC_LINK:-}
+  SESSION_DAYS: ${SESSION_DAYS:-}
+  NOTIFICATION_STANDING_AT_RISK: ${NOTIFICATION_STANDING_AT_RISK:-}
+  NOTIFICATION_STANDING_PAUSED: ${NOTIFICATION_STANDING_PAUSED:-}
+  NOTIFICATION_STANDING_RESUMED: ${NOTIFICATION_STANDING_RESUMED:-}
+  NOTIFICATION_ACCOUNT_TARGETED: ${NOTIFICATION_ACCOUNT_TARGETED:-}
+  NOTIFICATION_TAG_QUIET: ${NOTIFICATION_TAG_QUIET:-}
+  NOTIFICATION_DOMAIN_SPOOFED: ${NOTIFICATION_DOMAIN_SPOOFED:-}
+  NOTIFICATION_DELIVERY_TIME: ${NOTIFICATION_DELIVERY_TIME:-}
+  NOTIFICATION_DMARC_POLICY_READY: ${NOTIFICATION_DMARC_POLICY_READY:-}
+  STANDING_ALERT_REPEAT_HOURS: ${STANDING_ALERT_REPEAT_HOURS:-}
+  PROVIDER_BACKOFF_ALERT_MINUTES: ${PROVIDER_BACKOFF_ALERT_MINUTES:-}
+  DIGEST_HOUR: ${DIGEST_HOUR:-}
+  ORGANIZATION_CREATION: ${ORGANIZATION_CREATION:-}
+
+services:
+  pouch:
+    build:
+      context: .
+      args:
+        GIT_SHA: ${GIT_SHA:-}
+    # Tagged so pouch-smtp, which can't build, runs the same image.
+    image: pouch:${VARDO_GIT_SHORT_SHA:-local}
+    restart: unless-stopped
+    environment:
+      <<: *mail-env
+      APP_URL: ${APP_URL}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      NTFY_URL: ${NTFY_URL:-}
+      NTFY_TOPIC: ${NTFY_TOPIC:-}
+      NTFY_TOKEN: ${NTFY_TOKEN:-}
+      SPAMHAUS_DQS_KEY: ${SPAMHAUS_DQS_KEY:-}
+      STORAGE_ASSETS_BUCKET: ${STORAGE_ASSETS_BUCKET:-}
+      STORAGE_ASSETS_BASE_URL: ${STORAGE_ASSETS_BASE_URL:-}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      ADMIN_NAME: ${ADMIN_NAME:-}
+      SEED_ORGANIZATION_NAME: ${SEED_ORGANIZATION_NAME:-Pouch}
+      SEED_ORGANIZATION_SLUG: ${SEED_ORGANIZATION_SLUG:-default}
+      SEED_PROVIDER_ADAPTER: ${SEED_PROVIDER_ADAPTER:-ses}
+      SEED_PROVIDER_NAME: ${SEED_PROVIDER_NAME:-primary}
+      SEED_PROVIDER_CREDENTIALS: ${SEED_PROVIDER_CREDENTIALS}
+      SEED_PROVIDER_SETTINGS: ${SEED_PROVIDER_SETTINGS:-}
+      SEED_PROVIDER_CONCURRENCY: ${SEED_PROVIDER_CONCURRENCY:-16}
+      SEED_DOMAIN: ${SEED_DOMAIN}
+      SEED_KEY_NAME: ${SEED_KEY_NAME:-bootstrap}
+      SEED_KEY_MODE: live
+    # Healthy means migrated and serving.
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3100/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    labels:
+      # Routes from these labels; the app's domain rows only make the certs exportable.
+      vardo.traefik: manual
+      traefik.enable: "true"
+      traefik.docker.network: vardo-network
+      traefik.http.routers.pouch-app.rule: Host(`app.pouch.email`)
+      traefik.http.routers.pouch-app.entrypoints: websecure
+      traefik.http.routers.pouch-app.tls.certresolver: le-dns
+      traefik.http.routers.pouch-app.service: pouch
+      # pouch.email still serves what mail already sent and existing callers point at.
+      traefik.http.routers.pouch-legacy.rule: Host(`pouch.email`) && (PathPrefix(`/v1`) || PathPrefix(`/api/v1`) || PathPrefix(`/api/webhooks`) || PathPrefix(`/mcp`) || PathPrefix(`/u/`) || PathPrefix(`/unsubscribe/`) || PathPrefix(`/confirm/`) || PathPrefix(`/forward/`) || PathPrefix(`/download/`))
+      traefik.http.routers.pouch-legacy.priority: "100"
+      traefik.http.routers.pouch-legacy.entrypoints: websecure
+      traefik.http.routers.pouch-legacy.tls.certresolver: le-dns
+      traefik.http.routers.pouch-legacy.service: pouch
+      traefik.http.routers.pouch-alt.rule: Host(`${POUCH_ALT_HOST:-unset.invalid}`)
+      traefik.http.routers.pouch-alt.entrypoints: websecure
+      traefik.http.routers.pouch-alt.tls.certresolver: le-dns
+      traefik.http.routers.pouch-alt.service: pouch
+      # Exists so Traefik holds a certificate for pouch-smtp.
+      traefik.http.routers.pouch-smtp-cert.rule: Host(`smtp.pouch.email`)
+      traefik.http.routers.pouch-smtp-cert.entrypoints: websecure
+      traefik.http.routers.pouch-smtp-cert.tls.certresolver: le-dns
+      traefik.http.routers.pouch-smtp-cert.service: pouch
+      traefik.http.routers.pouch-http.rule: Host(`pouch.email`) || Host(`app.pouch.email`) || Host(`${POUCH_ALT_HOST:-unset.invalid}`)
+      traefik.http.routers.pouch-http.entrypoints: web
+      traefik.http.routers.pouch-http.middlewares: pouch-https
+      traefik.http.routers.pouch-http.service: pouch
+      traefik.http.middlewares.pouch-https.redirectscheme.scheme: https
+      traefik.http.middlewares.pouch-https.redirectscheme.permanent: "true"
+      traefik.http.services.pouch.loadbalancer.server.port: "3100"
+    networks:
+      - vardo-network
+      - pouch-internal
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # The marketing site at pouch.email. Paths it doesn't have redirect to app.pouch.email.
+  site:
+    build:
+      context: ./site
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    labels:
+      vardo.traefik: manual
+      traefik.enable: "true"
+      traefik.docker.network: vardo-network
+      traefik.http.routers.pouch.rule: Host(`pouch.email`)
+      traefik.http.routers.pouch.entrypoints: websecure
+      traefik.http.routers.pouch.tls.certresolver: le-dns
+      traefik.http.routers.pouch.service: pouch-site
+      traefik.http.services.pouch-site.loadbalancer.server.port: "8080"
+    networks:
+      - vardo-network
+
+  pouch-worker:
+    build:
+      context: .
+      args:
+        GIT_SHA: ${GIT_SHA:-}
+    command: ["node", "--import", "tsx", "worker/index.ts"]
+    restart: unless-stopped
+    # Covers SHUTDOWN_DRAIN_TIMEOUT_MS (75s) plus six teardown hooks at 8s each.
+    stop_grace_period: 135s
+    environment:
+      <<: *mail-env
+      APP_URL: ${APP_URL}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      NTFY_URL: ${NTFY_URL:-}
+      NTFY_TOPIC: ${NTFY_TOPIC:-}
+      NTFY_TOKEN: ${NTFY_TOKEN:-}
+      SPAMHAUS_DQS_KEY: ${SPAMHAUS_DQS_KEY:-}
+      MAILPACE_API_BASE: ${MAILPACE_API_BASE:-https://app.mailpace.com/api/v1}
+      WORKER_CONCURRENCY: ${WORKER_CONCURRENCY:-32}
+      WORKER_POLL_INTERVAL_MS: ${WORKER_POLL_INTERVAL_MS:-2000}
+      WORKER_VERIFY_INTERVAL_MS: ${WORKER_VERIFY_INTERVAL_MS:-60000}
+      WORKER_VERIFY_BATCH: ${WORKER_VERIFY_BATCH:-20}
+      WORKER_VERIFY_RECHECK_MS: ${WORKER_VERIFY_RECHECK_MS:-300000}
+      WORKER_VERIFY_SLOW_RECHECK_MS: ${WORKER_VERIFY_SLOW_RECHECK_MS:-3600000}
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3101/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - pouch-internal
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      # Starts once its slot's pouch has migrated.
+      pouch:
+        condition: service_healthy
+
+  # STARTTLS on 587 only. Published directly, so it's shared: a second copy can't bind the port.
+  pouch-smtp:
+    x-vardo-shared: true
+    # Recreated only when this definition changes, not on every deploy.
+    image: pouch:${VARDO_GIT_SHORT_SHA:-local}
+    pull_policy: never
+    command: ["node", "--import", "tsx", "smtp/index.ts"]
+    restart: unless-stopped
+    # Covers SHUTDOWN_DRAIN_TIMEOUT_MS (75s) plus three teardown hooks at 8s each.
+    stop_grace_period: 105s
+    environment:
+      <<: *mail-env
+      SMTP_SUBMISSION_PORT: 587
+      SMTP_TLS_CERT_PATH: ${SMTP_TLS_CERT_PATH:-/certs/smtp.pouch.email/fullchain.pem}
+      SMTP_TLS_KEY_PATH: ${SMTP_TLS_KEY_PATH:-/certs/smtp.pouch.email/privkey.pem}
+      SMTP_TLS_HOST: ${SMTP_TLS_HOST:-smtp.pouch.email}
+    ports:
+      - "587:587"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3102/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - pouch-internal
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  postgres:
+    x-vardo-shared: true
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: mail
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: mail
+    volumes:
+      - pouch-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mail -d mail"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks:
+      - pouch-internal
+
+  # Shared so both slots use one queue.
+  redis:
+    x-vardo-shared: true
+    image: valkey/valkey:8-alpine
+    restart: unless-stopped
+    command: ["valkey-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks:
+      - pouch-internal
+
+volumes:
+  pouch-postgres:
+
+networks:
+  vardo-network:
+    external: true
+  pouch-internal:

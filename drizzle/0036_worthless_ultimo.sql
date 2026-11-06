@@ -1,0 +1,1 @@
+ALTER TABLE "list_memberships" ADD COLUMN "confirmation_attempts" integer DEFAULT 0 NOT NULL;

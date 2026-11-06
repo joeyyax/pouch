@@ -1,0 +1,1 @@
+CREATE INDEX "inbound_messages_outbound_message_idx" ON "inbound_messages" USING btree ("outbound_message_id");

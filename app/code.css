@@ -1,0 +1,16 @@
+/* highlight.js token colors, from the theme's own tokens so light and dark follow. */
+.hljs-attr,
+.hljs-attribute {
+  color: var(--primary-strong);
+}
+.hljs-string {
+  color: var(--success-ink);
+}
+.hljs-number,
+.hljs-literal,
+.hljs-keyword {
+  color: var(--warning);
+}
+.hljs-punctuation {
+  color: var(--muted-foreground);
+}

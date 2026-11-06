@@ -1,0 +1,2 @@
+CREATE INDEX "messages_abandoned_at_idx" ON "messages" USING btree ("abandoned_at","provider_id") WHERE "messages"."abandoned_at" is not null;--> statement-breakpoint
+CREATE INDEX "messages_sent_at_idx" ON "messages" USING btree ("sent_at");

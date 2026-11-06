@@ -1,0 +1,1 @@
+ALTER TABLE "domains" ADD CONSTRAINT "domains_stall_pairing_check" CHECK (("domains"."stalled_at" is null) = ("domains"."stall_reason" is null));

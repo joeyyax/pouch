@@ -1,0 +1,1 @@
+ALTER TABLE "exports" ADD COLUMN "upload_id" text;

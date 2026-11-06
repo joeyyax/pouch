@@ -1,0 +1,22 @@
+{
+  "name": "@joeyyax/pouch",
+  "version": "0.1.0",
+  "description": "TypeScript client for the Pouch email API. Zero dependencies, fetch only.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/pouch.cjs",
+  "module": "./dist/pouch.js",
+  "types": "./dist/pouch.d.ts",
+  "exports": {
+    ".": {
+      "import": { "types": "./dist/pouch.d.ts", "default": "./dist/pouch.js" },
+      "require": { "types": "./dist/pouch.d.cts", "default": "./dist/pouch.cjs" }
+    }
+  },
+  "files": ["dist", "README.md", "LICENSE"],
+  "sideEffects": false,
+  "engines": { "node": ">=20" },
+  "repository": { "type": "git", "url": "git+https://github.com/joeyyax/pouch.git", "directory": "sdk" },
+  "keywords": ["email", "transactional", "pouch", "ses"],
+  "publishConfig": { "access": "public" }
+}

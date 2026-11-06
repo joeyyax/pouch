@@ -1,0 +1,1 @@
+CREATE INDEX "messages_tags_idx" ON "messages" USING gin ("tags");

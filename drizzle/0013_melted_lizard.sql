@@ -1,0 +1,12 @@
+ALTER TABLE "activity" ADD CONSTRAINT "activity_family_check" CHECK ("activity"."family" in ('key', 'domain', 'suppression', 'settings', 'webhook', 'provider', 'session', 'system'));--> statement-breakpoint
+ALTER TABLE "activity" ADD CONSTRAINT "activity_outcome_check" CHECK ("activity"."outcome" in ('success', 'failure', 'neutral'));--> statement-breakpoint
+ALTER TABLE "activity" ADD CONSTRAINT "activity_actor_type_check" CHECK ("activity"."actor_type" in ('user', 'api_key', 'worker', 'provider'));--> statement-breakpoint
+ALTER TABLE "api_keys" ADD CONSTRAINT "api_keys_mode_check" CHECK ("api_keys"."mode" in ('live', 'test'));--> statement-breakpoint
+ALTER TABLE "domains" ADD CONSTRAINT "domains_status_check" CHECK ("domains"."status" in ('pending', 'verified', 'failed'));--> statement-breakpoint
+ALTER TABLE "messages" ADD CONSTRAINT "messages_status_check" CHECK ("messages"."status" in ('queued', 'sent', 'delivered', 'deferred', 'bounced', 'complained', 'failed'));--> statement-breakpoint
+ALTER TABLE "message_events" ADD CONSTRAINT "message_events_kind_check" CHECK ("message_events"."kind" in ('transition', 'retry', 'backoff', 'suppressed', 'body_shredded', 'webhook_delivered'));--> statement-breakpoint
+ALTER TABLE "message_events" ADD CONSTRAINT "message_events_status_check" CHECK ("message_events"."status" is null or "message_events"."status" in ('queued', 'sent', 'delivered', 'deferred', 'bounced', 'complained', 'failed'));--> statement-breakpoint
+ALTER TABLE "suppressions" ADD CONSTRAINT "suppressions_reason_check" CHECK ("suppressions"."reason" in ('hard_bounce', 'complaint', 'manual'));--> statement-breakpoint
+ALTER TABLE "webhook_deliveries" ADD CONSTRAINT "webhook_deliveries_status_check" CHECK ("webhook_deliveries"."status" in ('pending', 'succeeded', 'failed', 'exhausted'));--> statement-breakpoint
+ALTER TABLE "webhook_deliveries" ADD CONSTRAINT "webhook_deliveries_event_type_check" CHECK ("webhook_deliveries"."event_type" in ('email.delivered', 'email.bounced', 'email.complained'));--> statement-breakpoint
+ALTER TABLE "webhook_endpoints" ADD CONSTRAINT "webhook_endpoints_events_check" CHECK ("webhook_endpoints"."events" <@ array['email.delivered', 'email.bounced', 'email.complained']::text[]);
