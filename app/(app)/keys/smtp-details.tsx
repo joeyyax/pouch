@@ -3,6 +3,7 @@ import { KeyValueList, type KeyValueItem } from "@/components/ui/key-value-list"
 import type { KeySmtp } from "@/lib/dashboard/views/smtp";
 import { Snippet } from "../_ui/snippet";
 import { Term } from "../_ui/term";
+import { SMTP_DOCS_URL } from "@/lib/api-docs/links";
 
 /** How to send with a key over SMTP. `secret` is null once it's no longer shown. */
 export function SmtpDetails({
@@ -79,7 +80,7 @@ export function SmtpDetails({
         A from address on any other domain is refused. The password alone identifies the key, so any username works.
       </p>
       {snippets ? (
-        <Snippet languages={snippets} label="Config format" reference="/reference#smtp" newTab={newTab} />
+        <Snippet languages={snippets} label="Config format" reference={SMTP_DOCS_URL} newTab={newTab} />
       ) : null}
     </div>
   );
