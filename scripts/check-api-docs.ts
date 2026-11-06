@@ -2,8 +2,7 @@
  * Build-time gate for docs/api/conventions.md's promise: "A field without a `.describe()`
  * fails the docs build." Importing the spec walks every request schema through
  * lib/api-docs/introspect.ts, which throws on the first undocumented field. Run via `pnpm test`
- * (see package.json's pretest) and, independently, by the reference page itself rendering at
- * `next build` time — either one catches a regression.
+ * and by the docs site build, which generates openapi.json from the same spec.
  *
  * Then the surface check: every exported server action and dashboard route handler names a route
  * in lib/api-docs/spec.ts or records why the dashboard is its only surface (#393).

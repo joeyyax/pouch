@@ -102,7 +102,7 @@ Export Pouch's own list from the suppressions screen with **Export**, or page th
 
 ## SMTP
 
-Both services offer an SMTP door for software that only speaks it. Pouch's: STARTTLS on port 587, `AUTH PLAIN` with the key id (`key_…`) as username and the key as password, same send path and suppression checks as the HTTP API. Reply codes and detail: the API reference's SMTP section.
+Both services offer an SMTP door for software that only speaks it. Pouch's: STARTTLS on port 587, `AUTH PLAIN` with the key id (`key_…`) as username and the key as password, same send path and suppression checks as the HTTP API. Reply codes and detail: the SMTP guide at pouch.email/docs/smtp.
 
 ## Cutover checklist
 
