@@ -101,6 +101,29 @@ ol.timeline::after { content: ""; position: absolute; left: 5px; top: 8px; width
 .vis svg .t-btn { font-family: var(--font-sans); font-size: 12px; font-weight: 600; fill: var(--primary-foreground); }
 .vis svg .t-ok { fill: var(--success-ink); } .vis svg .t-warn { fill: var(--warning); } .vis svg .t-bad { fill: var(--danger); } .vis svg .t-soft { fill: var(--muted-foreground); } .vis svg .t-primary { fill: var(--primary); font-weight: 600; }
 
+/* Send flow: the hero receipt's current message, drawn through the stack. */
+.flow { margin-top: 28px; padding: 12px; }
+.flow .vis { min-height: 0; }
+.flow svg { padding: 16px 8px; }
+.flow .t-name { font-family: var(--font-sans); font-size: 14px; font-weight: 600; }
+.vis svg .t-small { font-size: 10.5px; fill: var(--muted-foreground); }
+.flow-add .t-name { fill: var(--foreground-soft); }
+.flow-add:hover .t-name, .flow-add:focus-visible .t-name { fill: var(--primary); }
+.flow-add:hover rect, .flow-add:focus-visible rect { stroke: var(--primary); }
+.flow-add:focus-visible { outline: none; }
+.f-ok { fill: var(--success-ink); }
+.flow [data-dot] { opacity: 0; filter: drop-shadow(0 0 6px var(--primary)); }
+.flow.live [data-dot] { opacity: 1; }
+.flow.live [data-seg] { stroke: color-mix(in oklch, var(--foreground) 16%, transparent); transition: stroke 300ms var(--ease-out); }
+.flow.live [data-seg].on { stroke: var(--primary); }
+.flow [data-provider] { transition: opacity 300ms var(--ease-out); }
+.flow.live [data-provider]:not(.on) { opacity: 0.45; }
+.flow [data-provider] rect, .flow [data-inbox] { transition: fill 300ms var(--ease-out); }
+.flow [data-provider].on rect { stroke: var(--primary); stroke-width: 1.75; }
+.flow [data-inbox].ok { fill: var(--success-soft); }
+.flow .flow-v { display: none; max-width: 360px; justify-self: center; }
+@media (max-width: 760px) { .flow .flow-h { display: none; } .flow .flow-v { display: block; } }
+
 .leaves { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin-top: 24px; font-size: 14px; }
 .leaves .label { color: var(--muted-foreground); margin-right: 4px; }
 .leaves .no { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px; border-radius: 999px; border: 1px solid color-mix(in oklch, var(--foreground) 12%, transparent); color: var(--foreground-soft); }
