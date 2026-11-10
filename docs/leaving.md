@@ -14,7 +14,7 @@ What Pouch adds on top: one API across providers, a message log the provider won
 
 Pouch stores your provider credentials encrypted and uses them on your behalf. The provider itself, its reputation and its DNS records stay yours the entire time.
 
-Take SES as an example. Verifying a domain publishes DKIM CNAMEs that point at `amazonses.com`, and a custom MAIL FROM record that points at `feedback-smtp.<region>.amazonses.com`. Every one of those names resolves to Amazon's infrastructure under your account, not Pouch's. Every provider Pouch supports works the same way: Pouch asks the provider for its records and tells you to publish them, never records that point at Pouch itself.
+Take SES as an example. Verifying a domain publishes DKIM CNAMEs that point at `amazonses.com`, and a custom MAIL FROM record that points at `feedback-smtp.<region>.amazonses.com`. Every one of those names resolves to Amazon's infrastructure under your account, not Pouch's. Every provider Pouch supports works the same way: Pouch asks the provider for its records and tells you to publish them. None of your sending records point at Pouch.
 
 ## On the hosted version
 
@@ -26,14 +26,15 @@ Your organization sends through the service's SES account, isolated there. The d
 2. **Point your code at your provider's SDK, or another service.** Self-hosted, you already have the provider and the credentials Pouch has been using. Swap `POST /v1/emails` for your provider's own send call, or move to a different service entirely.
 3. **Revoke Pouch's credentials** (self-hosted). Remove the IAM access keys (or equivalent) you gave Pouch, from your provider's console. Pouch can't send on your behalf without them.
 
-Self-hosted, the DNS records stay as they are. They were never Pouch's to remove.
+Self-hosted, the sending records stay as they are. They were never Pouch's to remove. If you turned on DMARC reports, change the `rua` address in your DMARC record, since it points at your install.
 
 ## What you lose by leaving
 
 - **The unified log.** Your provider keeps far less history than Pouch does, and none of it spans providers.
 - **The cross-domain suppression list.** A bounce or complaint on one domain no longer protects the others.
 - **The dashboard.** No single view of every message across every domain and why it's in that state.
-- **Message bodies past their retention window.** Pouch encrypts each body with its own key and lets that key go once your organization's retention window passes (45 days by default, configurable from 7 to 365 unless the admin set another ceiling). A body already past that point isn't recoverable here or anywhere else.
+- **Message bodies past their retention window.** Pouch encrypts each body with its own key and lets that key go once your organization's retention window passes (45 days by default, configurable from 7 to 365 unless the admin set another ceiling). Pouch can't open a body past that point, though a database backup from before then still holds its key.
+- **Links in mail you've already sent.** Unsubscribe links point at your install, and so do confirm links unless a domain set its own. They stop working when the install does.
 
 ## The one real cost of staying
 
