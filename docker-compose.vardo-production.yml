@@ -140,10 +140,11 @@ services:
       redis:
         condition: service_healthy
 
-  # The marketing site at pouch.email. Paths it doesn't have redirect to app.pouch.email.
+  # The marketing site and docs at pouch.email. Paths it doesn't have redirect to app.pouch.email.
   site:
     build:
-      context: ./site
+      context: .
+      dockerfile: site/Dockerfile
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/healthz"]

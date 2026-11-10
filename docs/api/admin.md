@@ -1,6 +1,6 @@
 # Admin API
 
-`/v1/admin/*` manages every provider, organization and account. It takes an admin key and follows `docs/api/conventions.md` for errors, pagination and request ids. The generated reference at `/reference` lists every field.
+`/v1/admin/*` manages every provider, organization and account. It takes an admin key and follows `docs/api/conventions.md` for errors, pagination and request ids. The generated reference at pouch.email/docs/reference, and `/openapi.json` on every install, lists every field.
 
 ## Access
 

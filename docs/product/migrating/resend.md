@@ -108,7 +108,7 @@ Export Pouch's own list from the suppressions screen with **Export**, or page th
 
 ## SMTP
 
-For anything that only speaks SMTP (WordPress, a monitoring tool), Pouch has its own ingress in place of Resend's: STARTTLS on port 587, `AUTH PLAIN` with the key id (`key_…`) as username and the key as password. Same send path, same suppression checks, as the HTTP API. Reply codes and full detail: the API reference's SMTP section.
+For anything that only speaks SMTP (WordPress, a monitoring tool), Pouch has its own ingress in place of Resend's: STARTTLS on port 587, `AUTH PLAIN` with the key id (`key_…`) as username and the key as password. Same send path, same suppression checks, as the HTTP API. Reply codes and full detail: the SMTP guide at pouch.email/docs/smtp.
 
 ## Cutover checklist
 

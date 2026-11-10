@@ -3,6 +3,7 @@ import { Code } from "@/components/code";
 import { Terminal } from "@/components/ui/terminal";
 import { TabsContent, TabsList, TabsRoot, TabsTrigger } from "@/components/ui/tabs";
 import type { SnippetLanguage } from "@/lib/dashboard/curl";
+import { REFERENCE_URL } from "@/lib/api-docs/links";
 import { cn } from "@/lib/utils";
 import { CodeCard } from "./code-card";
 
@@ -22,7 +23,7 @@ function Example({ language }: { language: SnippetLanguage }) {
 export function Snippet({
   languages,
   label = "Language",
-  reference = "/reference",
+  reference = REFERENCE_URL,
   newTab = false,
   className,
 }: {

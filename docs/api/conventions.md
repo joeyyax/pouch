@@ -699,4 +699,4 @@ A test key reads only test mail: `GET /v1/emails`, `GET /v1/emails/:id` and both
 
 ## Documentation
 
-The reference is generated from the zod schemas that validate requests. A field without a `.describe()` fails the docs build.
+The reference at pouch.email/docs/reference and every install's `/openapi.json` are generated from the zod schemas that validate requests. A field without a `.describe()` fails the docs build.

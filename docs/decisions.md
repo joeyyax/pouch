@@ -1287,3 +1287,11 @@ Delivery events apply at about 1,200 a second from one process (`tests/load/even
 The marketing site takes `pouch.email`: static files in `site/`, served by the `site` service in `docker-compose.vardo-production.yml` and nowhere else, so self-hosted installs don't ship it. The app paths sent mail and existing callers point at (`/v1`, `/api/v1`, `/api/webhooks`, `/mcp`, `/u`, `/unsubscribe`, `/confirm`, `/forward`, `/download`) still route to the app on `pouch.email`, because they take POSTs and SES's subscription, and neither follows a redirect. Any other path the site doesn't have redirects to `app.pouch.email`.
 
 **Revisit when** nothing calls those paths on `pouch.email`.
+
+## Docs live at pouch.email/docs, built from the route spec
+
+The guides and the API reference are a Fumadocs static export in `docs-site/`, served by the site image at `/docs`. The reference renders the OpenAPI document `lib/api-docs/openapi.ts` builds from `lib/api-docs/spec.ts`, and every install serves the same document at `/openapi.json` with its own URL. The app's `/reference` redirects to the docs site, and the hand-rendered page is gone.
+
+**Why:** one renderer instead of two, with search and a request playground. The playground's server is a variable the reader fills in, since every install has its own URL. A self-hosted install on an older version still has its own `/openapi.json` and `/llms.txt`, which match it.
+
+**Revisit when** installs drift far enough from the published docs that a version picker earns its keep.

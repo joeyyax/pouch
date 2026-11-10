@@ -1,0 +1,26 @@
+---
+title: Pouch docs
+description: An open-source send API, message log and dashboard for the email provider you already use.
+---
+
+Every install has its own URL. Examples here use `https://pouch.example.com`; swap in your install's `APP_URL`.
+
+```bash
+curl https://pouch.example.com/v1/emails \
+  -H "Authorization: Bearer $POUCH_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"from": "Ada <ada@example.com>", "to": "sam@example.net", "subject": "Hello", "text": "It works."}'
+```
+
+The TypeScript client is `@joeyyax/pouch` on npm. It needs the same `baseUrl`.
+
+<Cards>
+  <Card title="API reference" href="/reference/" description="Every endpoint, field and error, with a request playground." />
+  <Card title="API conventions" href="/conventions/" description="Errors, pagination, idempotency, webhooks and test mode." />
+  <Card title="SMTP" href="/smtp/" description="Send from anything that only speaks SMTP." />
+  <Card title="MCP" href="/mcp/" description="One tool per API route, over streamable HTTP." />
+  <Card title="Self-hosting" href="/self-hosting/" description="Run the whole stack with Docker Compose." />
+  <Card title="Leaving Pouch" href="/leaving/" description="What depends on Pouch and how to move off it." />
+</Cards>
+
+Every install also serves its own reference: `/openapi.json` for tools, and `/llms.txt` and `/llms-full.txt` for language models.

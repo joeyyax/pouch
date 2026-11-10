@@ -23,6 +23,7 @@ import { Time } from "../_ui/time";
 import { Countdown, ExtendDialog, RevokeDialog } from "./address-ui";
 import { NewAddress } from "./create-address";
 import { StatusDot } from "@/components/ui/status-dot";
+import { referenceUrl } from "@/lib/api-docs/links";
 
 /** Past this share of the active limit, the screen says so. */
 const NEAR_LIMIT = 0.9;
@@ -220,7 +221,7 @@ export function AddressesScreen({
           title="No addresses yet"
           description="Create one with POST /v1/addresses or the create_address MCP tool. It shows up here with its countdown and counts."
           action={
-            <Link href="/reference#post-v1-addresses" className={buttonVariants({ variant: "secondary", size: "md" })}>
+            <Link href={referenceUrl({ method: "POST", path: "/v1/addresses" })} className={buttonVariants({ variant: "secondary", size: "md" })}>
               Read POST /v1/addresses
             </Link>
           }

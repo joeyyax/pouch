@@ -1,0 +1,28 @@
+{
+  "title": "API reference",
+  "pages": [
+    "index",
+    "emails",
+    "batches",
+    "events",
+    "domains",
+    "inbound",
+    "addresses",
+    "lists",
+    "subscriptions",
+    "suppressions",
+    "recipients",
+    "exports",
+    "reputation",
+    "stats",
+    "keys",
+    "webhook-endpoints",
+    "providers",
+    "activity",
+    "organization",
+    "---Admin---",
+    "admin-providers",
+    "admin-organizations",
+    "admin-users"
+  ]
+}

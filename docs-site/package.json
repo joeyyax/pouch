@@ -1,0 +1,38 @@
+{
+  "name": "pouch-docs",
+  "version": "0.1.0",
+  "private": true,
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "packageManager": "pnpm@10.28.2",
+  "scripts": {
+    "prepare:content": "node scripts/prepare.mjs",
+    "predev": "node scripts/prepare.mjs",
+    "dev": "next dev --port 3110",
+    "prebuild": "node scripts/prepare.mjs",
+    "build": "next build",
+    "typecheck": "next typegen && tsc --noEmit"
+  },
+  "dependencies": {
+    "fumadocs-core": "16.18.0",
+    "fumadocs-mdx": "15.5.0",
+    "fumadocs-openapi": "12.6.0",
+    "fumadocs-ui": "16.18.0",
+    "json-schema-typed": "^8.0.2",
+    "lucide-react": "^1.61.0",
+    "next": "16.3.8",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "shiki": "^4.5.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/mdx": "^2.0.14",
+    "@types/node": "^26.5.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "postcss": "^8.5.31",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^6.0.3"
+  }
+}

@@ -1,0 +1,53 @@
+---
+title: SMTP
+description: Send from anything that only speaks SMTP, through the same path as POST /v1/emails.
+---
+
+The SMTP ingress is a door into the API for software with a stock SMTP setting: WordPress, monitoring tools, CI. It authenticates with a key, parses the message and calls the same send path as [`POST /v1/emails`](/reference/emails/post-v1-emails/). It has no queue or suppression logic of its own, so what a sender sees over SMTP is what it'd see over HTTP, in SMTP's vocabulary.
+
+## Connecting
+
+| Setting | Value |
+| --- | --- |
+| Host | The install's `SMTP_TLS_HOST`. The key pages in the dashboard show it. |
+| Port | `587` |
+| Encryption | STARTTLS |
+| Authentication | `PLAIN` or `LOGIN` |
+| Username | Anything. The key id (`key_…`) is a good choice. |
+| Password | The key's secret (`sk_live_…` or `sk_test_…`) |
+
+The password alone identifies the key. The username isn't checked against it; it's there for clients that require one.
+
+A key sends from the domains it's scoped to. A from address on any other domain is refused.
+
+## Implicit TLS on 465
+
+Off by default. To turn it on, set `SMTP_IMPLICIT_TLS_PORT` on the SMTP service and publish that port. It needs the same certificate as 587, and without one it doesn't start. See [Self-hosting](/self-hosting/#smtp).
+
+## Recipients
+
+Recipients come from the message's `To` and `Cc` headers. A `RCPT TO` address that's in neither becomes a `bcc`, the same fallback a mail client uses when it strips `Bcc` from the headers it sends.
+
+## Sensitive messages
+
+`X-Pouch-Sensitive: 1` marks a message sensitive, the same as `sensitive: true` over HTTP. Its body is never readable from the log.
+
+## Test mode
+
+A test key (`sk_test_…`) behaves as it does over HTTP: the mock provider, synthetic events, nothing reaches a real inbox.
+
+## Reply codes
+
+A rejection carries the message an HTTP caller would get, as the reply text. `5xx` is permanent: sending the same message again won't help. `4xx` is worth retrying: a rate limit or a service problem, not a message that's wrong.
+
+| Situation | Reply |
+| --- | --- |
+| An unknown, malformed or revoked key | `535`, `invalid_key` |
+| An `AUTH` method other than `PLAIN` or `LOGIN` | `504` |
+| The key can't send from the message's from domain | `550`, `key_not_scoped` |
+| A field is missing or the wrong shape | `550`, `validation_failed` |
+| A recipient is suppressed | `550`, `recipient_suppressed` |
+| The from domain isn't added or isn't verified | `550`, `domain_not_verified` |
+| Attachments exceed the size limit | `552`, `attachment_too_large` |
+| The key's per-minute rate limit is spent | `450`, `rate_limit_exceeded` |
+| The service can't complete the request right now | `451`, `provider_unavailable` |
