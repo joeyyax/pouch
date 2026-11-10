@@ -76,7 +76,7 @@ A tenant-capable provider (SES) is a `providers` row with `shared` set and no or
 
 Assigning a tenant-capable provider inserts the tenant row and calls nothing. The first domain on that row creates the SES tenant, its configuration set and its topic (`lib/domains/index.ts`, `createDomain`). The health sample skips tenant rows with no `tenantArn`, and an assignment with no domains reads `ready`.
 
-**Why:** an organization with no domains costs nothing: no SES tenant charge, no call against the 1/s API budget and no slot in the 10,000 configuration-set cap (#320).
+**Why:** an organization with no domains costs nothing: no SES tenant charge, no call against the 1/s API budget and no slot in the configuration-set quota (#320).
 
 **The cost:** the first domain on a provider takes about nine seconds longer. Setup that stops part way is retried by the verify loop.
 
@@ -177,7 +177,7 @@ The probe loop (`worker/health-check.ts`):
 
 **Why the sample is enough:** status changes arrive through EventBridge within seconds. The sample catches an event that was lost. It doesn't need to detect changes itself.
 
-**Revisit when** a shared provider passes about 17,000 tenants (288 passes a day at 60 each), where a rotation outlasts the record's TTL. SES caps configuration sets at 10,000 per provider, and Pouch creates one per tenant, so one provider can't reach that anyway.
+**Revisit when** a shared provider passes about 17,000 tenants (288 passes a day at 60 each), where a rotation outlasts the record's TTL. Getting there means raising SES's tenant and configuration-set quotas, which default to 10,000 per Region (#6).
 
 ## An SES identity belongs to the provider that tagged it
 
