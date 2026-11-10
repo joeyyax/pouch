@@ -108,9 +108,8 @@ ol.timeline::after { content: ""; position: absolute; left: 5px; top: 8px; width
 .flow .t-name { font-family: var(--font-sans); font-size: 14px; font-weight: 600; }
 .vis svg .t-small { font-size: 10.5px; fill: var(--muted-foreground); }
 .flow-add .t-name { fill: var(--foreground-soft); }
-.flow-add:hover .t-name, .flow-add:focus-visible .t-name { fill: var(--primary); }
-.flow-add:hover rect, .flow-add:focus-visible rect { stroke: var(--primary); }
-.flow-add:focus-visible { outline: none; }
+.flow-add:hover .t-name { fill: var(--primary); }
+.flow-add:hover rect { stroke: var(--primary); }
 .f-ok { fill: var(--success-ink); }
 .flow [data-dot] { opacity: 0; filter: drop-shadow(0 0 6px var(--primary)); }
 .flow.live [data-dot] { opacity: 1; }
@@ -122,7 +121,7 @@ ol.timeline::after { content: ""; position: absolute; left: 5px; top: 8px; width
 .flow [data-provider].on rect { stroke: var(--primary); stroke-width: 1.75; }
 .flow [data-inbox].ok { fill: var(--success-soft); }
 .flow .flow-v { display: none; max-width: 360px; justify-self: center; }
-@media (max-width: 760px) { .flow .flow-h { display: none; } .flow .flow-v { display: block; } }
+@media (max-width: 960px) { .flow .flow-h { display: none; } .flow .flow-v { display: block; } }
 
 .leaves { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin-top: 24px; font-size: 14px; }
 .leaves .label { color: var(--muted-foreground); margin-right: 4px; }

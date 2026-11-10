@@ -19,8 +19,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=Instrument+Sans:ital,wght@0,400..700;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/pouch.css?v=a1c8fbe2">
-<link rel="stylesheet" href="/assets/site.css?v=49cda3e9">
-<script src="/assets/site.js?v=8aceafbc" defer></script>
+<link rel="stylesheet" href="/assets/site.css?v=0dc630ae">
+<script src="/assets/site.js?v=86fc7db6" defer></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -108,7 +108,7 @@
 
       <div class="card flow">
         <div class="vis">
-          <svg class="flow-h" viewBox="0 0 960 300" role="img" aria-label="Your app sends to Pouch, which hands each message to its domain's provider: Amazon SES, Mailpace, Cloudflare or one you add. The provider reports back to Pouch, and Pouch tells your app by webhook.">
+          <svg class="flow-h" viewBox="0 0 960 300" role="img" aria-label="Your app sends to Pouch, which hands each message to its domain's provider: Amazon SES, Mailpace, Cloudflare Email Service or one you add. The provider reports back to Pouch, and Pouch tells your app by webhook.">
             <rect x="20" y="100" width="150" height="80" rx="14" class="f-card"/>
             <text x="40" y="134" class="t-name">Your app</text>
             <text x="40" y="158" class="t-soft">POST /v1/emails</text>
@@ -130,7 +130,7 @@
             <g data-provider="0"><rect x="560" y="43" width="210" height="44" rx="12" class="f-card"/><circle cx="580" cy="65" r="4" class="f-ok"/><text x="594" y="62" class="t-name">Amazon SES</text><text x="594" y="78" class="t-small">shop.example</text></g>
             <g data-provider="1"><rect x="560" y="93" width="210" height="44" rx="12" class="f-card"/><circle cx="580" cy="115" r="4" class="f-ok"/><text x="594" y="112" class="t-name">Mailpace</text><text x="594" y="128" class="t-small">app.example</text></g>
             <g data-provider="2"><rect x="560" y="143" width="210" height="44" rx="12" class="f-card"/><circle cx="580" cy="165" r="4" class="f-ok"/><text x="594" y="162" class="t-name">Cloudflare Email Service</text><text x="594" y="178" class="t-small">team.example</text></g>
-            <a href="#pluggable" class="flow-add"><rect x="560" y="193" width="210" height="44" rx="12" fill="none" class="s-faint dash"/><text x="580" y="212" class="t-name">+ Your provider</text><text x="580" y="228" class="t-small">implements Adapter</text></a>
+            <a href="#pluggable" class="flow-add" tabindex="-1"><rect x="560" y="193" width="210" height="44" rx="12" fill="none" class="s-faint dash"/><text x="580" y="212" class="t-name">+ Your provider</text><text x="580" y="228" class="t-small">implements Adapter</text></a>
 
             <path data-seg="c0" d="M770 65 C 820 65, 820 140, 860 140" fill="none" class="s-primary"/>
             <path data-seg="c1" d="M770 115 C 820 115, 820 140, 860 140" fill="none" class="s-primary"/>
@@ -147,7 +147,7 @@
 
             <circle data-dot r="6" cx="170" cy="140" class="f-primary"/>
           </svg>
-          <svg class="flow-v" viewBox="0 0 340 580" role="img" aria-label="Your app sends to Pouch, which hands each message to its domain's provider: Amazon SES, Mailpace, Cloudflare or one you add. The provider reports back to Pouch, and Pouch tells your app by webhook.">
+          <svg class="flow-v" viewBox="0 0 340 580" role="img" aria-label="Your app sends to Pouch, which hands each message to its domain's provider: Amazon SES, Mailpace, Cloudflare Email Service or one you add. The provider reports back to Pouch, and Pouch tells your app by webhook.">
             <rect x="70" y="8" width="200" height="64" rx="14" class="f-card"/>
             <text x="170" y="36" class="t-name" text-anchor="middle">Your app</text>
             <text x="170" y="58" class="t-soft" text-anchor="middle">POST /v1/emails</text>
@@ -167,7 +167,7 @@
             <g data-provider="0"><rect x="42" y="286" width="256" height="44" rx="10" class="f-card"/><circle cx="60" cy="308" r="4" class="f-ok"/><text x="74" y="305" class="t-name">Amazon SES</text><text x="74" y="321" class="t-small">shop.example</text></g>
             <g data-provider="1"><rect x="42" y="336" width="256" height="44" rx="10" class="f-card"/><circle cx="60" cy="358" r="4" class="f-ok"/><text x="74" y="355" class="t-name">Mailpace</text><text x="74" y="371" class="t-small">app.example</text></g>
             <g data-provider="2"><rect x="42" y="386" width="256" height="44" rx="10" class="f-card"/><circle cx="60" cy="408" r="4" class="f-ok"/><text x="74" y="405" class="t-name">Cloudflare Email Service</text><text x="74" y="421" class="t-small">team.example</text></g>
-            <a href="#pluggable" class="flow-add"><rect x="42" y="436" width="256" height="44" rx="10" fill="none" class="s-faint dash"/><text x="60" y="455" class="t-name">+ Your provider</text><text x="60" y="471" class="t-small">implements Adapter</text></a>
+            <a href="#pluggable" class="flow-add" tabindex="-1"><rect x="42" y="436" width="256" height="44" rx="10" fill="none" class="s-faint dash"/><text x="60" y="455" class="t-name">+ Your provider</text><text x="60" y="471" class="t-small">implements Adapter</text></a>
 
             <path data-seg="c0 c1 c2" d="M170 498 V 530" fill="none" class="s-primary"/>
             <rect data-inbox x="120" y="530" width="100" height="44" rx="22" class="f-card"/>

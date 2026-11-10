@@ -75,7 +75,7 @@
     });
     return new Promise((done) => {
       const frame = (now) => {
-        if (id !== run) return;
+        if (id !== run) return done();
         const t = Math.min(1, (now - start) / ms), e = 1 - Math.pow(1 - t, 3);
         legs.forEach(({ path, dot, len }) => {
           const p = path.getPointAtLength(e * len);
@@ -100,10 +100,10 @@
     if (step === 1) {
       await travel(`b${via}`, id, 600);
       await travel(`c${via}`, id, 600);
-      if (id === run) inboxes.forEach((el) => el.classList.add("ok"));
     }
     if (step === 2) {
       await travel("e", id, 800);
+      if (id === run) inboxes.forEach((el) => el.classList.add("ok"));
       await travel("w", id, 800);
     }
   });
