@@ -11,9 +11,22 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 
+# Gate: typecheck, lint, docs check and the unit tests. A failing tree builds no image and the old
+# containers keep running. Runs before `builder`: tsc and next build together outgrow a 5 GiB
+# BuildKit limit.
+# Integration tests need Postgres and Redis and stay out (`pnpm test` runs them).
+# Compose parity is skipped: a deploy platform may rewrite the compose file before building.
+FROM deps AS gate
+WORKDIR /app
+COPY . .
+RUN cp .env.example .env \
+ && pnpm typecheck && pnpm lint && pnpm check:docs && pnpm vitest run --config vitest.unit.config.ts --exclude tests/unit/compose-env-parity.test.ts \
+ && touch /gate-passed
+
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
+COPY --from=gate /gate-passed /tmp/gate-passed
 COPY . .
 # next start reads public/ from disk; keep the copy below valid whether or not it exists.
 RUN mkdir -p public
@@ -24,17 +37,6 @@ RUN pnpm build
 # Which deploy an error came from. Empty in a local build, which is fine — GLITCHTIP_DSN is
 # also unset there, so nothing reports.
 ARG GIT_SHA=""
-
-# Gate: typecheck, lint, docs check and the unit tests. The runner copies the marker below, so a
-# failing tree builds no image and the old containers keep running. Runs beside `builder`.
-# Integration tests need Postgres and Redis and stay out (`pnpm test` runs them).
-# Compose parity is skipped: a deploy platform may rewrite the compose file before building.
-FROM deps AS gate
-WORKDIR /app
-COPY . .
-RUN cp .env.example .env \
- && pnpm typecheck && pnpm lint && pnpm check:docs && pnpm vitest run --config vitest.unit.config.ts --exclude tests/unit/compose-env-parity.test.ts \
- && touch /gate-passed
 
 # Runtime-only node_modules: no typescript, eslint, tailwind, drizzle-kit, vitest, playwright-core.
 # tsx is a dependency (not a devDependency) because scripts/migrate.ts and worker/index.ts run
@@ -71,8 +73,6 @@ COPY --from=builder --chown=app:nodejs /app/worker ./worker
 COPY --from=builder --chown=app:nodejs /app/smtp ./smtp
 COPY --from=builder --chown=app:nodejs --chmod=755 /app/scripts/start.sh ./scripts/
 COPY --from=builder --chown=app:nodejs /app/scripts/migrate.ts /app/scripts/seed.ts /app/scripts/reset-admin.ts /app/scripts/convert-provider.ts /app/scripts/replay-inbound.ts /app/scripts/search-reindex.ts /app/scripts/seal-inbound.ts ./scripts/
-
-COPY --from=gate /gate-passed /tmp/gate-passed
 
 USER app
 EXPOSE 3100 3101 3102 587 465
