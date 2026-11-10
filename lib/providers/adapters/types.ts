@@ -461,6 +461,14 @@ export class DomainUnavailableError extends Error {
   }
 }
 
+/** Thrown when this account's credentials can't reach the provider's domains API. */
+export class DomainApiUnavailableError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "DomainApiUnavailableError";
+  }
+}
+
 /** Thrown by `domain.adopt` when the provider has no identity to take over. */
 export class DomainNotAtProviderError extends Error {
   constructor(domain: string) {

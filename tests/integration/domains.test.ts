@@ -199,6 +199,26 @@ describe("POST /v1/domains", () => {
     expect(body.dns_records.filter((record) => record.merge !== undefined)).toHaveLength(1);
   });
 
+  it("refuses a Mailpace domain as capability_unavailable when the provider has no organization token", async () => {
+    const mailpace = await seedFixture({
+      providerAdapter: "mailpace",
+      scopeToDomain: false,
+      credentials: { serverToken: "test-token" },
+    });
+    const fetch = vi.fn();
+    vi.stubGlobal("fetch", fetch);
+
+    const response = await create(
+      request(mailpace.secret, "", "POST", { name: "example.net", provider_id: mailpace.providerId }),
+    );
+    const body = (await response.json()) as ErrorBody & { error: { detail?: { setup?: { step: string }[] } } };
+
+    expect(response.status).toBe(422);
+    expect(body.error.code).toBe("capability_unavailable");
+    expect(body.error.detail?.setup?.map((step) => step.step)).toEqual(expect.arrayContaining(["domain", "dns_records"]));
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
   it("names the unfinished step when the provider setup failed, rather than reporting nothing to do", async () => {
     const response = await createDomain("fail.example");
     const body = (await response.json()) as SerializedDomain;

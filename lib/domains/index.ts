@@ -13,6 +13,7 @@ import { safeErrorMessage } from "@/lib/errors/scrub";
 import { capabilitiesOf, isConfiguredFor, stepsFor } from "@/lib/providers/adapters";
 import { bulkNotAllowedMessage } from "@/lib/bulk/allowed";
 import {
+  DomainApiUnavailableError,
   DomainNotAtProviderError,
   DomainUnavailableError,
   type Adapter,
@@ -146,7 +147,7 @@ async function landDomain(
   try {
     created = await origin.at(client, request.name);
   } catch (err) {
-    throw providerDomainError(err);
+    throw providerDomainError(err, provider);
   }
   const eventsConfigured = await configureEvents(provider, request.name, undefined, client);
 
@@ -229,7 +230,13 @@ async function assignedProviderId(organizationId: string): Promise<string> {
   return org.providerId;
 }
 
-function providerDomainError(err: unknown): ApiError {
+function providerDomainError(err: unknown, provider: ProviderRow): ApiError {
+  if (err instanceof DomainApiUnavailableError) {
+    const capabilities = { ...capabilitiesOf(provider.adapter), domainsViaApi: false, dnsRecordsViaApi: false };
+    return new ApiError("capability_unavailable", "This domain's provider can't add a domain through its API.", {
+      detail: { setup: stepsFor(capabilities, { webhookUrl: webhookUrl(provider.adapter, provider.id) }) },
+    });
+  }
   if (err instanceof DomainUnavailableError) return new ApiError("domain_unavailable", err.message);
   if (err instanceof DomainNotAtProviderError) return new ApiError("domain_not_at_provider", err.message, { field: "name" });
   return new ApiError("provider_unavailable", `Provider rejected the domain: ${(err as Error).message}`);
@@ -635,7 +642,7 @@ export async function moveDomain(key: DomainCaller, id: string, targetProviderId
   try {
     created = await client.domain.create(domain.name);
   } catch (err) {
-    throw providerDomainError(err);
+    throw providerDomainError(err, provider);
   }
   // Named after the provider, not the domain (#27), so this is a no-op the second time it walks
   // this code path for the same provider rather than a race with the provider's other domains.
