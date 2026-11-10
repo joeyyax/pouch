@@ -3,7 +3,7 @@ import { SETTINGS } from "@/lib/settings/registry";
 
 /**
  * Decides whether a domain's queue should stall — stop releasing sends, keep accepting them —
- * before its bounce or complaint rate gets the sending provider flagged by the provider.
+ * before its bounce or complaint rate gets the provider account reviewed or paused.
  *
  * The stall lines are ours, not the provider's: AWS SES reviews a provider at 5% bounce or
  * 0.1% complaint and pauses it at 10%/0.5%. Acting at half the review line means we've stalled

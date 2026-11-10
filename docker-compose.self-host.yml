@@ -8,7 +8,7 @@
 #
 # Already have a managed Postgres or Redis? Set DATABASE_URL and/or REDIS_URL and start only
 # the app services — `--no-deps` is required, or `depends_on` pulls postgres/redis in anyway:
-# `docker compose -f docker-compose.self-host.yml up -d --no-deps mail mail-worker`.
+# `docker compose -f docker-compose.self-host.yml up -d --no-deps mail mail-worker mail-smtp`.
 #
 # docker-compose.traefik.yml is the same services behind an existing Traefik. The files are kept
 # in step by tests/unit/compose-env-parity.test.ts.

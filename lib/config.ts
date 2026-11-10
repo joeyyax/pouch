@@ -92,7 +92,7 @@ export const PLATFORM_VARS = ["NODE_ENV", "NEXT_RUNTIME", "NEXT_PHASE", "VITEST"
 export const CONFIG_VARS: ConfigVar[] = [
   // Core
   { name: "DATABASE_URL", category: "required", processes: [...SERVICES, "tooling"], effect: "there's no Postgres, so nothing reads or writes" },
-  { name: "ENCRYPTION_KEY", category: "required", processes: SERVICES, effect: "provider credentials and sealed bodies can't be encrypted or read" },
+  { name: "ENCRYPTION_KEY", category: "required", processes: SERVICES, effect: "provider, DNS-provider and webhook secrets can't be encrypted or read" },
   { name: "STORAGE_ENDPOINT", category: "required", processes: SERVICES, effect: "bodies and attachments have nowhere to go, so nothing can be accepted or sent" },
   { name: "STORAGE_BUCKET", category: "required", processes: SERVICES, effect: "bodies and attachments have nowhere to go, so nothing can be accepted or sent" },
   { name: "STORAGE_ACCESS_KEY_ID", category: "required", processes: SERVICES, effect: "the storage endpoint refuses every body read and write" },

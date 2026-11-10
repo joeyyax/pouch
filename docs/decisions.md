@@ -283,7 +283,7 @@ The same test applies to rate limits, attachment ceilings, recipient counts and 
 
 Each body is encrypted with its own key. Retention drops the key; a long bucket lifecycle rule collects the inert objects later.
 
-**Why:** dropping a key makes a body unreadable immediately and verifiably, including in backups and replicas. Enforcement becomes a column write instead of a distributed delete. It also buys back the exposure of keeping content roughly ten times longer than the industry does — encrypt, or keep less; doing neither was the only bad option.
+**Why:** dropping a key makes a body unreadable immediately and verifiably in the live database and its replicas. A backup taken before the sweep still holds the key, so backups have to be kept no longer than retention. Enforcement becomes a column write instead of a distributed delete. It also buys back the exposure of keeping content roughly ten times longer than the industry does — encrypt, or keep less; doing neither was the only bad option.
 
 ## Delivery events only. No open or click tracking
 

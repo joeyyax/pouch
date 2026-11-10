@@ -42,7 +42,7 @@
     </header>
 
     <h2>Your domain doesn't need Pouch</h2>
-    <p>A domain sends through your provider: your Amazon SES region, your credentials, your reputation. Pouch asks the provider for its DNS records and tells you to publish them, never records that point at Pouch. The domain keeps working whatever happens to Pouch.</p>
+    <p>A domain sends through your provider: your Amazon SES region, your credentials, your reputation. Pouch asks the provider for its DNS records and tells you to publish them. None of your sending records point at Pouch, so the domain keeps working whatever happens to Pouch.</p>
     <p>Your code is what depends on Pouch. Anything calling <code>POST /v1/emails</code> stops sending when Pouch stops answering, until you point it elsewhere.</p>
 
     <h2>How to leave</h2>
@@ -51,14 +51,15 @@
       <li><b>Point your code at your provider's SDK, or another service.</b> You already have the provider and the credentials Pouch has been using.</li>
       <li><b>Revoke Pouch's credentials.</b> Remove the access keys you gave Pouch from your provider's console.</li>
     </ol>
-    <p>The DNS records stay as they are. They were never Pouch's to remove.</p>
+    <p>The sending records stay as they are. They were never Pouch's to remove. If you turned on DMARC reports, change the <code>rua</code> address in your DMARC record, since it points at your install.</p>
 
     <h2>What you lose</h2>
     <ul>
       <li><b>The unified log.</b> Your provider keeps far less history, and none of it spans providers.</li>
       <li><b>The cross-domain suppression list.</b> A bounce on one domain no longer protects the others.</li>
       <li><b>The dashboard.</b> No single view of every message and why it's in its state.</li>
-      <li><b>Bodies past their retention window.</b> Pouch encrypts each body with its own key and discards the key when retention ends (45 days by default). Those bodies aren't recoverable anywhere.</li>
+      <li><b>Bodies past their retention window.</b> Pouch encrypts each body with its own key and discards the key when retention ends (45 days by default). Pouch can't open those bodies again, though a database backup from before then still holds the key.</li>
+      <li><b>Links in mail you've already sent.</b> Unsubscribe links point at your install, and so do confirm links unless a domain set its own. They stop working when the install does.</li>
     </ul>
 
     <h2>The one real cost of staying</h2>
