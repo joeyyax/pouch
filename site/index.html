@@ -19,8 +19,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=Instrument+Sans:ital,wght@0,400..700;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/pouch.css?v=a1c8fbe2">
-<link rel="stylesheet" href="/assets/site.css?v=f765a2cf">
-<script src="/assets/site.js?v=29a33c61" defer></script>
+<link rel="stylesheet" href="/assets/site.css?v=0dc630ae">
+<script src="/assets/site.js?v=86fc7db6" defer></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -104,6 +104,84 @@
     <div class="wrap">
       <div class="section-head row">
         <h2 class="type-h2">How Pouch works</h2>
+      </div>
+
+      <div class="card flow">
+        <div class="vis">
+          <svg class="flow-h" viewBox="0 0 960 300" role="img" aria-label="Your app sends to Pouch, which hands each message to its domain's provider: Amazon SES, Mailpace, Cloudflare Email Service or one you add. The provider reports back to Pouch, and Pouch tells your app by webhook.">
+            <rect x="20" y="100" width="150" height="80" rx="14" class="f-card"/>
+            <text x="40" y="134" class="t-name">Your app</text>
+            <text x="40" y="158" class="t-soft">POST /v1/emails</text>
+
+            <path data-seg="a" d="M170 140 H 330" fill="none" class="s-primary"/>
+            <text x="250" y="128" class="t-soft" text-anchor="middle">REST · SDK · SMTP</text>
+
+            <text x="378" y="80" class="t-soft" text-anchor="middle">log · suppressions · pause</text>
+            <rect x="330" y="92" width="96" height="96" rx="20" class="f-card s-primary"/>
+            <use href="#mark" x="350" y="112" width="56" height="56"/>
+
+            <path data-seg="b0" d="M426 140 C 494 140, 494 65, 560 65" fill="none" class="s-primary"/>
+            <path data-seg="b1" d="M426 140 C 494 140, 494 115, 560 115" fill="none" class="s-primary"/>
+            <path data-seg="b2" d="M426 140 C 494 140, 494 165, 560 165" fill="none" class="s-primary"/>
+            <path d="M426 140 C 494 140, 494 215, 560 215" fill="none" class="s-faint dash"/>
+
+            <text x="665" y="22" class="t-soft" text-anchor="middle">one provider per domain</text>
+            <rect x="548" y="32" width="234" height="216" rx="16" fill="none" class="s-faint dash"/>
+            <g data-provider="0"><rect x="560" y="43" width="210" height="44" rx="12" class="f-card"/><circle cx="580" cy="65" r="4" class="f-ok"/><text x="594" y="62" class="t-name">Amazon SES</text><text x="594" y="78" class="t-small">shop.example</text></g>
+            <g data-provider="1"><rect x="560" y="93" width="210" height="44" rx="12" class="f-card"/><circle cx="580" cy="115" r="4" class="f-ok"/><text x="594" y="112" class="t-name">Mailpace</text><text x="594" y="128" class="t-small">app.example</text></g>
+            <g data-provider="2"><rect x="560" y="143" width="210" height="44" rx="12" class="f-card"/><circle cx="580" cy="165" r="4" class="f-ok"/><text x="594" y="162" class="t-name">Cloudflare Email Service</text><text x="594" y="178" class="t-small">team.example</text></g>
+            <a href="#pluggable" class="flow-add" tabindex="-1"><rect x="560" y="193" width="210" height="44" rx="12" fill="none" class="s-faint dash"/><text x="580" y="212" class="t-name">+ Your provider</text><text x="580" y="228" class="t-small">implements Adapter</text></a>
+
+            <path data-seg="c0" d="M770 65 C 820 65, 820 140, 860 140" fill="none" class="s-primary"/>
+            <path data-seg="c1" d="M770 115 C 820 115, 820 140, 860 140" fill="none" class="s-primary"/>
+            <path data-seg="c2" d="M770 165 C 820 165, 820 140, 860 140" fill="none" class="s-primary"/>
+            <path d="M770 215 C 820 215, 820 140, 860 140" fill="none" class="s-faint dash"/>
+
+            <rect data-inbox x="860" y="116" width="80" height="48" rx="24" class="f-card"/>
+            <text x="900" y="144.5" class="t-name" text-anchor="middle">Inbox</text>
+
+            <path data-seg="e" d="M665 248 C 665 282, 640 282, 600 282 H 450 C 404 282, 404 260, 404 188" fill="none" class="s-primary dash"/>
+            <text x="530" y="274" class="t-soft" text-anchor="middle">delivery events</text>
+            <path data-seg="w" d="M352 188 C 352 262, 330 262, 300 262 H 140 C 95 262, 95 230, 95 180" fill="none" class="s-primary dash"/>
+            <text x="220" y="254" class="t-soft" text-anchor="middle">webhook</text>
+
+            <circle data-dot r="6" cx="170" cy="140" class="f-primary"/>
+          </svg>
+          <svg class="flow-v" viewBox="0 0 340 580" role="img" aria-label="Your app sends to Pouch, which hands each message to its domain's provider: Amazon SES, Mailpace, Cloudflare Email Service or one you add. The provider reports back to Pouch, and Pouch tells your app by webhook.">
+            <rect x="70" y="8" width="200" height="64" rx="14" class="f-card"/>
+            <text x="170" y="36" class="t-name" text-anchor="middle">Your app</text>
+            <text x="170" y="58" class="t-soft" text-anchor="middle">POST /v1/emails</text>
+
+            <path data-seg="a" d="M170 72 V 138" fill="none" class="s-primary"/>
+            <text x="182" y="110" class="t-soft">REST · SDK · SMTP</text>
+
+            <rect x="130" y="138" width="80" height="80" rx="18" class="f-card s-primary"/>
+            <use href="#mark" x="146" y="154" width="48" height="48"/>
+            <text x="118" y="166" class="t-soft" text-anchor="end">log</text>
+            <text x="118" y="182" class="t-soft" text-anchor="end">suppressions</text>
+            <text x="118" y="198" class="t-soft" text-anchor="end">pause</text>
+
+            <path data-seg="b0 b1 b2" d="M170 218 V 250" fill="none" class="s-primary"/>
+            <rect x="30" y="250" width="280" height="248" rx="16" fill="none" class="s-faint dash"/>
+            <text x="46" y="274" class="t-soft">one provider per domain</text>
+            <g data-provider="0"><rect x="42" y="286" width="256" height="44" rx="10" class="f-card"/><circle cx="60" cy="308" r="4" class="f-ok"/><text x="74" y="305" class="t-name">Amazon SES</text><text x="74" y="321" class="t-small">shop.example</text></g>
+            <g data-provider="1"><rect x="42" y="336" width="256" height="44" rx="10" class="f-card"/><circle cx="60" cy="358" r="4" class="f-ok"/><text x="74" y="355" class="t-name">Mailpace</text><text x="74" y="371" class="t-small">app.example</text></g>
+            <g data-provider="2"><rect x="42" y="386" width="256" height="44" rx="10" class="f-card"/><circle cx="60" cy="408" r="4" class="f-ok"/><text x="74" y="405" class="t-name">Cloudflare Email Service</text><text x="74" y="421" class="t-small">team.example</text></g>
+            <a href="#pluggable" class="flow-add" tabindex="-1"><rect x="42" y="436" width="256" height="44" rx="10" fill="none" class="s-faint dash"/><text x="60" y="455" class="t-name">+ Your provider</text><text x="60" y="471" class="t-small">implements Adapter</text></a>
+
+            <path data-seg="c0 c1 c2" d="M170 498 V 530" fill="none" class="s-primary"/>
+            <rect data-inbox x="120" y="530" width="100" height="44" rx="22" class="f-card"/>
+            <text x="170" y="557" class="t-name" text-anchor="middle">Inbox</text>
+
+            <path data-seg="e" d="M310 374 H 324 V 178 H 210" fill="none" class="s-primary dash"/>
+            <text x="218" y="230" class="t-soft">delivery</text>
+            <text x="218" y="242" class="t-soft">events</text>
+            <path data-seg="w" d="M130 210 H 16 V 40 H 70" fill="none" class="s-primary dash"/>
+            <text x="24" y="110" class="t-soft">webhook</text>
+
+            <circle data-dot r="6" cx="170" cy="72" class="f-primary"/>
+          </svg>
+        </div>
       </div>
 
       <div class="pillars">

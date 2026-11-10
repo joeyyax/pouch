@@ -1,4 +1,4 @@
-/* Receipt lifecycle, the Dashboard/API toggle, term popovers and copy buttons. Each runs only where its markup exists. */
+/* Receipt lifecycle, the send flow that follows it, the Dashboard/API toggle, term popovers and copy buttons. Each runs only where its markup exists. */
 (() => {
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   const card = document.getElementById("receipt");
@@ -24,7 +24,8 @@
     chip.className = `chip ${tone}`.trim();
     chip.classList.remove("pop"); void chip.offsetWidth; chip.classList.add("pop");
   }
-  function show(i) {
+  function show(i, via) {
+    document.dispatchEvent(new CustomEvent("pouch:step", { detail: { step: i, via } }));
     rows.forEach((row, n) => {
       row.classList.toggle("pending", n > i);
       row.classList.toggle("current", n === i && i < rows.length - 1);
@@ -42,10 +43,11 @@
     f("t0").textContent = clock(start);
     f("t1").textContent = clock(new Date(+start + 1000));
     f("t2").textContent = clock(new Date(+start + 3000));
-    show(0);
+    const via = messages.indexOf(m);
+    show(0, via);
     card.classList.remove("swap");
-    await wait(1100); show(1);
-    await wait(1600); show(2);
+    await wait(1100); show(1, via);
+    await wait(1600); show(2, via);
     await wait(4200);
     card.classList.add("swap");
     await wait(420);
@@ -57,6 +59,54 @@
     await wait(420);
     for (let i = 1; ; i = (i + 1) % messages.length) await play(messages[i]);
   })();
+})();
+(() => {
+  const box = document.querySelector(".flow");
+  if (!box || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const views = [...box.querySelectorAll("svg")];
+  let run = 0;
+
+  function travel(name, id, ms = 700) {
+    const start = performance.now();
+    const legs = views.map((svg) => {
+      const path = svg.querySelector(`[data-seg~="${name}"]`);
+      path.classList.add("on");
+      return { path, dot: svg.querySelector("[data-dot]"), len: path.getTotalLength() };
+    });
+    return new Promise((done) => {
+      const frame = (now) => {
+        if (id !== run) return done();
+        const t = Math.min(1, (now - start) / ms), e = 1 - Math.pow(1 - t, 3);
+        legs.forEach(({ path, dot, len }) => {
+          const p = path.getPointAtLength(e * len);
+          dot.setAttribute("cx", p.x); dot.setAttribute("cy", p.y);
+        });
+        if (t < 1) requestAnimationFrame(frame); else done();
+      };
+      requestAnimationFrame(frame);
+    });
+  }
+
+  document.addEventListener("pouch:step", async ({ detail: { step, via } }) => {
+    const id = ++run;
+    box.classList.add("live");
+    const inboxes = box.querySelectorAll("[data-inbox]");
+    if (step === 0) {
+      box.querySelectorAll(".on").forEach((el) => el.classList.remove("on"));
+      inboxes.forEach((el) => el.classList.remove("ok"));
+      box.querySelectorAll(`[data-provider="${via}"]`).forEach((el) => el.classList.add("on"));
+      await travel("a", id);
+    }
+    if (step === 1) {
+      await travel(`b${via}`, id, 600);
+      await travel(`c${via}`, id, 600);
+    }
+    if (step === 2) {
+      await travel("e", id, 800);
+      if (id === run) inboxes.forEach((el) => el.classList.add("ok"));
+      await travel("w", id, 800);
+    }
+  });
 })();
 (() => {
   const bento = document.getElementById("bento");
