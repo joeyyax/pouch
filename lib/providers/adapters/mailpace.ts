@@ -18,6 +18,7 @@ import type {
   SignedRequest,
   VerificationStatus,
 } from "./types";
+import { DomainApiUnavailableError } from "./types";
 
 const API_BASE = process.env.MAILPACE_API_BASE ?? "https://app.mailpace.com/api/v1";
 
@@ -33,8 +34,7 @@ const capabilities: AdapterCapabilities = {
   maxAttachmentBytes: 20 * 1024 * 1024,
   maxRecipients: 50,
   bulk: false,
-  // These three need an organization token. Mailpace documents an Organization API Tokens page
-  // that isn't present on our plan, so they're unreachable for us today (#139).
+  // Both need an organization token, which Mailpace's dashboard doesn't issue (#5).
   domainsViaApi: true,
   dnsRecordsViaApi: true,
   // Mailpace registers event webhooks in its dashboard, per domain.
@@ -301,7 +301,7 @@ const create: AdapterFactory = (credentials, settings, accountId): Adapter => {
 
   function requireOrganizationToken(): string {
     if (!organizationToken) {
-      throw new Error("Provider has no organization token. The domains API needs one.");
+      throw new DomainApiUnavailableError("This provider has no organization token, and Mailpace's domains API needs one.");
     }
     return organizationToken;
   }
