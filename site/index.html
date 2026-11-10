@@ -78,11 +78,11 @@
       </div>
       <div class="card specs">
         <h3 class="type-h3">Pauses before your provider does</h3>
-        <p>A domain stops releasing mail at half the bounce or complaint rate SES reviews accounts at.</p>
+        <p>A domain holds its queue at half the bounce or complaint rate SES reviews accounts at, until you release it.</p>
       </div>
       <div class="card specs">
         <h3 class="type-h3">Bodies you can really delete</h3>
-        <p>Each message is encrypted with its own key. Retention shreds the key, backups included.</p>
+        <p>Each message is encrypted with its own key. Retention shreds the key, and Pouch can't open the body again.</p>
       </div>
       <div class="card specs">
         <h3 class="type-h3">The record stays yours</h3>
@@ -109,7 +109,7 @@
       <div class="pillars">
         <div><h3 class="type-h3">Your provider delivers</h3><p>Pouch sends through your Amazon SES, Mailpace or Cloudflare account with your credentials. The domain and its reputation stay with the provider.</p></div>
         <div><h3 class="type-h3">Pouch keeps the record</h3><p>One API for every app and one dashboard that shows every message, its state and why.</p></div>
-        <div><h3 class="type-h3">No lock-in</h3><p>Your DNS points at your provider, never at Pouch. Export the log and the mail any time; <a class="text-link" href="/leaving/">leaving</a> is a code change.</p></div>
+        <div><h3 class="type-h3">No lock-in</h3><p>Your sending records point at your provider, never at Pouch. Export the log and the mail any time; <a class="text-link" href="/leaving/">leaving</a> is a code change.</p></div>
       </div>
 
       <div class="seg-row">
@@ -187,7 +187,7 @@ GET /v1/emails?status=bounced
 
         <article class="card tile">
           <div class="vis">
-            <svg class="view-ui" viewBox="0 0 280 200" role="img" aria-label="A hard bounce on one domain blocks the address on every domain">
+            <svg class="view-ui" viewBox="0 0 280 200" role="img" aria-label="A hard bounce on one domain blocks the address on all your domains">
               <use href="#env" x="18" y="22" width="44" height="30"/>
               <path d="M66 37 H 108" fill="none" class="s-bad" marker-end="url(#arr)"/>
               <rect x="114" y="25" width="150" height="24" rx="12" class="f-bad-soft"/><text x="189" y="41" class="t-mono t-bad" text-anchor="middle">hard bounce</text>
@@ -207,7 +207,7 @@ GET /v1/emails?status=bounced
 }</pre>
           </div>
           <h3 class="type-h3">Suppressions</h3>
-          <p>A <button type="button" class="term" popovertarget="t-bounce">hard bounce</button> or <button type="button" class="term" popovertarget="t-complaint">complaint</button> stops sends to that address on every domain.</p>
+          <p>A <button type="button" class="term" popovertarget="t-bounce">hard bounce</button> or <button type="button" class="term" popovertarget="t-complaint">complaint</button> stops sends to that address on all your domains.</p>
         </article>
 
         <article class="card tile wide">
@@ -287,7 +287,7 @@ GET /v1/emails?status=bounced
 <span class="d"># subscribed once kai confirms</span></pre>
           </div>
           <h3 class="type-h3">Lists</h3>
-          <p>Batches with <button type="button" class="term" popovertarget="t-doi">double opt-in</button> and <button type="button" class="term" popovertarget="t-ocu">one-click unsubscribe</button>.</p>
+          <p>Batches through SES, with <button type="button" class="term" popovertarget="t-doi">double opt-in</button> and <button type="button" class="term" popovertarget="t-ocu">one-click unsubscribe</button>.</p>
         </article>
       </div>
 
@@ -342,7 +342,7 @@ docker compose -f docker-compose.self-host.yml up -d</pre></div>
 <div class="tip" id="t-smtp" popover><p>SMTP is the protocol mail software speaks, and 587 is the standard port for submitting mail. Tools that can't call an API can still send.</p><a class="text-link" href="https://www.rfc-editor.org/rfc/rfc6409" target="_blank" rel="noopener">RFC 6409 ↗</a></div>
 <div class="tip" id="t-bounce" popover><p>The receiving server says the address doesn't exist or will never accept mail.</p></div>
 <div class="tip" id="t-complaint" popover><p>The recipient marked a message as spam.</p></div>
-<div class="tip" id="t-dns" popover><p>Entries you add where your domain's DNS is hosted. They prove to receiving servers that mail from your domain is really yours.</p><a class="text-link" href="https://www.cloudflare.com/learning/email-security/dmarc-dkim-spf/" target="_blank" rel="noopener">DKIM, SPF and DMARC ↗</a></div>
+<div class="tip" id="t-dns" popover><p>Entries you add where your domain's DNS is hosted. They prove to receiving servers that mail from your domain is yours.</p><a class="text-link" href="https://www.cloudflare.com/learning/email-security/dmarc-dkim-spf/" target="_blank" rel="noopener">DKIM, SPF and DMARC ↗</a></div>
 <div class="tip" id="t-webhook" popover><p>A URL in your app that Pouch calls with each event, like a delivery or an incoming message.</p></div>
 <div class="tip" id="t-doi" popover><p>A new subscriber gets a confirmation email and only receives batches after confirming.</p></div>
 <div class="tip" id="t-ocu" popover><p>The unsubscribe button Gmail and other mail clients show above a message. One press removes the address.</p><a class="text-link" href="https://www.rfc-editor.org/rfc/rfc8058" target="_blank" rel="noopener">RFC 8058 ↗</a></div>

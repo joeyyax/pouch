@@ -14,7 +14,7 @@ The app is published on `APP_PORT` (3100 by default). Put your own TLS terminato
 | Variable | Why |
 | --- | --- |
 | `APP_URL` | Every link the service mails or signs. |
-| `ENCRYPTION_KEY` | Message bodies and provider credentials at rest. Losing it loses both. |
+| `ENCRYPTION_KEY` | Provider, DNS-provider and webhook secrets at rest. Losing it loses them. |
 | `BETTER_AUTH_SECRET` | Sessions and list confirmation tokens. |
 | `POSTGRES_PASSWORD` | The bundled database. Ignored if you set `DATABASE_URL`. |
 | `STORAGE_*` | Where bodies and attachments live. Any S3-compatible bucket. |
@@ -28,6 +28,16 @@ The app is published on `APP_PORT` (3100 by default). Put your own TLS terminato
 ## Settings file
 
 Settings in Admin settings can be pinned in `pouch.yml` instead. Each setting's environment variable still wins over the file. Copy `pouch.example.yml`, uncomment what to pin, and mount it at `/app/pouch.yml` on all three services; the mount is in `docker-compose.self-host.yml`, commented out. An unknown key or a value out of bounds stops startup, naming the key. Secrets stay in the environment. docs/engineering.md, "Settings file", has the rest.
+
+## Bodies and backups
+
+Each body is sealed with its own key in `messages.body_key`. When retention ends, the sweep nulls the key and leaves the object in the bucket. One lifecycle rule on the bucket, strictly above `body_retention_max_days` (365 by default), collects those objects. With a storage token that can read bucket configuration, the `body-lifecycle` readiness check degrades when the rule is missing or at or under the ceiling. docs/engineering.md, "Rules", has the rest.
+
+A Postgres backup holds every key that existed when it was taken, so a restored backup can open bodies the live database has shredded. To keep a body unreadable after retention, keep backups no longer than retention.
+
+## Optional checks
+
+`SPAMHAUS_DQS_KEY` turns on domain blocklist checks against Spamhaus DBL and ZRD. `NTFY_TOPIC` turns on push alerts when a health check fails twice in a row. DMARC reports need a report host, set in Admin settings → General, on a provider that receives inbound mail.
 
 ## Bundled or external Postgres and Redis
 

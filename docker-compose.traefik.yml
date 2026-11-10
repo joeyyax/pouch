@@ -7,7 +7,7 @@
 #
 # Already have a managed Postgres or Redis? Set DATABASE_URL and/or REDIS_URL and start only
 # the app services — `--no-deps` is required, or `depends_on` pulls postgres/redis in anyway:
-# `docker compose -f docker-compose.traefik.yml up --no-deps mail mail-worker`.
+# `docker compose -f docker-compose.traefik.yml up --no-deps mail mail-worker mail-smtp`.
 # See docs/engineering.md for both shapes.
 
 # Settings file, optional: pouch.yml pins Admin settings → General values (pouch.example.yml). Mount

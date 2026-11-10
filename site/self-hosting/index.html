@@ -54,7 +54,7 @@ docker compose -f docker-compose.self-host.yml up -d</pre></div>
       <thead><tr><th>Variable</th><th>What it's for</th></tr></thead>
       <tbody>
         <tr><td><code>APP_URL</code></td><td>Every link Pouch mails or signs.</td></tr>
-        <tr><td><code>ENCRYPTION_KEY</code></td><td>Message bodies and provider credentials at rest. Losing it loses both.</td></tr>
+        <tr><td><code>ENCRYPTION_KEY</code></td><td>Provider, DNS-provider and webhook secrets at rest. Losing it loses them.</td></tr>
         <tr><td><code>BETTER_AUTH_SECRET</code></td><td>Sessions and list confirmation tokens.</td></tr>
         <tr><td><code>POSTGRES_PASSWORD</code></td><td>The bundled database. Ignored when <code>DATABASE_URL</code> is set.</td></tr>
         <tr><td><code>STORAGE_*</code></td><td>The bucket for bodies and attachments. Any S3-compatible store.</td></tr>
@@ -63,6 +63,13 @@ docker compose -f docker-compose.self-host.yml up -d</pre></div>
       </tbody>
     </table></div>
     <p>The app, worker and SMTP ingress check their configuration at boot. They refuse to start without a variable they need, or with the development secrets <code>.env.example</code> ships with, and name each one. <code>lib/config.ts</code> lists every variable.</p>
+
+    <h2>Bodies and backups</h2>
+    <p>Each body is sealed with its own key, kept in Postgres. When retention ends, Pouch discards the key and the body can't be opened, but the object stays in the bucket. Add one lifecycle rule on the bucket that expires objects after longer than the retention ceiling (365 days by default). With a storage token that can read bucket configuration, the readiness check reports a missing or too-short rule.</p>
+    <p>A database backup holds every key that existed when it was taken. To keep a body unreadable after retention, keep backups no longer than retention.</p>
+
+    <h2>Optional checks</h2>
+    <p><code>SPAMHAUS_DQS_KEY</code> turns on domain blocklist checks. <code>NTFY_TOPIC</code> turns on push alerts when a health check fails. DMARC reports need a report host, set in Admin settings → General.</p>
 
     <h2>Bundled or external Postgres and Valkey</h2>
     <p>Bundled is the default. To use a managed database or cache, set <code>DATABASE_URL</code> and <code>REDIS_URL</code> and start only the app services:</p>
