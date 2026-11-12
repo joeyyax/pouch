@@ -8,7 +8,7 @@
  * so a client component may still import one from a loader.
  */
 import type { DomainStatus, SuppressionReason } from "@/lib/db/schema";
-import type { DomainDeleteBlock } from "@/lib/domains/deletable";
+import type { DomainContents, DomainDeleteBlock } from "@/lib/domains/deletable";
 import type { DomainLayout } from "@/lib/domains/layout";
 import type { ProposedDnsRecord, SetupStep } from "@/lib/providers/adapters/types";
 import type { Finding, Standing } from "@/lib/reputation/standing";
@@ -119,8 +119,10 @@ export interface DomainDetailData {
   setup: SetupStep[];
   /** Live keys limited to this domain, named in the delete dialog. Null when the domain can't be deleted. */
   liveScopedKeys: DomainKeySummary[] | null;
-  /** What stops this domain being deleted: messages, batches or lists. Null when it can be. */
+  /** What stops this domain being deleted: mail waiting to send, or system mail. Null when it can be. */
   deleteBlock: DomainDeleteBlock | null;
+  /** What a delete takes with it. Null while something blocks the delete. */
+  deleteContents: DomainContents | null;
   /** Whether the adapter can answer a verification check at all. */
   verifiable: boolean;
   /** A move to another provider in progress. Null when there isn't one. */

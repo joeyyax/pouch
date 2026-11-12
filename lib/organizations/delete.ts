@@ -12,7 +12,7 @@
  */
 import { asc, count, eq } from "drizzle-orm";
 import { db, type Executor } from "@/lib/db";
-import { batches, dnsProviderRecords, domains, lists, messages, organizations, providers } from "@/lib/db/schema";
+import { dnsProviderRecords, domains, messages, organizations, providers } from "@/lib/db/schema";
 import { ApiError } from "@/lib/api/errors";
 import { recordActivity } from "@/lib/activity/record";
 import type { ActivityActor } from "@/lib/activity/types";
@@ -20,6 +20,7 @@ import { logger } from "@/lib/logger";
 import { unindexOrganization } from "@/lib/search";
 import { adapterFor } from "@/lib/providers";
 import { dropDomain, type DomainRow } from "@/lib/domains";
+import { dropDomainHistory } from "@/lib/domains/deletable";
 import { lockedOrganization, organizationDeleteBlock } from "./deletable";
 
 const log = logger.child("organizations");
@@ -103,20 +104,14 @@ async function assertDeletable(organization: { id: string; name: string }, tx: E
   if (block) throw new ApiError("organization_in_use", block.message, { detail: { reason: block.reason } });
 }
 
-/**
- * One domain, one transaction: its send records, its row, then the identity at the provider.
- * The records go first because they're `restrict` against the row — an organization's history
- * is deleted with it, which is what makes this different from deleting one domain.
- */
+/** One domain, one transaction: its send records, its row, then the identity at the provider. */
 async function dropOrganizationDomain(domain: DomainRow): Promise<void> {
   const [provider] = await db.select().from(providers).where(eq(providers.id, domain.providerId)).limit(1);
   if (!provider) throw new ApiError("provider_unavailable", `${domain.name} has no provider row to remove it from.`);
   const client = adapterFor(provider);
 
   await db.transaction(async (tx) => {
-    await tx.delete(messages).where(eq(messages.domainId, domain.id));
-    await tx.delete(batches).where(eq(batches.domainId, domain.id));
-    await tx.delete(lists).where(eq(lists.domainId, domain.id));
+    await dropDomainHistory(domain.id, tx);
     await dropDomain(domain, client, tx);
   });
 }

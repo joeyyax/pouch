@@ -46,6 +46,11 @@ export function unindexSuppressions(ids: string[]): void {
   syncInBackground("suppression delete", (provider) => provider.remove("suppressions", ids));
 }
 
+export function unindexMessages(ids: string[]): void {
+  if (ids.length === 0) return;
+  syncInBackground("message delete", (provider) => provider.remove("messages", ids));
+}
+
 export function unindexOrganization(organizationId: string): void {
   syncInBackground("organization delete", (provider) => provider.removeOrganization(organizationId));
 }

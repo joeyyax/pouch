@@ -7,7 +7,6 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Callout } from "@/components/ui/callout";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { Modal } from "@/components/ui/modal";
 import type { DomainDetailData, DomainStandingSummary } from "@/lib/dashboard/views/domains";
 import { dayLabel } from "@/lib/format/time";
 import { useOpenerFocus } from "@/hooks/use-opener-focus";
@@ -58,14 +57,16 @@ export function DomainDetail({
   }
 
   const liveKeys = domain.liveScopedKeys ?? [];
-  const consequence =
+  const consequence = [
+    historyNote(domain.deleteContents),
     liveKeys.length > 0
       ? `Its ${liveKeys.length} ${liveKeys.length === 1 ? "key stops" : "keys stop"} sending immediately.`
-      : "Sends from it fail at the API.";
+      : "Sends from it fail at the API.",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   const unverified = domain.status !== "verified";
-  const blockingLists = domain.deleteBlock?.lists.length ?? 0;
-  const blockedByLists = blockingLists > 0;
   const reputationHref = `/domains/${domain.id}/reputation`;
 
   return (
@@ -132,8 +133,7 @@ export function DomainDetail({
                 {
                   label: `Delete ${domain.name}`,
                   destructive: true,
-                  // Blocked by lists opens a dialog that links them; blocked by the log has nothing to act on.
-                  disabled: !canManage || (Boolean(domain.deleteBlock) && !blockedByLists),
+                  disabled: !canManage || Boolean(domain.deleteBlock),
                   reason: !canManage ? "Your role doesn't let you delete a domain." : domain.deleteBlock?.message,
                   onSelect: () => setConfirming(true),
                 },
@@ -180,28 +180,6 @@ export function DomainDetail({
 
       {children}
 
-      <Modal
-        open={confirming && canManage && blockedByLists}
-        onOpenChange={(open) => !open && setConfirming(false)}
-        onCloseAutoFocus={opener.restore}
-        title={`${domain.name} still has ${blockingLists === 1 ? "a list" : `${blockingLists} lists`}`}
-        description={`Delete ${blockingLists === 1 ? "it" : "them"} first, then the domain.`}
-        footer={
-          <Button type="button" variant="secondary" size="md" onClick={() => setConfirming(false)}>
-            Close
-          </Button>
-        }
-      >
-        <ul className="flex flex-col gap-1.5">
-          {domain.deleteBlock?.lists.map((list) => (
-            <li key={list.id}>
-              <Link href={`/lists/${list.id}`} className="type-body-sm text-primary-strong underline underline-offset-4">
-                {list.name}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </Modal>
 
       <ConfirmDialog
         open={confirming && canManage && !domain.deleteBlock}
@@ -231,6 +209,16 @@ export function DomainDetail({
       </ConfirmDialog>
     </>
   );
+}
+
+/** "Deletes its 2 messages and 1 list." Null when there's no history to lose. */
+function historyNote(contents: DomainDetailData["deleteContents"]): string | null {
+  if (!contents) return null;
+  const parts = [
+    contents.messages > 0 ? `${contents.messages} ${contents.messages === 1 ? "message" : "messages"}` : null,
+    contents.lists > 0 ? `${contents.lists} ${contents.lists === 1 ? "list" : "lists"}` : null,
+  ].filter(Boolean);
+  return parts.length > 0 ? `Deletes its ${parts.join(" and ")}.` : null;
 }
 
 /** Only a warning earns space above the sections. Paused has the stall alert; the chip covers the rest. */
