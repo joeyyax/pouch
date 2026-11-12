@@ -151,6 +151,15 @@ describe("releaseDomainStall", () => {
     expect(rows.map((row) => row.action)).toContain("domain.stall.released");
   });
 
+  it("keeps the domain sending on the numbers it released", async () => {
+    await stallDomain(await domainRow(), verdict, await dbNow());
+    await releaseDomainStall(fixture.organizationId, fixture.domainId, userActor("u_1", "Ada"), await dbNow());
+
+    expect(await stallDomain(await domainRow(), verdict, await dbNow())).toBe(false);
+    const worse = { ...verdict, detail: { ...verdict.detail, count: verdict.detail.count + 1 } };
+    expect(await stallDomain(await domainRow(), worse, await dbNow())).toBe(true);
+  });
+
   it("is a no-op, with no activity row, on a domain that isn't stalled", async () => {
     await releaseDomainStall(fixture.organizationId, fixture.domainId, userActor("u_1", "Ada"), await dbNow());
 

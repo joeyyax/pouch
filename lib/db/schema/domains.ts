@@ -80,6 +80,9 @@ export const domains = pgTable(
     stallReason: text("stall_reason").$type<StallReason | null>(),
     /** The numbers that tripped it, snapshotted for the dashboard. Null once cleared. */
     stallDetail: jsonb("stall_detail").$type<StallDetail | null>(),
+    /** The last manual release and the numbers it cleared. The guard won't re-stall on those numbers. */
+    stallReleasedAt: timestamp("stall_released_at", { withTimezone: true }),
+    stallReleasedDetail: jsonb("stall_released_detail").$type<StallDetail | null>(),
     /** Last time the stall guard evaluated this domain, stalled or not — drives its recheck order. */
     stallCheckedAt: timestamp("stall_checked_at", { withTimezone: true }),
     /**

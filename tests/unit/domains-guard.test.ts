@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_STALL_LINES as LINES, evaluateStall, describeStall, stallLines } from "@/lib/domains/guard";
+import {
+  DEFAULT_STALL_LINES as LINES,
+  STALL_WINDOW_DAYS,
+  describeStall,
+  evaluateStall,
+  releaseCovers,
+  stallLines,
+  type StallVerdict,
+} from "@/lib/domains/guard";
 import { EMPTY_COUNTS, RATE_FLOOR, type OutcomeCounts } from "@/lib/metrics/rates";
 
 const STALL_BOUNCE_RATE = LINES.bounce.stall;
@@ -73,12 +81,25 @@ describe("the trend guard", () => {
   it("stalls on a rate still under the line, projected to cross it next window", () => {
     // Comfortably under STALL_BOUNCE_RATE now, but the previous window was near zero — the
     // same jump again next window pushes it over.
-    const previous = counts({ total: RESOLVED, delivered: RESOLVED });
-    const bounced = Math.floor(RESOLVED * (STALL_BOUNCE_RATE - 0.002));
-    const current = counts({ total: RESOLVED, delivered: RESOLVED - bounced, bounced });
+    const resolved = RESOLVED * 2;
+    const previous = counts({ total: resolved, delivered: resolved });
+    const bounced = Math.floor(resolved * (STALL_BOUNCE_RATE - 0.002));
+    const current = counts({ total: resolved, delivered: resolved - bounced, bounced });
 
     const verdict = evaluateStall({ lines: LINES, counts: current, previousCounts: previous });
     expect(verdict?.reason).toBe("bounce_trend");
+  });
+
+  it("stays quiet on one bounce off a clean window, which projects to double itself", () => {
+    const previous = counts({ total: 78, delivered: 78 });
+    const current = counts({ total: 78, delivered: 77, bounced: 1 });
+    expect(evaluateStall({ lines: LINES, counts: current, previousCounts: previous })).toBeNull();
+  });
+
+  it("[control] the same trend at the bounce count line does stall", () => {
+    const previous = counts({ total: 160, delivered: 160 });
+    const current = counts({ total: 160, delivered: 160 - STALL_BOUNCE_COUNT, bounced: STALL_BOUNCE_COUNT });
+    expect(evaluateStall({ lines: LINES, counts: current, previousCounts: previous })?.reason).toBe("bounce_trend");
   });
 
   it("stays quiet when the rate is falling", () => {
@@ -193,5 +214,36 @@ describe("describeStall", () => {
     });
     expect(text).toContain("3 bounces on 4 sends");
     expect(text).not.toContain("%");
+  });
+});
+
+describe("releaseCovers", () => {
+  const now = new Date("2026-11-10T20:00:00Z");
+  const detail = { metric: "bounce" as const, count: 1, denominator: 67, rate: 0.015, previousRate: 0, threshold: STALL_BOUNCE_RATE };
+  const release = { releasedAt: new Date(now.getTime() - 60_000), detail };
+  const verdict = (overrides: Partial<StallVerdict["detail"]>): StallVerdict => ({
+    reason: "bounce_trend",
+    detail: { ...detail, denominator: 78, ...overrides },
+  });
+
+  it("holds against the same bounce count on more sends", () => {
+    expect(releaseCovers(release, verdict({}), now)).toBe(true);
+  });
+
+  it("gives way to a new bounce", () => {
+    expect(releaseCovers(release, verdict({ count: 2 }), now)).toBe(false);
+  });
+
+  it("gives way to the other metric", () => {
+    expect(releaseCovers(release, verdict({ metric: "complaint" }), now)).toBe(false);
+  });
+
+  it("expires after one window", () => {
+    const old = { ...release, releasedAt: new Date(now.getTime() - STALL_WINDOW_DAYS * 24 * 60 * 60 * 1000) };
+    expect(releaseCovers(old, verdict({}), now)).toBe(false);
+  });
+
+  it("covers nothing without a release", () => {
+    expect(releaseCovers(null, verdict({}), now)).toBe(false);
   });
 });

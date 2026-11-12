@@ -162,7 +162,8 @@ function checkMetric(
   // window, does it cross the line? It needs only the two windows already on hand.
   const crossing = projectsPast(current, previous, threshold);
   if (crossing === "level") return { reason: `${metric}_rate`, detail: detail() };
-  if (crossing === "trend") return { reason: `${metric}_trend`, detail: detail() };
+  // Off a clean window, one bounce projects double itself; a trend needs the count line's worth.
+  if (crossing === "trend" && count >= lines[metric].count) return { reason: `${metric}_trend`, detail: detail() };
 
   return null;
 }
@@ -186,6 +187,19 @@ export function evaluateStall(input: StallCheckInput): StallVerdict | null {
       input.lines,
     ) ?? checkMetric("bounce", input.counts.bounced, input.previousCounts.bounced, denominator, previousDenominator, input.lines)
   );
+}
+
+/** What a person released, kept so the same numbers don't stall the domain again. */
+export interface StallRelease {
+  releasedAt: Date;
+  detail: StallDetail;
+}
+
+/** A release holds for one window, against the same metric at no more than the count it released. */
+export function releaseCovers(release: StallRelease | null, verdict: StallVerdict, now: Date): boolean {
+  if (!release) return false;
+  if (now.getTime() - release.releasedAt.getTime() >= STALL_WINDOW_DAYS * 24 * 60 * 60 * 1000) return false;
+  return verdict.detail.metric === release.detail.metric && verdict.detail.count <= release.detail.count;
 }
 
 /** Said for a stall whose numbers weren't recorded. Matches a held message's `stall.message`. */
