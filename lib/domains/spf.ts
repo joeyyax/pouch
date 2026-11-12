@@ -29,6 +29,14 @@ export function spfAllTerm(value: string): string | null {
   return value.trim().split(/\s+/).find((term) => ALL_TERM.test(term)) ?? null;
 }
 
+/** Adds mechanisms ahead of the record's `all` term, since a receiver stops reading there. */
+export function withSpfMechanisms(value: string, mechanisms: string): string {
+  const terms = value.trim().split(/\s+/);
+  const at = terms.findIndex((term) => ALL_TERM.test(term));
+  if (at === -1) return [...terms, mechanisms].join(" ");
+  return [...terms.slice(0, at), mechanisms, ...terms.slice(at)].join(" ");
+}
+
 /**
  * Marks an SPF record sitting at the domain's own name, where a domain sending through anything
  * else already has one. Records created before the marker existed are stored without it.

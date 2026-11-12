@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { zoneFile } from "@/lib/dashboard/views/domains";
-import { markMerges, spfLookups, spfMechanisms, spfMergeGuidance } from "@/lib/domains/spf";
+import { markMerges, spfLookups, spfMechanisms, spfMergeGuidance, withSpfMechanisms } from "@/lib/domains/spf";
 import { buildAdapter } from "@/lib/providers/adapters";
 import type { ProposedDnsRecord } from "@/lib/providers/adapters/types";
 import { at } from "../at";
@@ -25,6 +25,18 @@ describe("spfLookups", () => {
     expect(spfLookups(spfMechanisms("v=spf1 include:mailpace.com ~all"))).toBe(1);
     expect(spfLookups(spfMechanisms("v=spf1 a mx include:one.example -include:two.example exists:%{i}.x ~all"))).toBe(5);
     expect(spfLookups(spfMechanisms("v=spf1 redirect=_spf.example.com"))).toBe(1);
+  });
+});
+
+describe("withSpfMechanisms", () => {
+  it("adds ahead of the all term", () => {
+    expect(withSpfMechanisms("v=spf1 include:_spf.google.com ~all", "include:amazonses.com")).toBe(
+      "v=spf1 include:_spf.google.com include:amazonses.com ~all",
+    );
+  });
+
+  it("appends to a record with no all term", () => {
+    expect(withSpfMechanisms("v=spf1 include:_spf.google.com", "include:amazonses.com")).toBe("v=spf1 include:_spf.google.com include:amazonses.com");
   });
 });
 
