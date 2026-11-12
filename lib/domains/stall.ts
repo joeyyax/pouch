@@ -14,7 +14,7 @@ import { ApiError } from "@/lib/api/errors";
 import { logger } from "@/lib/logger";
 import { sendDomainStalledAlert } from "@/lib/notifications/push/domain-stalled";
 import { readSettingValues } from "@/lib/settings/values";
-import { isStalled, stallLines, type StallDetail, type StallLines, type StallReason, type StallVerdict } from "./guard";
+import { isStalled, releaseCovers, stallLines, type StallDetail, type StallLines, type StallReason, type StallVerdict } from "./guard";
 import { safeErrorMessage } from "@/lib/errors/scrub";
 
 const log = logger.child("domains:stall");
@@ -69,6 +69,11 @@ export async function domainsDueForStallCheck(checkedBefore: Date, limit: number
  */
 export async function stallDomain(domain: DomainRow, verdict: StallVerdict, now: Date): Promise<boolean> {
   if (domain.stalledAt) return false;
+  const release =
+    domain.stallReleasedAt && domain.stallReleasedDetail
+      ? { releasedAt: domain.stallReleasedAt, detail: domain.stallReleasedDetail }
+      : null;
+  if (releaseCovers(release, verdict, now)) return false;
 
   const updated = await db
     .update(domains)
@@ -112,6 +117,7 @@ export async function markStallChecked(domainId: string, now: Date): Promise<voi
 /**
  * Clears a stall. Manual only — nothing in this codebase clears one on its own, because a rate
  * that recovers while sending is paused isn't evidence the underlying problem is fixed.
+ * Keeps the numbers it cleared so `stallDomain` doesn't hold the domain again on them.
  */
 export async function releaseDomainStall(
   organizationId: string,
@@ -129,7 +135,14 @@ export async function releaseDomainStall(
 
   const [updated] = await db
     .update(domains)
-    .set({ stalledAt: null, stallReason: null, stallDetail: null, updatedAt: now })
+    .set({
+      stalledAt: null,
+      stallReason: null,
+      stallDetail: null,
+      stallReleasedAt: existing.stallDetail ? now : null,
+      stallReleasedDetail: existing.stallDetail,
+      updatedAt: now,
+    })
     .where(eq(domains.id, domainId))
     .returning();
   if (!updated) throw new ApiError("not_found", `No domain with id ${domainId}.`);
