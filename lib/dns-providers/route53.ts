@@ -224,6 +224,15 @@ const create: DnsProviderFactory = (credentials, settings): DnsProvider => {
     return sets;
   }
 
+  /** The record set at exactly (name, type), or null when there isn't one. */
+  async function recordSetAt(zoneId: string, name: string, type: DnsRecordType): Promise<ResourceRecordSet | null> {
+    const page = await client.send(
+      new ListResourceRecordSetsCommand({ HostedZoneId: zoneId, StartRecordName: name, StartRecordType: type as RRType, MaxItems: 1 }),
+    );
+    const set = page.ResourceRecordSets?.[0];
+    return set && normalizeName(set.Name ?? "") === name && set.Type === type ? set : null;
+  }
+
   return {
     module: "route53",
     capabilities,
@@ -275,18 +284,8 @@ const create: DnsProviderFactory = (credentials, settings): DnsProvider => {
       for (const record of records) {
         const name = normalizeName(record.name);
         try {
-          const existing = await client.send(
-            new ListResourceRecordSetsCommand({
-              HostedZoneId: zone.id,
-              StartRecordName: name,
-              StartRecordType: record.type as RRType,
-              MaxItems: 1,
-            }),
-          );
-          const currentSet = existing.ResourceRecordSets?.[0];
-          const isThisSet = currentSet && normalizeName(currentSet.Name ?? "") === name && currentSet.Type === record.type;
-          const existingCount = isThisSet ? (currentSet.ResourceRecords?.length ?? 0) : 0;
-          if (existingCount > 1) {
+          const currentSet = await recordSetAt(zone.id, name, record.type);
+          if ((currentSet?.ResourceRecords?.length ?? 0) > 1) {
             throw new Error(`More than one ${record.type} value already exists at ${name}; refusing to replace the set blind.`);
           }
 
@@ -318,8 +317,22 @@ const create: DnsProviderFactory = (credentials, settings): DnsProvider => {
       return results;
     },
 
-    async removeRecords(_zone: DnsZone, _records: DnsRecordRef[]): Promise<void> {
-      throw new Error("removeRecords is unimplemented until #211.");
+    /**
+     * Deletes the set at each (name, type) when it holds exactly one value. A DELETE has to match
+     * the live set exactly, so it sends back the set as read, TTL included.
+     */
+    async removeRecords(zone: DnsZone, records: DnsRecordRef[]): Promise<void> {
+      for (const record of records) {
+        const name = normalizeName(record.name);
+        const set = await recordSetAt(zone.id, name, record.type);
+        if (!set) continue;
+        if ((set.ResourceRecords?.length ?? 0) > 1) {
+          throw new Error(`More than one ${record.type} value exists at ${name}; refusing to guess which to delete.`);
+        }
+        await client.send(
+          new ChangeResourceRecordSetsCommand({ HostedZoneId: zone.id, ChangeBatch: { Changes: [{ Action: "DELETE", ResourceRecordSet: set }] } }),
+        );
+      }
     },
 
     /**
