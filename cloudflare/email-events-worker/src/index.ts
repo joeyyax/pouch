@@ -4,14 +4,7 @@
  * directory, separately from the Next.js app — Pouch's provider adapter (lib/providers/adapters/cloudflare.ts)
  * only ever sees what this Worker posts, never the queue directly.
  *
- * Setup, once per Cloudflare account:
- *  1. `wrangler secret put SIGNING_PRIVATE_KEY_PKCS8_B64` — base64 DER PKCS8 of an Ed25519
- *     private key. Generate one with `openssl genpkey -algorithm ed25519 -outform der | base64`.
- *  2. Paste the matching public key (raw 32 bytes, base64) into this provider's
- *     `webhookPublicKey` setting in Pouch.
- *  3. Set `POUCH_WEBHOOK_URL` in wrangler.jsonc to this account's actual webhook URL.
- *  4. Create the queue and its event subscription (Compute > Queues, then the sending domain's
- *     Settings > Event subscriptions), scoped to each domain sent through this account.
+ * Setup: docs/self-hosting.md, "Cloudflare Email Sending".
  */
 
 interface Env {

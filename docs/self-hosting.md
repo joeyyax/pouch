@@ -59,6 +59,35 @@ A host that can open 465 turns on implicit TLS with `SMTP_IMPLICIT_TLS_PORT` and
 
 The key pages show `SMTP_TLS_HOST` as the host to connect to. Unset, they say the install hasn't named one.
 
+## Cloudflare Email Sending
+
+Email Sending needs Cloudflare's Workers Paid plan. The provider's API token needs Email Sending: Edit and Account Settings: Read on the account, plus Zone: Read on each zone you send from.
+
+Cloudflare reports deliveries, bounces and complaints to a Queue, not a webhook. `cloudflare/email-events-worker/` consumes that Queue and posts each event to Pouch, signed. Set it up once per Cloudflare account:
+
+1. Generate a signing key:
+
+   ```sh
+   openssl genpkey -algorithm ed25519 -out key.pem
+   openssl pkcs8 -topk8 -nocrypt -in key.pem -outform der | base64  # the Worker's secret
+   openssl pkey -in key.pem -pubout                                  # the public key for Pouch
+   ```
+
+2. Open the provider under Admin → Settings → Providers. Paste the public key into **Webhook public key** and copy the webhook **URL**.
+3. Set `POUCH_WEBHOOK_URL` in `cloudflare/email-events-worker/wrangler.jsonc` to that URL, then deploy from that directory:
+
+   ```sh
+   pnpm install
+   npx wrangler queues create pouch-email-sending-events
+   npx wrangler queues create pouch-email-sending-events-dlq
+   npx wrangler deploy
+   npx wrangler secret put SIGNING_PRIVATE_KEY_PKCS8_B64  # paste the secret from step 1
+   ```
+
+4. Subscribe the queue to each sending domain: Queues → `pouch-email-sending-events` → Subscriptions → **Subscribe to events**, with Email Sending as the source and every `message.*` event. A subscription covers one sending domain, so add one per domain.
+
+Pouch refuses an event it can't verify. The Worker retries it five times, then moves it to the dead-letter queue.
+
 ## The image
 
 It ships full `node_modules` rather than Next's `output: standalone`, because `scripts/migrate.ts` and `worker/index.ts` run through `tsx` at runtime. It's a bigger image than it could be; it's also the one that boots the worker and the migrations with no build-time tracing to get wrong.
