@@ -557,6 +557,8 @@ Outbound error reports are rebuilt from an allowlist of fields, with stack-frame
 
 **Why it's skipped for a provider that drops custom headers:** same reasoning as List-Unsubscribe above — a header the recipient's server never sees isn't worth the field.
 
+**Cloudflare sets its own** and refuses a send that carries one, so its adapter drops the header.
+
 **Revisit when** #297's Postmaster Tools API integration ships and reads `FEEDBACK_LOOP_SPAM_RATE` back — the header shape here is what that work depends on already existing.
 
 ## Pouch's own mail is one setting: the from address

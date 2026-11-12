@@ -53,6 +53,52 @@ describe("cloudflare adapter", () => {
     }
   });
 
+  it("drops Feedback-ID, which Cloudflare sets itself and refuses, and keeps other headers", async () => {
+    const provider = buildAdapter("cloudflare", credentials());
+    const original = globalThis.fetch;
+    let captured: Record<string, unknown> = {};
+    globalThis.fetch = async (_input, init) => {
+      captured = JSON.parse(String((init as RequestInit).body)) as Record<string, unknown>;
+      return new Response(JSON.stringify({ success: true, errors: [], result: { message_id: "msg_abc" } }), { status: 200 });
+    };
+
+    try {
+      const message = outbound(["one@example.net"]);
+      message.headers = { "Feedback-ID": "org_1:transactional:pouch", "X-Campaign": "fall" };
+      await provider.send(message);
+      expect(captured.headers).toEqual({ "X-Campaign": "fall" });
+
+      message.headers = { "feedback-id": "org_1:transactional:pouch" };
+      await provider.send(message);
+      expect(captured).not.toHaveProperty("headers");
+    } finally {
+      globalThis.fetch = original;
+    }
+  });
+
+  it("uses the sending domain this account already onboarded", async () => {
+    const provider = buildAdapter("cloudflare", credentials());
+    const original = globalThis.fetch;
+    globalThis.fetch = async (input, init) => {
+      const url = String(input);
+      if (url.includes("/zones?name=")) return new Response(JSON.stringify({ success: true, errors: [], result: [{ id: "zone_1" }] }), { status: 200 });
+      if (url.endsWith("/subdomains") && (init as RequestInit | undefined)?.method === "POST") {
+        return new Response(JSON.stringify({ success: false, errors: [{ code: 2040, message: "Subdomain already exists" }], result: null }), { status: 400 });
+      }
+      if (url.endsWith("/subdomains")) {
+        return new Response(JSON.stringify({ success: true, errors: [], result: [{ tag: "tag_other", name: "other.com" }, { tag: "tag_1", name: "example.com" }] }), { status: 200 });
+      }
+      if (url.endsWith("/tag_1/dns")) return new Response(JSON.stringify({ success: true, errors: [], result: [] }), { status: 200 });
+      throw new Error(`unexpected call to ${url}`);
+    };
+
+    try {
+      expect((await provider.domain.create("example.com")).providerDomainId).toBe("zone_1:tag_1");
+    } finally {
+      globalThis.fetch = original;
+    }
+  });
+
   it("classifies a 429 as backoff, a 5xx as transient and a 4xx as permanent", async () => {
     const cases = [
       { status: 429, body: { success: false, errors: [{ code: 10004, message: "throttled" }] }, failure: "backoff" },

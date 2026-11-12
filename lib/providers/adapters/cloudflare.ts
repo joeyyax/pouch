@@ -48,6 +48,9 @@ const capabilities: AdapterCapabilities = {
   subdomainSending: false,
 };
 
+/** Cloudflare's code for a sending domain this account already onboarded. */
+const SUBDOMAIN_EXISTS = 2040;
+
 const credentialsSchema = z.object({
   apiToken: z.string().min(1).describe("Cloudflare API token scoped to Email Sending: Edit, Account Settings: Read and Zone: Read."),
   accountId: z.string().min(1).describe("Cloudflare account id the sending domains belong to."),
@@ -213,6 +216,8 @@ const create: AdapterFactory = (credentials, settings, accountId): Adapter => {
   }
 
   async function send(message: OutboundMessage): Promise<Receipt> {
+    // Cloudflare sets its own Feedback-ID and refuses a send that carries one.
+    const headers = Object.fromEntries(Object.entries(message.headers).filter(([name]) => name.toLowerCase() !== "feedback-id"));
     const payload: Record<string, unknown> = {
       to: message.to,
       cc: message.cc.length > 0 ? message.cc : undefined,
@@ -222,7 +227,7 @@ const create: AdapterFactory = (credentials, settings, accountId): Adapter => {
       subject: message.subject,
       html: message.html ?? undefined,
       text: message.text ?? undefined,
-      headers: Object.keys(message.headers).length > 0 ? message.headers : undefined,
+      headers: Object.keys(headers).length > 0 ? headers : undefined,
       attachments:
         message.attachments.length > 0
           ? message.attachments.map((attachment) => ({
@@ -319,13 +324,17 @@ const create: AdapterFactory = (credentials, settings, accountId): Adapter => {
           method: "POST",
           body: JSON.stringify({ name }),
         });
-        if (!created.body?.success || !created.body.result) {
-          throw new Error(`Provider rejected the domain: ${errorsOf(created.body, created.status).join("; ")}.`);
+        let tag = created.body?.success ? created.body.result?.tag : undefined;
+        // Already onboarded on this account, from the dashboard or an earlier add: use it.
+        if (!tag && created.body?.errors?.some((error) => error.code === SUBDOMAIN_EXISTS)) {
+          const existing = await call<{ tag: string; name: string }[]>(`/zones/${zoneId}/email/sending/subdomains`);
+          tag = existing.body?.result?.find((subdomain) => subdomain.name === name)?.tag;
         }
+        if (!tag) throw new Error(`${errorsOf(created.body, created.status).join("; ")}.`);
 
-        const dns = await call<CfDnsRecord[]>(`/zones/${zoneId}/email/sending/subdomains/${created.body.result.tag}/dns`);
+        const dns = await call<CfDnsRecord[]>(`/zones/${zoneId}/email/sending/subdomains/${tag}/dns`);
         return {
-          providerDomainId: `${zoneId}:${created.body.result.tag}`,
+          providerDomainId: `${zoneId}:${tag}`,
           records: recordsFrom(dns.body?.result ?? []),
         };
       },
