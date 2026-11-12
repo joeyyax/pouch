@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { buildAdapter, capabilitiesOf } from "@/lib/providers/adapters";
+import { buildAdapter, capabilitiesOf, capabilitiesWith } from "@/lib/providers/adapters";
 import { mockSends, resetMockSends } from "@/lib/providers/adapters/mock";
 import { SEND_TIMEOUT_MS } from "@/lib/providers/adapters/mailpace";
 import type { OutboundMessage } from "@/lib/providers/adapters/types";
@@ -51,6 +51,12 @@ describe("receipt shape", () => {
       subdomainSending: false,
     });
     expect(() => capabilitiesOf("carrier-pigeon")).toThrow(/carrier-pigeon/);
+  });
+
+  it("drops Mailpace's domain capabilities without an organization token", () => {
+    const without = capabilitiesWith("mailpace", { serverToken: "x" });
+    expect([without.domainsViaApi, without.dnsRecordsViaApi]).toEqual([false, false]);
+    expect(capabilitiesWith("mailpace", { serverToken: "x", organizationToken: "y" })).toEqual(capabilitiesOf("mailpace"));
   });
 
   it("leaves inbound unimplemented on the mock adapter", () => {

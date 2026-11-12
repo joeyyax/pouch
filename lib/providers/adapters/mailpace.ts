@@ -34,7 +34,7 @@ const capabilities: AdapterCapabilities = {
   maxAttachmentBytes: 20 * 1024 * 1024,
   maxRecipients: 50,
   bulk: false,
-  // Both need an organization token, which Mailpace's dashboard doesn't issue (#5).
+  // Both need an organization token; `capabilitiesWith` drops them without one.
   domainsViaApi: true,
   dnsRecordsViaApi: true,
   // Mailpace registers event webhooks in its dashboard, per domain.
@@ -501,6 +501,8 @@ function headerRecord(value: unknown): Record<string, string> {
 export const mailpace: AdapterModule = {
   adapter: "mailpace",
   capabilities,
+  capabilitiesWith: (credentials) =>
+    credentials.organizationToken ? capabilities : { ...capabilities, domainsViaApi: false, dnsRecordsViaApi: false },
   credentialsSchema,
   settingsSchema,
   create,

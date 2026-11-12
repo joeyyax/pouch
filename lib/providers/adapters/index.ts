@@ -67,6 +67,17 @@ export function capabilitiesOf(adapter: string): AdapterCapabilities {
   return moduleOf(adapter).capabilities;
 }
 
+/** What an adapter supports with these credentials. */
+export function capabilitiesWith(adapter: string, credentials: Record<string, string>): AdapterCapabilities {
+  const adapterModule = moduleOf(adapter);
+  return adapterModule.capabilitiesWith?.(credentials) ?? adapterModule.capabilities;
+}
+
+/** Whether an adapter's capabilities depend on its credentials. */
+export function hasCredentialCapabilities(adapter: string): boolean {
+  return Boolean(ADAPTERS[adapter]?.capabilitiesWith);
+}
+
 /** The zod schema an adapter's credentials have to satisfy. */
 export function credentialsSchemaOf(adapter: string): z.ZodObject {
   return moduleOf(adapter).credentialsSchema;

@@ -533,6 +533,8 @@ export interface AdapterModule {
   /** Adapter key. Matches providers.adapter. */
   adapter: string;
   capabilities: AdapterCapabilities;
+  /** What one account's credentials reach, when that's less than `capabilities`. */
+  capabilitiesWith?(credentials: Record<string, string>): AdapterCapabilities;
   /** What the adapter needs to be configured with. The dashboard and the seed both read this. */
   credentialsSchema: z.ZodObject;
   /** Non-secret config the adapter reads. */

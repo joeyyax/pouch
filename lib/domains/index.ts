@@ -2,7 +2,7 @@ import { and, desc, eq, inArray } from "drizzle-orm";
 import { db, type Executor } from "@/lib/db";
 import { dbNow } from "@/lib/db/clock";
 import { domains, organizations, providers } from "@/lib/db/schema";
-import { loadProvider, mergeSettings, adapterFor, type ProviderRow } from "@/lib/providers";
+import { loadProvider, mergeSettings, adapterFor, providerCapabilities, type ProviderRow } from "@/lib/providers";
 import { ApiError } from "@/lib/api/errors";
 import { keyCanAccessDomain } from "@/lib/api/keys";
 import { recordActivity } from "@/lib/activity/record";
@@ -130,7 +130,7 @@ async function landDomain(
   }
 
   const provider = await loadProvider(key, request.provider_id ?? (await assignedProviderId(key.organizationId)), "provider_id");
-  const capabilities = capabilitiesOf(provider.adapter);
+  const capabilities = providerCapabilities(provider);
   assertCan(capabilities, origin.capability, origin.action, { webhookUrl: webhookUrl(provider.adapter, provider.id) });
 
   const [existing] = await db
@@ -625,7 +625,7 @@ export async function moveDomain(key: DomainCaller, id: string, targetProviderId
   }
 
   const provider = await loadProvider(key, targetProviderId, "provider_id");
-  const capabilities = capabilitiesOf(provider.adapter);
+  const capabilities = providerCapabilities(provider);
   const context = { webhookUrl: webhookUrl(provider.adapter, provider.id) };
   // The target has to be able to stand up an identity and answer verification on its own, since
   // that's how the cutover notices the move is done.
