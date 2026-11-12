@@ -319,7 +319,9 @@ export function ProviderScreen({ provider }: { provider: AdminProviderDetail }) 
         consequence={
           shared
             ? "Its stored credentials are removed. Its SNS topic and EventBridge rule stay in AWS."
-            : `${organizationName} can't send until an admin assigns it another provider.`
+            : provider.organizations[0]?.isDefault
+              ? `${organizationName} can't add domains until an admin gives it another default provider.`
+              : "Its stored credentials are removed."
         }
         confirmLabel="Delete"
         tone="destructive"

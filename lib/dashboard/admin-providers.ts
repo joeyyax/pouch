@@ -100,6 +100,8 @@ export interface AssignedOrganization {
   paused: boolean;
   /** A domain on this provider hasn't finished setup. */
   settingUp: boolean;
+  /** This provider is where the organization's new domains go. */
+  isDefault: boolean;
 }
 
 export interface ConversionView {
@@ -146,7 +148,13 @@ async function assignedOrganizations(row: ProviderRow): Promise<AssignedOrganiza
   const assignmentIds = assignments.map((entry) => entry.id);
   const [orgs, domainRows] = await Promise.all([
     db
-      .select({ id: organizations.id, name: organizations.name, slug: organizations.slug, suspendedAt: organizations.suspendedAt })
+      .select({
+        id: organizations.id,
+        name: organizations.name,
+        slug: organizations.slug,
+        suspendedAt: organizations.suspendedAt,
+        providerId: organizations.providerId,
+      })
       .from(organizations)
       .where(inArray(organizations.id, assignments.flatMap((entry) => (entry.organizationId === null ? [] : [entry.organizationId])))),
     db
@@ -176,6 +184,7 @@ async function assignedOrganizations(row: ProviderRow): Promise<AssignedOrganiza
           domainCount: own.filter((domain) => domain.providerId === entry.id).length,
           paused: org.suspendedAt !== null,
           settingUp: unfinished || tenantPending,
+          isDefault: org.providerId === entry.id,
         },
       ];
     })
