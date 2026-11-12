@@ -53,7 +53,7 @@ export interface DnsProvider {
   getRecords(zone: DnsZone, name?: string): Promise<ObservedDnsRecord[]>;
   /** Writes each record additively, one at a time. Only ever called with records `applyDnsPlan` computed itself (#210). */
   upsertRecords(zone: DnsZone, records: ProposedDnsRecord[]): Promise<DnsWriteResult[]>;
-  /** Called by lib/domains/dns-cleanup.ts. Route53 throws here until #211 — see that issue. */
+  /** Called by lib/domains/dns-cleanup.ts. Deletes only a name holding exactly one value of the type. */
   removeRecords(zone: DnsZone, records: DnsRecordRef[]): Promise<void>;
   /**
    * A real, cheap call that proves this account's credentials and reachability. Never throws.

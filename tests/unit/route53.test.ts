@@ -196,9 +196,38 @@ describe("route53 dns adapter", () => {
     expect(health).toEqual({ ok: false, detail: "Rate limited by the provider." });
   });
 
-  it("leaves removeRecords unimplemented, since deletion is #211", async () => {
-    const provider = buildDnsProvider("route53", CREDENTIALS);
-    await expect(provider.removeRecords({ name: "example.com", id: "Z1" }, [])).rejects.toThrow();
+  describe("removeRecords", () => {
+    const zone = { name: "example.com", id: "Z1" };
+    const dkimSet = { Name: "abc._domainkey.example.com.", Type: "CNAME", TTL: 300, ResourceRecords: [{ Value: "abc.dkim.amazonses.com" }] };
+
+    function listing(sets: Record<string, unknown>[]) {
+      const sent: FakeCommand[] = [];
+      route53Send.mockImplementation(async (command: FakeCommand) => {
+        sent.push(command);
+        return named(command) === "ListResourceRecordSetsCommand" ? { ResourceRecordSets: sets } : {};
+      });
+      return sent;
+    }
+
+    it("deletes a single-value set exactly as read", async () => {
+      const sent = listing([dkimSet]);
+      await buildDnsProvider("route53", CREDENTIALS).removeRecords(zone, [{ type: "CNAME", name: "abc._domainkey.example.com" }]);
+
+      const change = sent.find((command) => named(command) === "ChangeResourceRecordSetsCommand")!;
+      expect(change.input).toEqual({ HostedZoneId: "Z1", ChangeBatch: { Changes: [{ Action: "DELETE", ResourceRecordSet: dkimSet }] } });
+    });
+
+    it("does nothing when the name holds no set of that type", async () => {
+      const sent = listing([{ ...dkimSet, Name: "zzz.example.com." }]);
+      await buildDnsProvider("route53", CREDENTIALS).removeRecords(zone, [{ type: "CNAME", name: "abc._domainkey.example.com" }]);
+      expect(sent.map(named)).toEqual(["ListResourceRecordSetsCommand"]);
+    });
+
+    it("refuses a set holding more than one value", async () => {
+      const sent = listing([{ Name: "example.com.", Type: "MX", TTL: 300, ResourceRecords: [{ Value: "10 a.example.net" }, { Value: "20 b.example.net" }] }]);
+      await expect(buildDnsProvider("route53", CREDENTIALS).removeRecords(zone, [{ type: "MX", name: "example.com" }])).rejects.toThrow(/More than one/);
+      expect(sent.map(named)).toEqual(["ListResourceRecordSetsCommand"]);
+    });
   });
 
   it("upserts a TXT record by replacing the whole record set with the quoted, chunked value", async () => {
