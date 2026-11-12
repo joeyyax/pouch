@@ -3,7 +3,7 @@ import { z } from "zod";
 import { brand } from "@/lib/brand";
 import { ERROR_CODES, type ErrorCode } from "@/lib/api/errors";
 import { DOCS_URL, operationId, routeTag } from "./links";
-import { BODY_CODES, CODES, GLOBAL_CODES, ROUTES, type ResponseField, type RouteSpec } from "./spec";
+import { BODY_CODES, CODES, GLOBAL_CODES, NAMED_TYPES, ROUTES, type ResponseField, type RouteSpec } from "./spec";
 
 type Schema = Record<string, unknown>;
 
@@ -62,7 +62,7 @@ function labelSchema(label: string): Schema | null {
     if (objects.some((object) => !object?.properties)) return null;
     return { type: "object", properties: Object.assign({}, ...objects.map((object) => object!.properties)) };
   }
-  if (/^[A-Z][a-z]\w*$/.test(part)) return { type: "object", title: part };
+  if (/^[A-Z][a-z]\w*$/.test(part)) return part in NAMED_TYPES ? { $ref: `#/components/schemas/${part}` } : null;
   if (part.startsWith("{") && part.endsWith("}")) {
     const properties: Record<string, Schema> = {};
     for (const entry of splitTop(part.slice(1, -1).trim(), ",")) {
@@ -187,6 +187,7 @@ export function openApiDocument(serverUrl?: string): Schema {
         bearer: { type: "http", scheme: "bearer", description: "An API key in the Authorization header." },
       },
       schemas: {
+        ...Object.fromEntries(Object.entries(NAMED_TYPES).map(([name, fields]) => [name, responseSchema(fields)])),
         Error: {
           type: "object",
           required: ["error"],

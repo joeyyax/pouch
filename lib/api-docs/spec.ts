@@ -1145,6 +1145,29 @@ const invitationPageFields: ResponseField[] = [
   { name: "next_cursor", type: "string | null", description: "Id to pass as cursor for the next page. Null on the last page." },
 ];
 
+/** The fields behind each named type a label uses, such as `Domain[]`. */
+export const NAMED_TYPES: Readonly<Record<string, ResponseField[]>> = {
+  Domain: DOMAIN_RESPONSE_FIELDS,
+  Message: MESSAGE_RESPONSE_FIELDS.filter((f) => (messageListShape.keys as readonly string[]).includes(f.name.split(/\[\]\.|\./)[0]!)),
+  InboundMessage: INBOUND_READ_RESPONSE_FIELDS,
+  Address: ADDRESS_RESPONSE_FIELDS,
+  ForwardTarget: FORWARD_TARGET_RESPONSE_FIELDS,
+  Provider: PROVIDER_RESPONSE_FIELDS,
+  Export: EXPORT_RESPONSE_FIELDS,
+  List: LIST_READ_FIELDS,
+  Membership: MEMBERSHIP_RESPONSE_FIELDS,
+  Key: KEY_RESPONSE_FIELDS,
+  WebhookEndpoint: WEBHOOK_ENDPOINT_RESPONSE_FIELDS,
+  WebhookDelivery: WEBHOOK_DELIVERY_RESPONSE_FIELDS,
+  Activity: ACTIVITY_RESPONSE_FIELDS,
+  AdminProvider: ADMIN_PROVIDER_FIELDS,
+  Assignment: ASSIGNMENT_FIELDS,
+  AdminOrganization: ADMIN_ORGANIZATION_FIELDS,
+  Member: MEMBER_RESPONSE_FIELDS,
+  Invitation: INVITATION_RESPONSE_FIELDS,
+  Account: ACCOUNT_RESPONSE_FIELDS,
+};
+
 const ADMIN = "Admin key";
 const ADMIN_ERRORS: ErrorCode[] = ["admin_key_required"];
 
