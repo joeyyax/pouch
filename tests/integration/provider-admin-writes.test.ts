@@ -113,11 +113,10 @@ describe("createSingleOrgProvider", () => {
     expect(error.field).toBe("credentials");
   });
 
-  it("refuses a second provider for an organization that already has one", async () => {
-    const error = await errorOf(create(fixture.organizationId, { adapter: "mock", name: "secondary", credentials: {} }));
+  it("adds a second provider to an organization that already has one", async () => {
+    const { provider } = await create(fixture.organizationId, { adapter: "mock", name: "secondary", credentials: {} });
 
-    expect(error.code).toBe("validation_failed");
-    expect(error.field).toBe("organization_id");
+    expect(provider.organizationId).toBe(fixture.organizationId);
   });
 });
 

@@ -1,5 +1,5 @@
 /** Which providers an organization's domains may bind to, and which one is its default. */
-import { and, count, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { db, type Executor } from "@/lib/db";
 import { organizations, providers } from "@/lib/db/schema";
 import { recordActivity } from "@/lib/activity/record";
@@ -20,35 +20,9 @@ import {
 } from "./index";
 import { offboardOrganization, onboardOrganization } from "./shared";
 
-/** Assignments an organization may hold. A move holds one more until its domains have moved. */
-export const ASSIGNMENT_LIMIT = 1;
-
 export interface AssignOptions {
-  /** Starts a move: allows one assignment past the limit and makes the new one the default. */
-  move?: boolean;
   /** Makes the assignment the default even when the organization already has one. */
   default?: boolean;
-}
-
-async function assignmentCount(executor: Executor, organizationId: string): Promise<number> {
-  const [row] = await executor
-    .select({ n: count() })
-    .from(providers)
-    .where(and(eq(providers.organizationId, organizationId), eq(providers.shared, false)));
-  return row?.n ?? 0;
-}
-
-async function assertRoom(executor: Executor, organizationId: string, options: AssignOptions): Promise<void> {
-  const held = await assignmentCount(executor, organizationId);
-  const limit = options.move ? ASSIGNMENT_LIMIT + 1 : ASSIGNMENT_LIMIT;
-  if (held < limit) return;
-  throw new ApiError(
-    "validation_failed",
-    options.move
-      ? "This organization is already moving to another provider. Finish or cancel that move first."
-      : "This organization already has a provider. Assign another only as a move.",
-    { field: "organization_id" },
-  );
 }
 
 async function lockOrganization(executor: Executor, organizationId: string): Promise<void> {
@@ -82,9 +56,7 @@ export async function assignProvider(
 
   let assignment: ProviderRow;
   if (provider.shared) {
-    ({ provider: assignment } = await onboardOrganization(provider.id, organizationId, actor, {
-      beforeInsert: (tx, orgId) => assertRoom(tx, orgId, options),
-    }));
+    ({ provider: assignment } = await onboardOrganization(provider.id, organizationId, actor));
   } else if (provider.organizationId === organizationId) {
     assignment = provider;
   } else {
@@ -93,7 +65,7 @@ export async function assignProvider(
     });
   }
 
-  if (options.move || options.default) await setDefaultProvider(organizationId, assignment.id, actor);
+  if (options.default) await setDefaultProvider(organizationId, assignment.id, actor);
   else await setDefaultIfUnset(organizationId, assignment.id);
   return assignment;
 }
@@ -174,7 +146,6 @@ export async function createSingleOrgProvider(
   try {
     provider = await db.transaction(async (tx) => {
       await lockOrganization(tx, organizationId);
-      await assertRoom(tx, organizationId, options);
       const [row] = await tx
         .insert(providers)
         .values({
@@ -204,7 +175,7 @@ export async function createSingleOrgProvider(
     metadata: { adapter: provider.adapter, verified },
   });
 
-  if (options.move || options.default) await setDefaultProvider(organizationId, provider.id, actor);
+  if (options.default) await setDefaultProvider(organizationId, provider.id, actor);
   else await setDefaultIfUnset(organizationId, provider.id);
   return { provider, verified };
 }

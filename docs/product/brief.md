@@ -69,7 +69,7 @@ Every row carries an organization id. Any signed-in user can create an organizat
 The nouns and their relationships are `model.md`. This is what each one is for.
 
 ### Organizations
-Every record belongs to an organization. A user can belong to several, with a role in each, and each organization is assigned one provider. Signing up creates the person and their own organization together. The full shape is `model.md`.
+Every record belongs to an organization. A user can belong to several, with a role in each, and each organization holds one or more providers, one of them its default. Signing up creates the person and their own organization together. The full shape is `model.md`.
 
 ### Accounts and roles
 An account is a person — a `users` row. Inside an organization a person is an `owner` or a `member`: members do the sending work, owners own the shape of the organization, its people and settings. Admin is a separate, service-wide flag reaching Pouch's own admin surface. Neither axis reads the other.
@@ -115,7 +115,7 @@ A per-address, per-organization rollup: last delivered, last bounced, bounce cou
 ### Providers and adapters
 A provider is one set of credentials for an email service: a Mailpace organization, an SES region. An adapter is the code that talks to that service — one per service, all implementing `Adapter`: send, domain records and verification, event parsing. Retry, failover and telemetry are adapters that wrap an adapter. Admins own every provider, and credentials are stored encrypted and never shown again.
 
-Each organization is assigned one provider, the one named as the default for new organizations unless an admin picks another. On a shareable provider (SES), the organization gets its own isolated space on it, created with its first domain. An organization reads its provider and never changes it. A domain binds to the assigned provider, and its adapter does the work.
+Each organization starts on the provider named as the default for new organizations, unless an admin picks another, and an admin can give it more. On a shareable provider (SES), the organization gets its own isolated space on it, created with its first domain. An organization reads its providers and never changes them. A domain binds to the organization's default provider unless it names another, and that provider's adapter does the work.
 
 ### System mail
 Pouch sends confirmations, layout previews, password resets and digests from one address, set in admin settings. Its domain is one verified in some organization, and that organization's provider carries the send. It's system mail: no organization's log holds it, and admins read it in admin settings. Unset, it's `support@` on the oldest verified domain, so a fresh install configures nothing. Admin alerts about the service itself go over push, not email, so an outage can report itself.

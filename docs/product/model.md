@@ -4,7 +4,7 @@ What the nouns are and who owns what. `docs/decisions.md` says why each one is s
 
 ## In one paragraph
 
-A **user** is a person. Users belong to **organizations**, with a role in each. An organization holds **domains**, and is assigned one **provider** — a set of credentials for an email service, driven by an **adapter**. Mail sent through a domain is a **message**, and everything the provider says about it afterwards is a **message event**. A few rows belong to the service itself rather than to any organization, and those carry a null `organization_id`.
+A **user** is a person. Users belong to **organizations**, with a role in each. An organization holds **domains** and one or more **providers** — a set of credentials for an email service, driven by an **adapter**. Mail sent through a domain is a **message**, and everything the provider says about it afterwards is a **message event**. A few rows belong to the service itself rather than to any organization, and those carry a null `organization_id`.
 
 ## Who someone is
 
@@ -30,7 +30,7 @@ Who can do what inside an organization is the table in `docs/decisions.md`, "Adm
 
 ## What sends the mail
 
-**Provider.** One set of credentials for an email service: an SES region, a Mailpace organization. A `providers` row. Admins own every provider; an organization reads the one it's assigned and never changes it.
+**Provider.** One set of credentials for an email service: an SES region, a Mailpace organization. A `providers` row. Admins own every provider; an organization reads the ones it holds and never changes them.
 
 **Adapter.** The code that talks to one email service — `lib/providers/adapters/`, all implementing `Adapter`. The provider row says which adapter drives it. Nothing outside an adapter touches a provider SDK, so what Pouch can do is the interface, not any one service's feature list.
 
