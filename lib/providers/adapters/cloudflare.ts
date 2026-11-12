@@ -2,6 +2,7 @@ import { createPublicKey, verify as verifySignature, type KeyObject } from "node
 import { z } from "zod";
 import { logger } from "@/lib/logger";
 import { fetchWithTimeout } from "@/lib/fetch-timeout";
+import { txtText } from "@/lib/dns-providers/txt";
 import type {
   Adapter,
   AdapterCapabilities,
@@ -48,7 +49,7 @@ const capabilities: AdapterCapabilities = {
 };
 
 const credentialsSchema = z.object({
-  apiToken: z.string().min(1).describe("Cloudflare API token scoped to Email Sending: Edit and Zone: Read."),
+  apiToken: z.string().min(1).describe("Cloudflare API token scoped to Email Sending: Edit, Account Settings: Read and Zone: Read."),
   accountId: z.string().min(1).describe("Cloudflare account id the sending domains belong to."),
 });
 
@@ -132,7 +133,7 @@ function recordsFrom(records: CfDnsRecord[]): ProposedDnsRecord[] {
     .map((record) => ({
       type: record.type as ProposedDnsRecord["type"],
       name: record.name,
-      value: record.content,
+      value: record.type === "TXT" ? txtText(record.content) : record.content,
       required: true,
       ...(record.type === "MX" && typeof record.priority === "number" ? { priority: record.priority } : {}),
     }));

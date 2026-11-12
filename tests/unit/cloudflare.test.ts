@@ -112,7 +112,7 @@ describe("cloudflare adapter", () => {
           JSON.stringify({
             success: true,
             errors: [],
-            result: [{ type: "TXT", name: "cf-bounce._domainkey.notify.example.com", content: "v=DKIM1; k=rsa; p=abc" }],
+            result: [{ type: "TXT", name: "cf-bounce._domainkey.notify.example.com", content: '"v=DKIM1; k=rsa; p=abc"' }],
           }),
           { status: 200 },
         );

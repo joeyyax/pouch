@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { txtText } from "@/lib/dns-providers/txt";
 import { DNS_PROVIDER_MODULES, buildDnsProvider, dnsCapabilitiesOf, dnsCredentialsSchemaOf, dnsSettingsSchemaOf } from "@/lib/dns-providers";
 import { addMockZone, mock, resetMockZones } from "@/lib/dns-providers/mock";
 import { DnsNotSupportedError } from "@/lib/dns-providers/types";
@@ -6,6 +7,20 @@ import { DnsNotSupportedError } from "@/lib/dns-providers/types";
 afterEach(() => {
   vi.unstubAllGlobals();
   resetMockZones();
+});
+
+describe("txtText", () => {
+  it("joins quoted chunks", () => {
+    expect(txtText('"v=DKIM1; p=abc" "def"')).toBe("v=DKIM1; p=abcdef");
+  });
+
+  it("unescapes quotes inside a chunk", () => {
+    expect(txtText('"say \\"hi\\""')).toBe('say "hi"');
+  });
+
+  it("leaves an unquoted value alone", () => {
+    expect(txtText("v=spf1 ~all")).toBe("v=spf1 ~all");
+  });
 });
 
 describe("dns provider registry", () => {
@@ -167,7 +182,7 @@ describe("cloudflare dns adapter", () => {
         errors: [],
         result: [
           { id: "cf_mx1", type: "MX", name: "example.org", content: "feedback-smtp.us-east-1.amazonses.com", priority: 10 },
-          { id: "cf_txt1", type: "TXT", name: "example.org", content: "v=spf1 include:amazonses.com ~all" },
+          { id: "cf_txt1", type: "TXT", name: "example.org", content: '"v=spf1 include:" "amazonses.com ~all"' },
           { id: "cf_a1", type: "A", name: "example.org", content: "192.0.2.1" },
           { id: "cf_cname1", type: "CNAME", name: "old._domainkey.example.org", content: "old.dkim.example.net" },
         ],
@@ -182,6 +197,7 @@ describe("cloudflare dns adapter", () => {
     expect(mx?.priority).toBe(10);
     expect(mx?.id).toBe("cf_mx1");
     expect(mx).not.toHaveProperty("required");
+    expect(records.find((record) => record.type === "TXT")?.value).toBe("v=spf1 include:amazonses.com ~all");
   });
 
   it("reports ok from healthCheck through the token verification endpoint", async () => {
