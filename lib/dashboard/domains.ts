@@ -7,7 +7,7 @@ import { CredentialsUnreadableError } from "@/lib/providers/unreadable";
 import { ADAPTER_KEYS, capabilitiesOf, isConfiguredFor } from "@/lib/providers/adapters";
 import type { DomainCaller } from "@/lib/domains";
 import { markMerges } from "@/lib/domains/spf";
-import { domainDeleteBlock } from "@/lib/domains/deletable";
+import { domainContents, domainDeleteBlock } from "@/lib/domains/deletable";
 import { domainSetup } from "@/lib/domains/setup";
 import { listKeys, type SerializedKey } from "@/lib/keys";
 import { TERMINAL_STATUSES } from "@/lib/messages/lifecycle";
@@ -175,7 +175,12 @@ export async function readDomain(caller: DomainCaller, id: string): Promise<Doma
 
   const deleteBlock = await domainDeleteBlock(domain);
   // Only the delete dialog reads this, and it opens only on a domain that can go.
-  const liveScopedKeys = deleteBlock ? null : (await readDomainKeys(caller, domain.id)).keys.filter((key) => !key.revoked);
+  const [liveScopedKeys, deleteContents] = deleteBlock
+    ? [null, null]
+    : await Promise.all([
+        readDomainKeys(caller, domain.id).then(({ keys }) => keys.filter((key) => !key.revoked)),
+        domainContents(domain.id),
+      ]);
 
   const known = ADAPTER_KEYS.includes(provider.adapter);
 
@@ -199,6 +204,7 @@ export async function readDomain(caller: DomainCaller, id: string): Promise<Doma
     setup: domainSetup(provider.adapter, provider.id, eventsConfiguredFor(provider)),
     liveScopedKeys,
     deleteBlock,
+    deleteContents,
     verifiable: known,
     pending,
     stall: domainStallView(domain),

@@ -476,7 +476,7 @@ Every code the API returns. A new code lands here in the PR that introduces it.
 | `validation_failed` | 422 | A field is missing or its value is the wrong shape. `field` names it. |
 | `recipient_suppressed` | 422 | A recipient is on the suppression list. `detail` carries the address and reason. |
 | `domain_not_verified` | 422 | The `from` domain isn't verified. `detail` carries the DNS records still missing, or `{ exists: false }` when the domain hasn't been added to the organization at all. |
-| `domain_in_use` | 422 | The domain has messages, batches or lists and can't be deleted. `detail.lists` carries the list names when lists are what block it. |
+| `domain_in_use` | 422 | The domain has mail waiting to send, or sends system mail, and can't be deleted yet. A delete otherwise takes its messages, batches and lists with it. |
 | `reserved_header` | 422 | `headers` contains a header the service sets itself. |
 | `list_unsubscribe_required` | 422 | This body has crossed the key's daily fan-out threshold and carries no `List-Unsubscribe` header. `detail` carries the recipient count and the threshold. |
 | `bulk_not_allowed` | 422 | Bulk isn't allowed for this domain. `detail.reason` is `provider_incapable` (the provider can't carry what bulk needs — `List-Unsubscribe` past the fan-out threshold on `POST /v1/emails`, or bulk at all) or `domain_disabled` (the admin hasn't turned `bulk_allowed` on for this domain). Also returned from `PATCH /v1/domains/:id` when turning `bulk_allowed` on for a provider-incapable domain, or, with `detail.reason` `dmarc_required`, for a domain with no valid DMARC record. |

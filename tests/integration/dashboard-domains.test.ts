@@ -199,28 +199,22 @@ describe("readDomain", () => {
     expect((await readDomain(session(fixture.organizationId), second.domainId))?.liveScopedKeys?.map((key) => key.id)).toEqual([
       second.key.id,
     ]);
-    await insertMessage(fixture, second.domainId);
+    await insertMessage(fixture, second.domainId, "name@example.com", { status: "queued" });
     expect((await readDomain(session(fixture.organizationId), second.domainId))?.liveScopedKeys).toBeNull();
   });
 
-  it("says whether anything has been sent from the domain", async () => {
-    expect((await readDomain(session(fixture.organizationId), fixture.domainId))?.deleteBlock).toBeNull();
+  it("counts what a delete takes, and blocks it only while mail waits to send", async () => {
     await insertMessage(fixture, fixture.domainId);
-    expect((await readDomain(session(fixture.organizationId), fixture.domainId))?.deleteBlock?.message).toContain("has messages");
-  });
+    await db.insert(lists).values({ id: newId("list"), organizationId: fixture.organizationId, domainId: fixture.domainId, name: "Announcements" });
 
-  it("names the lists that block a delete, so the operator can reach them", async () => {
-    await db.insert(lists).values({
-      id: newId("list"),
-      organizationId: fixture.organizationId,
-      domainId: fixture.domainId,
-      name: "Announcements",
-    });
+    const sent = await readDomain(session(fixture.organizationId), fixture.domainId);
+    expect(sent?.deleteBlock).toBeNull();
+    expect(sent?.deleteContents).toEqual({ messages: 1, lists: 1 });
 
-    const block = (await readDomain(session(fixture.organizationId), fixture.domainId))?.deleteBlock;
-
-    expect(block?.message).toBe("Domain example.com has 1 list and can't be deleted: Announcements. Delete it first.");
-    expect(block?.lists.map((list) => list.name)).toEqual(["Announcements"]);
+    await insertMessage(fixture, fixture.domainId, "later@example.com", { status: "queued" });
+    const waiting = await readDomain(session(fixture.organizationId), fixture.domainId);
+    expect(waiting?.deleteBlock?.message).toContain("waiting to send");
+    expect(waiting?.deleteContents).toBeNull();
   });
 });
 
@@ -244,13 +238,10 @@ describe("a dashboard session as a domain caller", () => {
     ).rejects.toMatchObject({ code: "domain_exists" });
   });
 
-  it("refuses to delete a domain that has sent", async () => {
+  it("deletes a domain that has sent, with its history", async () => {
     await insertMessage(fixture, fixture.domainId);
-    await expect(deleteDomain(session(fixture.organizationId), fixture.domainId)).rejects.toMatchObject({
-      code: "domain_in_use",
-    });
-    // The row is still there.
-    expect(await readDomain(session(fixture.organizationId), fixture.domainId)).not.toBeNull();
+    await expect(deleteDomain(session(fixture.organizationId), fixture.domainId)).resolves.toMatchObject({ deleted: true });
+    expect(await readDomain(session(fixture.organizationId), fixture.domainId)).toBeNull();
   });
 
   it("won't reach a domain in another organization", async () => {

@@ -120,7 +120,7 @@ export const CODES: Record<ErrorCode, { when: string }> = {
   domain_not_at_provider: {
     when: "POST /v1/admin/domains was asked to adopt a domain the provider doesn't have. Add it instead.",
   },
-  domain_in_use: { when: "The domain has messages, batches or lists and can't be deleted." },
+  domain_in_use: { when: "The domain has mail waiting to send, or sends system mail." },
   capability_unavailable: { when: "The provider can't do this through its API." },
   provider_exists: { when: "A provider with this name already exists in the organization it would belong to." },
   provider_in_use: { when: "The provider has domains bound to it and can't be deleted." },

@@ -201,7 +201,13 @@ Every identity Pouch creates carries its owner's tag: `mail-tenant` with the ten
 
 **Why not record an orphan for the worker:** the row is already the record, and the caller can retry. An orphans table and a loop would carry state for a rare failure that a retry covers.
 
-**The row goes first, inside the transaction the provider call runs in (#389).** `lists.domain_id` and `batches.domain_id` are `onDelete: "restrict"`, so a check ahead of the provider call is a check, not a guarantee — a list created in between left the identity gone and the row behind, a domain that looks fine and can never send. Deleting the row first makes the foreign keys what decides, and the provider call inside the same transaction means a provider failure rolls the delete back. `domainDeleteBlock` (`lib/domains/deletable.ts`) still runs first, for a refusal that names what's blocking it, and the dashboard reads the same function to disable the button and link the lists.
+**The row goes first, inside the transaction the provider call runs in (#389).** `lists.domain_id` and `batches.domain_id` are `onDelete: "restrict"`, so a check ahead of the provider call is a check, not a guarantee — a list created in between left the identity gone and the row behind, a domain that looks fine and can never send. Deleting the row first makes the foreign keys what decides, and the provider call inside the same transaction means a provider failure rolls the delete back. `domainDeleteBlock` (`lib/domains/deletable.ts`) still runs first, for a refusal that names what's blocking it, and the dashboard reads the same function to disable the button.
+
+## Deleting a domain takes its history
+
+A domain delete removes its messages, their events, its batches and its lists, then the row. The activity entry records who deleted it and how many messages and lists went with it. Only mail still owed (queued or deferred) and the system from address hold a domain in place.
+
+**Why:** whose domain it is decides whether it stays. The activity log is the audit trail, and an owner who wants a domain gone shouldn't need to delete the organization to do it.
 
 **What the transaction costs:** it's held across a provider call, which the repo does nowhere else. The SES path is bounded — `SEND_TIMEOUT_MS` (60 s) per request, four attempts, a 10 s permit wait each — so worst case is a few minutes holding one domain row's lock, and what it blocks is a list insert naming that domain. That's the behavior wanted here. A provider without a request timeout would make it unbounded, so give every adapter one.
 
@@ -381,7 +387,7 @@ Deleting an account cascades its memberships, so `deleteUserAccount` refuses whe
 
 **The atomic unit is the domain, not the organization.** Each domain's row and its provider call share one transaction, exactly as `deleteDomain` does — the row goes first, so a provider failure rolls that domain back and an identity never orphans. One transaction spanning every domain was the other option and it's wrong twice over: it holds the whole organization's rows locked for as long as the slowest provider takes, unbounded in the number of domains rather than the bounded few minutes a single domain costs, and it makes one identity the provider won't release enough to stop a twenty-domain organization being deleted at all. A run that fails part way leaves the domains already dropped gone and the organization intact, which is recoverable and re-runnable; calling it again resumes.
 
-**Sending history goes with it, and that doesn't contradict "the log is the record".** `domainDeleteBlock` refuses a domain that has messages because losing one domain's history while the organization keeps sending is a silent hole in its own record. Deleting the organization is deliberately taking the whole record, so the same refusal there would mean no organization that ever sent could be deleted — a customer who leaves could never be removed. `messages`, `batches` and `lists` are `restrict` against `domains`, so the delete clears them inside each domain's transaction before the row goes.
+**Sending history goes with it,** the same as deleting one domain. `messages`, `batches` and `lists` are `restrict` against `domains`, so `dropDomainHistory` clears them inside each domain's transaction before the row goes.
 
 **Two things do block it,** both named in the refusal (`organizationDeleteBlock`, `lib/organizations/deletable.ts`, `organization_in_use`):
 
@@ -1232,7 +1238,7 @@ System mail is stored with a null organization (#579), through `acceptServiceMes
 
 **Deleting the carrier.** It's refused while it holds the system from domain. Once the address moves, deleting the organization takes system mail sent from its domains too, since `messages.domain_id` holds the domain in place.
 
-**Deleting one domain.** System mail doesn't hold a domain the way the organization's own log does: the owner can't see it, so "the log is the record" isn't theirs to keep. `domainDeleteBlock` refuses while the system from address names the domain or system mail on it is still queued or deferred. Otherwise the delete takes the sent system mail with it (`dropServiceMail`). An unset address falls back to the next verified domain on its own, so it doesn't hold one.
+**Deleting one domain.** System mail doesn't hold a domain the way the organization's own log does: the owner can't see it, so "the log is the record" isn't theirs to keep. `domainDeleteBlock` refuses while the system from address names the domain or mail on it is still queued or deferred. Otherwise the delete takes the sent mail with it, system mail included. An unset address falls back to the next verified domain on its own, so it doesn't hold one.
 
 **Existing mail.** Migration `0086` moves rows with no API key, no batch, a system tag and a system sender's idempotency prefix, with their events and the suppressions they caused, and drops recipient history the carrier only had from them. It drops the carrier's hourly cells for the hours system mail sat in and touches its own mail there, so the next rollup redoes those hours and nothing else. Emptying the rollup would have made the next run refill 190 days of every organization in one transaction. Search needs `scripts/search-reindex.ts --fresh` once.
 

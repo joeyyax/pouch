@@ -229,12 +229,12 @@ describe("deleting a domain that carried system mail", () => {
     await expect(deleteDomain(caller(), carrier.domainId)).rejects.toThrow(/waiting to send/);
   });
 
-  it("control: the organization's own message still holds it", async () => {
+  it("takes the organization's own sent mail with it too", async () => {
     await acceptDashboardMessage(carrier.organizationId, { from: "hello@mail.example.org", to: ["person@example.net"], subject: "Ours", html: "<p>Hi</p>" });
     await deliverAll();
     await moveSystemMail();
 
-    await expect(deleteDomain(caller(), carrier.domainId)).rejects.toThrow(/has messages/);
+    await expect(deleteDomain(caller(), carrier.domainId)).resolves.toMatchObject({ deleted: true });
   });
 });
 

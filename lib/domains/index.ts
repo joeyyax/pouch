@@ -34,9 +34,10 @@ import { dmarcReportUri, dmarcReportUris } from "@/lib/dmarc/host";
 import { mergeLayout, serializeLayout, type DomainLayout, type LayoutPatch } from "./layout";
 import { deleteUploadedLogoIfOurs } from "./logo-upload";
 import { serializeDomain, type DomainStandingSummary, type SerializedDomain } from "./serialize";
-import { domainDeleteBlock, dropServiceMail } from "./deletable";
+import { domainContents, domainDeleteBlock, dropDomainHistory } from "./deletable";
 import { nextVerificationState, providerAnswered } from "./verification";
 import { keysetBefore } from "@/lib/db/keyset";
+import { unindexMessages } from "@/lib/search";
 import { closeInboundRoute } from "@/lib/inbound/records";
 
 const log = logger.child("domains");
@@ -484,17 +485,16 @@ export async function deleteDomain(key: DomainCaller, id: string): Promise<{ id:
   const provider = await loadProvider(key, domain.providerId, "provider_id");
   const client = adapterFor(provider);
 
-  await db.transaction(async (tx) => {
+  const { contents, messageIds } = await db.transaction(async (tx) => {
     const block = await domainDeleteBlock(domain, tx);
-    if (block) {
-      throw new ApiError("domain_in_use", block.message, {
-        detail: block.lists.length > 0 ? { lists: block.lists.map((list) => list.name) } : undefined,
-      });
-    }
+    if (block) throw new ApiError("domain_in_use", block.message);
 
-    await dropServiceMail(domain.id, tx);
+    const contents = await domainContents(domain.id, tx);
+    const messageIds = await dropDomainHistory(domain.id, tx);
     await dropDomain(domain, client, tx);
+    return { contents, messageIds };
   });
+  unindexMessages(messageIds);
 
   await recordActivity({
     organizationId: key.organizationId,
@@ -502,6 +502,7 @@ export async function deleteDomain(key: DomainCaller, id: string): Promise<{ id:
     actor: key.actor,
     appliesTo: domain.id,
     subjectLabel: domain.name,
+    metadata: { messages: contents.messages, lists: contents.lists },
   });
 
   return { id: domain.id, deleted: true };

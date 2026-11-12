@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { apiKeys, batches, domains, lists, organizations, providers } from "@/lib/db/schema";
+import { activity, apiKeys, batches, domains, lists, messages, organizations, providers } from "@/lib/db/schema";
 import { generateKeySecret } from "@/lib/api/keys";
 import { newId } from "@/lib/ids";
 import type { ProposedDnsRecord } from "@/lib/providers/adapters/types";
@@ -11,7 +11,7 @@ import { POST as verify } from "@/app/api/v1/domains/[id]/verify/route";
 import { resetRateLimitMemory } from "@/lib/api/rate-limit";
 import { resetMockSends } from "@/lib/providers/adapters/mock";
 import { mergeSettings } from "@/lib/providers";
-import { addDomainKeyFor, addProvider, apiRequest, resetDatabase, routeContext, seedFixture, type Fixture } from "./fixtures";
+import { addDomainKeyFor, addProvider, apiRequest, resetDatabase, routeContext, seedFixture, seedMessage, type Fixture } from "./fixtures";
 
 const { FakeCommand, sesSend, snsSend } = vi.hoisted(() => {
   class FakeCommand {
@@ -930,52 +930,51 @@ describe("DELETE /v1/domains/:id", () => {
     expect(await db.select().from(domains).where(eq(domains.id, domainId))).toHaveLength(0);
   });
 
-  it.each([
-    {
-      kind: "a list",
-      name: "bulk.example.net",
-      message: "Announcements",
-      detail: { lists: ["Announcements"] },
-      seed: (domainId: string) =>
-        db.insert(lists).values({
-          id: newId("list"),
-          organizationId: fixture.organizationId,
-          domainId,
-          name: "Announcements",
-        }),
-    },
-    {
-      kind: "a batch",
-      name: "sent.example.net",
-      message: "batches",
-      detail: undefined,
-      seed: (domainId: string) =>
-        db.insert(batches).values({
-          id: newId("batch"),
-          organizationId: fixture.organizationId,
-          domainId,
-          fromAddress: "ada@sent.example.net",
-          subject: "Weekly",
-          recipientCount: 0,
-        }),
-    },
-  ])("refuses a domain with $kind and never reaches the provider", async ({ name, message, detail, seed }) => {
+  it("deletes a domain with its messages, batches and lists, and records what went", async () => {
     const { providerId } = await addProvider(fixture, {
       providerAdapter: "ses",
       credentials: { accessKeyId: "AKIAEXAMPLE", secretAccessKey: "secret", region: "us-west-2" },
     });
-    const { domainId } = await addDomainKeyFor(fixture, providerId, name);
-    await seed(domainId);
+    const { domainId } = await addDomainKeyFor(fixture, providerId, "sent.example.net");
+    const messageId = await seedMessage({ organizationId: fixture.organizationId, domainId }, { status: "delivered" });
+    await db.insert(lists).values({ id: newId("list"), organizationId: fixture.organizationId, domainId, name: "Announcements" });
+    await db.insert(batches).values({
+      id: newId("batch"),
+      organizationId: fixture.organizationId,
+      domainId,
+      fromAddress: "ada@sent.example.net",
+      subject: "Weekly",
+      recipientCount: 0,
+    });
     sesSend.mockReset();
     sesSend.mockResolvedValue({});
+
+    const response = await remove(request(fixture.secret, `/${domainId}`, "DELETE"), routeContext(domainId));
+
+    expect(response.status).toBe(200);
+    expect(await db.select().from(domains).where(eq(domains.id, domainId))).toHaveLength(0);
+    expect(await db.select().from(messages).where(eq(messages.id, messageId))).toHaveLength(0);
+    expect(await db.select().from(lists).where(eq(lists.domainId, domainId))).toHaveLength(0);
+    expect(await db.select().from(batches).where(eq(batches.domainId, domainId))).toHaveLength(0);
+    const [entry] = await db.select().from(activity).where(eq(activity.action, "domain.deleted"));
+    expect(entry?.metadata).toMatchObject({ messages: 1, lists: 1 });
+  });
+
+  it("refuses a domain with mail waiting to send, and never reaches the provider", async () => {
+    const { providerId } = await addProvider(fixture, {
+      providerAdapter: "ses",
+      credentials: { accessKeyId: "AKIAEXAMPLE", secretAccessKey: "secret", region: "us-west-2" },
+    });
+    const { domainId } = await addDomainKeyFor(fixture, providerId, "busy.example.net");
+    await seedMessage({ organizationId: fixture.organizationId, domainId }, { status: "queued" });
+    sesSend.mockReset();
 
     const response = await remove(request(fixture.secret, `/${domainId}`, "DELETE"), routeContext(domainId));
     const body = (await response.json()) as ErrorBody;
 
     expect(response.status).toBe(422);
     expect(body.error.code).toBe("domain_in_use");
-    expect(body.error.message).toContain(message);
-    expect(body.error.detail).toEqual(detail);
+    expect(body.error.message).toContain("waiting to send");
     expect(sesSend).not.toHaveBeenCalled();
     expect(await db.select().from(domains).where(eq(domains.id, domainId))).toHaveLength(1);
   });
