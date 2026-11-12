@@ -30,7 +30,7 @@ export function ProvidersScreen({
     <section className="flex flex-col gap-3">
       <SectionHeader
         title="Providers"
-        description="Each organization sends through one provider. An account-level pause from AWS stops every organization on it."
+        description="An organization's new domains use its default provider, and it can hold others for domains that need them. An account-level pause from AWS stops every organization on it."
         meta={`${providers.length} ${providers.length === 1 ? "provider" : "providers"}${needing > 0 ? ` · ${needing} need attention` : ""}`}
         actions={
           <Button size="md" onClick={() => setAdding(true)}>

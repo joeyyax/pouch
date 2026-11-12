@@ -52,13 +52,13 @@ The rows holding one email service's credentials are `providers` (#375). An acco
 
 **Revisit when** a provider id stops being an external reference — no tag, no registered URL carrying it. Then a rename is a pure SQL migration.
 
-## Each organization is assigned one provider
+## An organization can hold several providers, with one default
 
-`organizations.provider_id` names the provider an organization's new domains bind to. An admin assigns it, and `ASSIGNMENT_LIMIT` (`lib/providers/assignment.ts`) allows one, plus a second only while a move is in progress. A new organization gets the provider an admin marked default for new organizations (`onboard_new`), or nothing; with nothing, `POST /v1/domains` returns `provider_unassigned`.
+An admin can give an organization any number of providers. `organizations.provider_id` names the default, which new domains bind to unless they name another. A new organization gets the provider an admin marked default for new organizations (`onboard_new`), or nothing; with nothing, `POST /v1/domains` returns `provider_unassigned`.
 
-**Why one:** a hosted organization has no reason to pick a provider, and the domain picker only earns its place with a real choice.
+**Why several:** most domains send through one provider, and a domain or two sends through another. That's a per-domain choice, and a limit of one per organization forced a separate organization for it.
 
-**Revisit when** an organization needs two providers at once. The schema already allows it: lift the limit and show the picker, with no migration.
+**Not failover:** a domain still binds to one provider (see "A domain binds to one provider").
 
 ## An organization is isolated at the provider when the provider can be shared
 

@@ -57,8 +57,6 @@ async function assignmentName(executor: Executor, organizationId: string, base: 
 export interface OnboardOptions {
   /** The assignment row's name. Defaults to a free name based on the shared provider's. */
   name?: string;
-  /** Runs inside the transaction, with the organization row locked, before a new assignment row is inserted. */
-  beforeInsert?: (tx: Executor, organizationId: string) => Promise<void>;
 }
 
 /**
@@ -85,7 +83,6 @@ export async function onboardOrganization(
     const existing = await assignmentRow(shared.id, org.id, tx);
     if (existing) return { provider: existing, created: false };
 
-    await options.beforeInsert?.(tx, org.id);
     // Credentials and identity are read in the insert, so a rotation in between can't leave a stale copy.
     const [provider] = await tx
       .insert(providers)

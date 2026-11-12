@@ -378,11 +378,13 @@ describe("assignments", () => {
     expect(second.body.next_cursor).toBeNull();
   });
 
-  it("refuses a second assignment to an organization that already has one", async () => {
+  it("adds a second assignment without moving the organization's default", async () => {
+    await db.update(organizations).set({ providerId: org.providerId }).where(eq(organizations.id, org.organizationId));
     const shared = await seedSharedSes();
-    const { status, body } = await call("assign_organization", admin.secret, { id: shared, organization_id: org.organizationId });
-    expect(status).toBe(422);
-    expect(body.error.code).toBe("validation_failed");
+    const { status } = await call("assign_organization", admin.secret, { id: shared, organization_id: org.organizationId });
+    expect(status).toBeLessThan(300);
+    const [row] = await db.select({ providerId: organizations.providerId }).from(organizations).where(eq(organizations.id, org.organizationId));
+    expect(row?.providerId).toBe(org.providerId);
   });
 
   it("refuses to assign a single-organization provider elsewhere", async () => {

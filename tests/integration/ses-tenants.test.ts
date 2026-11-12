@@ -518,19 +518,19 @@ describe("onboarding", () => {
 });
 
 describe("assignment", () => {
-  it("refuses a second assignment unless it starts a move, and a move takes the default", async () => {
+  it("adds providers alongside the default, which moves only when asked", async () => {
     const provider = await shared();
     const { provider: other } = await createSharedProvider({ adapter: "ses", name: "Other", credentials: CREDENTIALS }, operator);
     await db.update(organizations).set({ providerId: orgA.providerId }).where(eq(organizations.id, orgA.organizationId));
 
-    await expectApiError(assignProvider(provider.id, orgA.organizationId, operator), "validation_failed");
-    expect(await db.select().from(providers).where(eq(providers.sharedProviderId, provider.id))).toHaveLength(0);
+    const added = await assignProvider(provider.id, orgA.organizationId, operator);
+    expect(await assignedDefault(orgA.organizationId)).toBe(orgA.providerId);
 
-    const moved = await assignProvider(provider.id, orgA.organizationId, operator, { move: true });
-    expect(await assignedDefault(orgA.organizationId)).toBe(moved.id);
+    const third = await assignProvider(other.id, orgA.organizationId, operator, { default: true });
+    expect(await assignedDefault(orgA.organizationId)).toBe(third.id);
 
-    await expectApiError(assignProvider(other.id, orgA.organizationId, operator, { move: true }), "validation_failed");
-    await expect(assignProvider(provider.id, orgA.organizationId, operator)).resolves.toMatchObject({ id: moved.id });
+    await expect(assignProvider(provider.id, orgA.organizationId, operator)).resolves.toMatchObject({ id: added.id });
+    expect(await db.select().from(providers).where(eq(providers.sharedProviderId, provider.id))).toHaveLength(1);
   });
 
   it("assigns an empty organization and sets its default, with no provider call", async () => {
@@ -551,7 +551,8 @@ describe("assignment", () => {
 
     await expectApiError(assignProvider(provider.id, orgB.organizationId, operator), "validation_failed");
     await expectApiError(unassignProvider(provider.id, orgId, operator), "validation_failed");
-    await expectApiError(createSingleOrgProvider({ adapter: "mock", name: "Second", credentials: {} }, orgId, operator), "validation_failed");
+    await expect(createSingleOrgProvider({ adapter: "mock", name: "Second", credentials: {} }, orgId, operator)).resolves.toBeTruthy();
+    expect(await assignedDefault(orgId)).toBe(provider.id);
     await expectApiError(createSingleOrgProvider({ adapter: "ses", name: "Shared", credentials: CREDENTIALS }, await emptyOrganization(), operator), "validation_failed");
   });
 
@@ -597,7 +598,7 @@ describe("assignment", () => {
     await setDefaultForNewOrganizations(provider.id);
     const orgId = await emptyOrganization();
 
-    const tenant = await assignProvider(provider.id, orgId, operator, { move: true });
+    const tenant = await assignProvider(provider.id, orgId, operator, { default: true });
 
     expect(tenant).toMatchObject({ organizationId: orgId, sharedProviderId: provider.id, shared: false });
     expect(await assignedDefault(orgId)).toBe(tenant.id);
