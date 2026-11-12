@@ -12,13 +12,32 @@ interface Operation {
   responses: Record<string, unknown>;
 }
 
-const document = openApiDocument() as { openapi: string; paths: Record<string, Record<string, Operation>> };
+type Schema = Record<string, unknown>;
+
+const document = openApiDocument() as {
+  openapi: string;
+  paths: Record<string, Record<string, Operation>>;
+  components: { schemas: Record<string, Schema> };
+};
+
+function resolve(schema: Schema | undefined): Schema | undefined {
+  const ref = schema?.$ref as string | undefined;
+  return ref ? document.components.schemas[ref.replace("#/components/schemas/", "")] : schema;
+}
+
 const operations = Object.entries(document.paths).flatMap(([path, methods]) =>
   Object.entries(methods).map(([method, operation]) => ({
     method: method.toUpperCase(),
     path: path.replace(/\{(\w+)\}/g, ":$1"),
     operation,
   })),
+);
+
+/** Every 2xx response schema, by route. */
+const successSchemas = operations.flatMap(({ method, path, operation }) =>
+  Object.entries(operation.responses as Record<string, { content?: Record<string, { schema: Schema }> }>)
+    .filter(([status]) => Number(status) < 300)
+    .map(([, response]) => ({ route: `${method} ${path}`, schema: response.content?.["application/json"]?.schema })),
 );
 
 describe("/openapi.json", () => {
@@ -48,21 +67,35 @@ describe("/openapi.json", () => {
 
   it("types every response property, nested ones included", () => {
     const untyped: string[] = [];
-    const walk = (schema: Record<string, unknown> | undefined, path: string) => {
-      if (!schema) return;
-      for (const [name, property] of Object.entries((schema.properties ?? {}) as Record<string, Record<string, unknown>>)) {
-        if (!("type" in property) && !("anyOf" in property)) untyped.push(`${path}.${name}`);
-        walk(property, `${path}.${name}`);
+    const walk = (raw: Schema | undefined, path: string, seen: Set<Schema>) => {
+      const schema = resolve(raw);
+      if (!schema || seen.has(schema)) return;
+      seen.add(schema);
+      for (const [name, property] of Object.entries((schema.properties ?? {}) as Record<string, Schema>)) {
+        if (!("type" in property) && !("anyOf" in property) && !("$ref" in property)) untyped.push(`${path}.${name}`);
+        walk(property, `${path}.${name}`, seen);
       }
-      walk(schema.items as Record<string, unknown> | undefined, `${path}[]`);
-      for (const option of (schema.anyOf ?? []) as Record<string, unknown>[]) walk(option, path);
+      walk(schema.items as Schema | undefined, `${path}[]`, seen);
+      for (const option of (schema.anyOf ?? []) as Schema[]) walk(option, path, seen);
     };
-    for (const { method, path, operation } of operations) {
-      for (const [status, response] of Object.entries(operation.responses as Record<string, { content?: Record<string, { schema: Record<string, unknown> }> }>)) {
-        if (Number(status) < 300) walk(response.content?.["application/json"]?.schema, `${method} ${path}`);
-      }
-    }
+    for (const { route, schema } of successSchemas) walk(schema, route, new Set());
     expect(untyped).toEqual([]);
+  });
+
+  it("describes every list item's properties", () => {
+    const empty: string[] = [];
+    for (const { route, schema } of successSchemas) {
+      const data = (schema?.properties as Record<string, Schema> | undefined)?.data;
+      if (data?.type !== "array") continue;
+      const item = resolve(data.items as Schema);
+      if (!item || Object.keys((item.properties ?? {}) as Schema).length === 0) empty.push(route);
+    }
+    expect(empty).toEqual([]);
+  });
+
+  it("resolves every component reference", () => {
+    const refs = [...JSON.stringify(document).matchAll(/"\$ref":"#\/components\/schemas\/(\w+)"/g)].map(([, name]) => name!);
+    expect(refs.filter((name) => !(name in document.components.schemas))).toEqual([]);
   });
 
   it("names a docs page for every route", () => {
