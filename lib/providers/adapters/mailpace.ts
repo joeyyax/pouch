@@ -339,7 +339,7 @@ const create: AdapterFactory = (credentials, settings, accountId): Adapter => {
         );
         const body = raw as Record<string, unknown> | null;
         if (!response.ok || !body) {
-          throw new Error(`Provider rejected the domain: ${readErrors(body).join("; ") || `HTTP ${response.status}`}.`);
+          throw new Error(`${readErrors(body).join("; ") || `HTTP ${response.status}`}.`);
         }
         return { providerDomainId: body.id ? String(body.id) : null, records: recordsFor(body, name) };
       },

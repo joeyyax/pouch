@@ -84,7 +84,13 @@ Cloudflare reports deliveries, bounces and complaints to a Queue, not a webhook.
    npx wrangler secret put SIGNING_PRIVATE_KEY_PKCS8_B64  # paste the secret from step 1
    ```
 
-4. Subscribe the queue to each sending domain: Queues → `pouch-email-sending-events` → Subscriptions → **Subscribe to events**, with Email Sending as the source and every `message.*` event. A subscription covers one sending domain, so add one per domain.
+4. Subscribe the queue to each sending domain. A subscription covers one domain, so run this once per domain, with the zone id from the domain's Cloudflare overview:
+
+   ```sh
+   npx wrangler queues subscription create pouch-email-sending-events --source email.sending \
+     --zone-id <zone id> --domain example.com \
+     --events message.delivered,message.deferred,message.bounced,message.failed,message.rejected,message.complained
+   ```
 
 Pouch refuses an event it can't verify. The Worker retries it five times, then moves it to the dead-letter queue.
 
