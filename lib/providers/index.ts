@@ -3,8 +3,8 @@ import { db } from "@/lib/db";
 import { domains, organizations, providers } from "@/lib/db/schema";
 import { readProviderRecord } from "@/lib/health/checks";
 import { decrypt, encrypt } from "@/lib/crypto";
-import { buildAdapter, credentialsSchemaOf, settingsSchemaOf } from "@/lib/providers/adapters";
-import type { Adapter, AdapterHealth, ProviderSettings } from "@/lib/providers/adapters/types";
+import { buildAdapter, capabilitiesOf, capabilitiesWith, credentialsSchemaOf, hasCredentialCapabilities, settingsSchemaOf } from "@/lib/providers/adapters";
+import type { Adapter, AdapterCapabilities, AdapterHealth, ProviderSettings } from "@/lib/providers/adapters/types";
 import { ApiError } from "@/lib/api/errors";
 import { assignmentSettingUp } from "./status";
 import { apiRateSubject } from "./send-rate";
@@ -62,7 +62,7 @@ export function encryptCredentials(credentials: Record<string, string>): string 
   return encrypt(JSON.stringify(credentials));
 }
 
-export function decryptCredentials(provider: ProviderRow): Record<string, string> {
+export function decryptCredentials(provider: Pick<ProviderRow, "name" | "credentials">): Record<string, string> {
   let plaintext: string;
   try {
     plaintext = decrypt(provider.credentials);
@@ -70,6 +70,12 @@ export function decryptCredentials(provider: ProviderRow): Record<string, string
     throw new CredentialsUnreadableError(provider.name);
   }
   return JSON.parse(plaintext) as Record<string, string>;
+}
+
+/** What this provider's own credentials can do. Decrypts only for an adapter whose capabilities depend on them. */
+export function providerCapabilities(provider: Pick<ProviderRow, "adapter" | "name" | "credentials">): AdapterCapabilities {
+  if (!hasCredentialCapabilities(provider.adapter)) return capabilitiesOf(provider.adapter);
+  return capabilitiesWith(provider.adapter, decryptCredentials(provider));
 }
 
 /** Builds the adapter for a provider row, decrypting its credentials. */

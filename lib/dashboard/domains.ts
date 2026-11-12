@@ -2,7 +2,8 @@ import { and, asc, desc, eq, gte, notInArray, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { apiKeys, domains, messages, organizations, providers } from "@/lib/db/schema";
 import type { DomainStatus, MessageStatus } from "@/lib/db/schema";
-import type { ProviderRow } from "@/lib/providers";
+import { providerCapabilities, type ProviderRow } from "@/lib/providers";
+import { CredentialsUnreadableError } from "@/lib/providers/unreadable";
 import { ADAPTER_KEYS, capabilitiesOf, isConfiguredFor } from "@/lib/providers/adapters";
 import type { DomainCaller } from "@/lib/domains";
 import { markMerges } from "@/lib/domains/spf";
@@ -234,11 +235,21 @@ export async function readDomainSuppressions(caller: DomainCaller, domainId: str
 
 const RECENT_SUPPRESSIONS = 10;
 
+/** Unreadable credentials can't add a domain either. */
+function canAddDomains(provider: Pick<ProviderRow, "adapter" | "name" | "credentials">): boolean {
+  try {
+    return providerCapabilities(provider).domainsViaApi;
+  } catch (err) {
+    if (err instanceof CredentialsUnreadableError) return false;
+    throw err;
+  }
+}
+
 /** The providers a domain here can bind to, with the organization's assigned one marked. */
 export async function listProviderOptions(organizationId: string): Promise<ProviderOption[]> {
   const [rows, [organization]] = await Promise.all([
     db
-      .select({ id: providers.id, name: providers.name, adapter: providers.adapter })
+      .select({ id: providers.id, name: providers.name, adapter: providers.adapter, credentials: providers.credentials })
       .from(providers)
       .where(and(eq(providers.organizationId, organizationId), eq(providers.shared, false)))
       .orderBy(asc(providers.name)),
@@ -249,10 +260,10 @@ export async function listProviderOptions(organizationId: string): Promise<Provi
       .limit(1),
   ]);
 
-  return rows.map((row) => ({
+  return rows.map(({ credentials, ...row }) => ({
     ...row,
     adapterLabel: adapterLabel(row.adapter),
-    canAddDomains: ADAPTER_KEYS.includes(row.adapter) && capabilitiesOf(row.adapter).domainsViaApi,
+    canAddDomains: ADAPTER_KEYS.includes(row.adapter) && canAddDomains({ ...row, credentials }),
     assigned: row.id === organization?.providerId,
   }));
 }
