@@ -2,6 +2,7 @@ import { z } from "zod";
 import { logger } from "@/lib/logger";
 import type { DnsRecordType, ObservedDnsRecord, ProposedDnsRecord } from "@/lib/providers/adapters/types";
 import { fetchWithTimeout } from "@/lib/fetch-timeout";
+import { txtText } from "./txt";
 import {
   DnsNotSupportedError,
   type DnsProvider,
@@ -187,7 +188,7 @@ const create: DnsProviderFactory = (credentials): DnsProvider => {
       id: record.id,
       type: record.type as DnsRecordType,
       name: normalizeName(record.name),
-      value: record.content,
+      value: record.type === "TXT" ? txtText(record.content) : record.content,
       priority: record.type === "MX" ? record.priority : undefined,
     };
   }
