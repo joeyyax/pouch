@@ -271,6 +271,8 @@ describe("provider list", () => {
     expect(tenant).toHaveLength(1);
     expect(await readAdminProvider(tenant[0]!.id)).toBeNull();
     expect((await readAdminProvider(shared))?.organizations.map((org) => org.assignmentId)).toEqual([tenant[0]!.id]);
+    // A bare organization's first provider becomes its default.
+    expect((await readAdminProvider(shared))?.organizations[0]?.isDefault).toBe(true);
   });
 });
 
