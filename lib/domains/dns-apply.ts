@@ -8,6 +8,7 @@ import type { ProposedDnsRecord } from "@/lib/providers/adapters/types";
 import { computeDnsPlan, normalizeName, resolveDnsZoneContext, type DnsPlanStatus } from "./dns-plan";
 import { domainFor, type DomainCaller, type DomainRow } from ".";
 import { safeErrorMessage } from "@/lib/errors/scrub";
+import { withSpfMechanisms } from "./spf";
 
 /**
  * This is the first code in the project that can change somebody's DNS. Every write below goes
@@ -138,7 +139,7 @@ async function applyRequiredRecords(
     const observed = step.observed[0];
     const finalRecord: ProposedDnsRecord =
       step.verdict === "merge" && step.merge && observed
-        ? { ...step.record, value: `${observed.value} ${step.merge.mechanisms}`.trim() }
+        ? { ...step.record, value: withSpfMechanisms(observed.value, step.merge.mechanisms) }
         : step.record;
     const writtenValue = step.verdict === "merge" && step.merge ? step.merge.mechanisms : step.record.value;
 

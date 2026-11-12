@@ -83,9 +83,8 @@ describe("applyDnsPlan", () => {
   });
 
   it("merges only the missing SPF mechanisms, and records only what it added as provenance", async () => {
-    addMockZone({ name: "example.com", id: "mock_zone_example.com" }, [
-      { id: "rec_spf", type: "TXT", name: "example.com", value: "v=spf1 include:mailer.example.net ~all" },
-    ]);
+    const zoneRecords = [{ id: "rec_spf", type: "TXT" as const, name: "example.com", value: "v=spf1 include:mailer.example.net ~all" }];
+    addMockZone({ name: "example.com", id: "mock_zone_example.com" }, zoneRecords);
     await setRequired([spf]);
     await createDnsProviderAccount(fixture.organizationId, { module: "mock", name: "primary", credentials: {} });
 
@@ -94,6 +93,7 @@ describe("applyDnsPlan", () => {
 
     const [row] = await db.select().from(dnsProviderRecords).where(eq(dnsProviderRecords.domainId, fixture.domainId));
     expect(row?.writtenValue).toBe("include:amazonses.com");
+    expect(zoneRecords[0]!.value).toBe("v=spf1 include:mailer.example.net include:amazonses.com ~all");
 
     // Applying again is a no-op — the mechanism it added last time already reads as published.
     const retry = await applyDnsPlan(caller(fixture.organizationId), fixture.domainId);
