@@ -2,7 +2,7 @@
 
 One guide per provider, for moving an app's outbound mail to Pouch. Each covers the send call before and after, field mapping, domains and DNS, webhooks, moving suppressions and a cutover checklist.
 
-Pouch sends through two provider adapters today: Amazon SES and Mailpace. Admins own providers and assign each organization one. Moving from a provider Pouch doesn't speak to directly (Resend, SendGrid, Postmark, Mailgun, useSend) means adding your domain on that provider and publishing its records (`docs/product/brief.md`, "Providers and providers"). Self-hosted, moving from SES or Mailpace can keep the same backing provider.
+Pouch sends through two provider adapters today: Amazon SES and Mailpace. Admins own providers and assign each organization one. Moving from a provider Pouch doesn't speak to directly (Resend, SendGrid, Postmark, Mailgun, useSend) means adding your domain on that provider and publishing its records (`docs/product/brief.md`, "Providers and adapters"). Self-hosted, moving from SES or Mailpace can keep the same backing provider.
 
 ## On the hosted version
 

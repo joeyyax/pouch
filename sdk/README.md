@@ -2,7 +2,7 @@
 
 A single-file TypeScript client for Pouch's API: send email and batches, read messages and inbound mail back, and manage domains, lists, suppressions, exports, keys and webhook endpoints. Zero dependencies, `fetch` only. Works on Node 20+ and in any modern runtime.
 
-It covers every key-authenticated route except the two event streams. `/v1/admin` isn't here — an admin key manages the whole install and belongs in an operator's tooling, not in customer code. `tests/unit/sdk-coverage.test.ts` fails when a route has neither a method here nor an entry in its exceptions list, so a new route can't land without that decision being made.
+It covers every key-authenticated route except the two event streams. `/v1/admin` isn't here: an admin key manages the whole install and belongs in an operator's tooling, not in customer code. `tests/unit/sdk-coverage.test.ts` fails when a route has neither a method here nor an entry in its exceptions list, so a new route can't land without that decision being made.
 
 ## Install
 
@@ -14,8 +14,8 @@ ESM and CommonJS, with types. Copying `pouch.ts` into a project still works too.
 
 The package is versioned on its own, from 0.1.0; 0.2.0 makes `baseUrl` required. A version covers the `/v1` routes that exist when it's published; a new route ships in a minor release.
 
-MIT licensed — see `LICENSE` in this directory. The server it talks to is AGPL-3.0; this client
-deliberately isn't, so importing it carries no obligation.
+MIT licensed. See `LICENSE` in this directory. The server it talks to is AGPL-3.0; this client
+isn't, so importing it carries no obligation.
 
 ## Use
 
@@ -258,10 +258,10 @@ A `429` throws a `PouchError` with `code: "rate_limit_exceeded"` and `retryAfter
 
 Every non-2xx response throws a `PouchError`, never a bare `Error`. It carries:
 
-- `code` — a stable identifier, safe to switch on (`"domain_not_verified"`, `"key_not_scoped"`, ...). A response that isn't the API's documented error envelope — a proxy's 502, an HTML error page — gets `code: "sdk_unparseable_response"`, a code the API itself never sends, rather than being folded into one of its real codes.
-- `message` — one sentence, for logs or a developer, not for end users
-- `status` — the HTTP status code
-- `field` — the offending request field, when there is one
-- `detail` — structured context: the DNS records still missing, the suppression reason, and so on
-- `requestId` — the response's `X-Request-Id`. Quote it when reporting a problem.
-- `retryAfter` — seconds to wait, read from the response's `Retry-After` header when present (today, only on `rate_limit_exceeded`)
+- `code`: a stable identifier, safe to switch on (`"domain_not_verified"`, `"key_not_scoped"`, ...). A response that isn't the API's documented error envelope (a proxy's 502, an HTML error page) gets `code: "sdk_unparseable_response"`, a code the API itself never sends, rather than being folded into one of its real codes.
+- `message`: one sentence, for logs or a developer, not for end users
+- `status`: the HTTP status code
+- `field`: the offending request field, when there is one
+- `detail`: structured context: the DNS records still missing, the suppression reason, and so on
+- `requestId`: the response's `X-Request-Id`. Quote it when reporting a problem.
+- `retryAfter`: seconds to wait, read from the response's `Retry-After` header when present (today, only on `rate_limit_exceeded`)

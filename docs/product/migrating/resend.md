@@ -54,10 +54,10 @@ curl $POUCH_URL/v1/emails \
 | `headers` | `headers` | Pouch rejects reserved headers with `422 reserved_header`. |
 | `tags` | `tags` | Resend's are key/value pairs; Pouch's are a flat string array, filterable in the dashboard. |
 | `attachments` | `attachments` | Both base64. Pouch's size limit comes from the domain's provider (25MB on Mailpace, higher on SES) rather than a fixed platform ceiling. |
-| — | `layout` | No Resend equivalent: wraps `html` in the domain's logo/accent/footer frame. Off by default. |
-| — | `subscribe` | No Resend equivalent: adds `to` recipients to a list at send time. |
+| *(none)* | `layout` | No Resend equivalent: wraps `html` in the domain's logo/accent/footer frame. Off by default. |
+| *(none)* | `subscribe` | No Resend equivalent: adds `to` recipients to a list at send time. |
 | `scheduled_at` | *no equivalent* | Pouch sends immediately; queue scheduled mail on your side. |
-| Resend's templates (React Email, etc.) | *no equivalent* | Pouch takes rendered HTML/text only. Render before you call `POST /v1/emails`. |
+| Resend's templates (such as React Email) | *no equivalent* | Pouch takes rendered HTML/text only. Render before you call `POST /v1/emails`. |
 | Open/click tracking | *no equivalent* | Pouch doesn't track opens or clicks. |
 | Resend contacts/audiences/broadcasts | Pouch lists + `POST /v1/batches` | Narrower: a list is addresses with subscription state, no segments or audience UI. See `docs/api/conventions.md`, "Bulk". |
 
@@ -73,7 +73,7 @@ Resend hosts your domain's sending setup itself. Pouch asks your organization's 
 
 ## Webhooks
 
-Register a webhook on the Pouch key that will send this traffic (dashboard, key detail page) — there's no webhook management API. Map Resend's events to Pouch's:
+Register a webhook on the Pouch key that will send this traffic (dashboard, key detail page). There's no webhook management API. Map Resend's events to Pouch's:
 
 | Resend event | Pouch event |
 |---|---|
@@ -81,10 +81,10 @@ Register a webhook on the Pouch key that will send this traffic (dashboard, key 
 | `email.delivered` | `email.delivered` |
 | `email.bounced` | `email.bounced` |
 | `email.complained` | `email.complained` |
-| `email.delivery_delayed` | *no webhook* — reflected in the message's `status: "deferred"`, readable via `GET /v1/emails/:id` or the SSE stream |
-| `email.opened`, `email.clicked` | *no equivalent* — Pouch doesn't track opens or clicks |
-| `email.scheduled` | *no equivalent* — no scheduled sends |
-| `suppression.added`, `suppression.removed` | *no webhook* — suppressions aren't sent as events today; poll or re-export |
+| `email.delivery_delayed` | *no webhook*: reflected in the message's `status: "deferred"`, readable via `GET /v1/emails/:id` or the SSE stream |
+| `email.opened`, `email.clicked` | *no equivalent*: Pouch doesn't track opens or clicks |
+| `email.scheduled` | *no equivalent*: no scheduled sends |
+| `suppression.added`, `suppression.removed` | *no webhook*: suppressions aren't sent as events today; poll or re-export |
 | `domain.*`, `contact.*` | *no equivalent* |
 
 Pouch's own event catalog is wider than what's in a webhook: `email.unsubscribed`, `list.subscribed`, `domain.reputation_changed` and `organization.reputation_changed` are Pouch concepts with no Resend counterpart. Full list and payload shape: `docs/api/conventions.md`, "Outbound webhooks".

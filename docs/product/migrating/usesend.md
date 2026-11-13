@@ -1,6 +1,6 @@
 # Migrating from useSend
 
-useSend is, like Pouch, a small self-hostable transactional layer over a real provider — the shift here is from useSend's own domain and contact management to Pouch's, backed by the SES or Mailpace account assigned to your organization.
+useSend is, like Pouch, a small self-hostable transactional layer over a real provider. The shift here is from useSend's own domain and contact management to Pouch's, backed by the SES or Mailpace account assigned to your organization.
 
 useSend's docs: [get-started/nodejs](https://docs.usesend.com/get-started/nodejs), domains (`GET/POST/PUT /v1/domains`), [webhooks overview](https://docs.usesend.com/llms.txt). **Unconfirmed:** useSend's exact webhook event names and its DNS record requirements weren't reachable in current docs at the time of writing — confirm both against `docs.usesend.com` before cutover.
 
@@ -55,9 +55,9 @@ curl $POUCH_URL/v1/emails \
 | `templateId`, `variables` | *no equivalent* | Pouch has no template store. Render the HTML yourself before sending. |
 | `scheduledAt` | *no equivalent* | Pouch sends immediately. |
 | `inReplyToId` | *no equivalent for outbound threading* | Pouch's threading is on inbound only: `in_reply_to` matched against a sent message's `provider_message_id` — see `docs/api/conventions.md`, "Inbound". |
-| — | `layout` | No useSend equivalent: wraps `html` in the domain's logo/accent/footer frame. |
-| — | `subscribe` | No useSend equivalent: adds `to` recipients to a list at send time. |
-| useSend contacts, contact books, double opt-in | Pouch lists, `POST /v1/batches`, double opt-in | Similar shape — both default to double opt-in — but Pouch's lists are per-domain, not a separate contact book concept. |
+| *(none)* | `layout` | No useSend equivalent: wraps `html` in the domain's logo/accent/footer frame. |
+| *(none)* | `subscribe` | No useSend equivalent: adds `to` recipients to a list at send time. |
+| useSend contacts, contact books, double opt-in | Pouch lists, `POST /v1/batches`, double opt-in | Similar shape (both default to double opt-in), but Pouch's lists are per-domain, not a separate contact book concept. |
 
 ## Domains and DNS
 
@@ -73,14 +73,14 @@ If useSend sent through the same SES account, SES already has the identity and t
 
 ## Webhooks
 
-Register a webhook on the Pouch key (dashboard, key detail page). useSend's exact event names are unconfirmed as of writing — check `docs.usesend.com`'s webhooks page for the current list before mapping — but by category:
+Register a webhook on the Pouch key (dashboard, key detail page). useSend's exact event names are unconfirmed as of writing (check the webhooks page on `docs.usesend.com` before mapping), but by category:
 
 | useSend event category | Pouch event |
 |---|---|
 | Delivered | `email.delivered` |
 | Bounced | `email.bounced` |
 | Complained | `email.complained` |
-| Opened, clicked | *no equivalent* — Pouch doesn't track opens or clicks |
+| Opened, clicked | *no equivalent*: Pouch doesn't track opens or clicks |
 | Unsubscribed (contact-level) | `email.unsubscribed` |
 
 Full Pouch event catalog and payload shape: `docs/api/conventions.md`, "Outbound webhooks".

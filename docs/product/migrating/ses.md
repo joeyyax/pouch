@@ -61,10 +61,10 @@ curl $POUCH_URL/v1/emails \
 | `EmailTags` | `tags` | SES tags are key/value; Pouch's are a flat string array. |
 | `Content.Raw` (raw MIME, for attachments) | `attachments` | Pouch takes `{ filename, content, content_type }` and builds the MIME itself — no raw message to assemble. |
 | `ConfigurationSetName` | *implicit* | Pouch's provider plumbing configures the equivalent event destination for you at setup. |
-| — | `layout` | No SES equivalent: wraps `html` in the domain's logo/accent/footer frame. |
-| — | `subscribe` | No SES equivalent: adds `to` recipients to a list at send time. |
-| SES's contact lists / list management | Pouch lists + `POST /v1/batches` | Narrower feature set — see `docs/api/conventions.md`, "Bulk". |
-| — | *no equivalent* | Scheduled sends, templates, open/click tracking — SES doesn't have most of these either; where it does (contact list preferences), Pouch doesn't match it feature for feature. |
+| *(none)* | `layout` | No SES equivalent: wraps `html` in the domain's logo/accent/footer frame. |
+| *(none)* | `subscribe` | No SES equivalent: adds `to` recipients to a list at send time. |
+| SES's contact lists / list management | Pouch lists + `POST /v1/batches` | Narrower feature set; see `docs/api/conventions.md`, "Bulk". |
+| *(none)* | *no equivalent* | Scheduled sends, templates, open/click tracking — SES doesn't have most of these either; where it does (contact list preferences), Pouch doesn't match it feature for feature. |
 
 ## Domains and DNS
 
@@ -91,7 +91,7 @@ SES has no key-scoped webhook concept of its own — it posts bounce, complaint 
 | `Bounce` (`Permanent`) | `email.bounced` |
 | `Bounce` (`Transient`) | reflected as `status: "deferred"`, not a separate webhook |
 | `Complaint` | `email.complained` |
-| `Send`, `Reject`, `Open`, `Click`, `RenderingFailure`, `DeliveryDelay`, `Subscription` | *no Pouch equivalent* — Pouch doesn't track opens or clicks, and doesn't expose SES's other configuration-set events as webhooks |
+| `Send`, `Reject`, `Open`, `Click`, `RenderingFailure`, `DeliveryDelay`, `Subscription` | *no Pouch equivalent*: Pouch doesn't track opens or clicks, and doesn't expose SES's other configuration-set events as webhooks |
 
 Full Pouch event catalog and payload shape: `docs/api/conventions.md`, "Outbound webhooks".
 

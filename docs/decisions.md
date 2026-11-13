@@ -14,15 +14,15 @@ A domain sends through exactly one provider. Not many.
 
 **The exceptions, both deliberate:** a move to another provider holds a second, pending binding until it verifies (see below), and failover — when it's built — is a pool with one primary and an ordered fallback, not a free choice per send. A pool keeps the routing rule fixed, which is what stops this becoming a caller-facing decision.
 
-**Revisit when** failover or per-class routing (bulk through a cheaper provider) is actually wanted. Not before — a general many-to-many buys nothing DNS can support.
+**Revisit when** failover or per-class routing (bulk through a cheaper provider) is wanted. Not before — a general many-to-many buys nothing DNS can support.
 
 ## A domain moves by staged cutover, never an immediate rebind
 
 `PATCH /v1/domains/:id` records a pending binding. The domain keeps sending on its current provider until the new one verifies, then cuts over on its own. Cancelable throughout.
 
-**Why:** an immediate swap is only safe on a domain with no traffic. The production Mailpace-to-SES cutover got away with it because there was one domain, one message and no load; the next one won't. Reversibility is what makes the operation affordable to run on a domain that's actually sending.
+**Why:** an immediate swap is only safe on a domain with no traffic. The production Mailpace-to-SES cutover got away with it because there was one domain, one message and no load; the next one won't. Reversibility is what makes the operation affordable to run on a domain with live traffic.
 
-In flight sends need no special handling: `messages.provider_id` is written at send and events route on it, so a message sent through the old provider resolves its events there after the cutover.
+In-flight sends need no special handling: `messages.provider_id` is written at send and events route on it, so a message sent through the old provider resolves its events there after the cutover.
 
 ## The queue pauses, it doesn't refuse at the door
 
@@ -343,7 +343,7 @@ The organization switcher lists what you're a member of, admin or not (`listReac
 
 **Why 30 minutes:** long enough to reproduce what a customer is reporting and read the screens around it, short enough that a tab left open overnight isn't still holding someone else's data open in the morning. The expiry rides in the ticket, so it holds against a cleared server memory, and re-entering is one button.
 
-**Why every write says who really did it.** An emulated session's activity rows are written with actor type `admin` (`sessionActor`, `lib/dashboard/session.ts`), which renders as "Name (Pouch admin)" with a shield rather than as a member. Entering and leaving are rows of their own, in the emulated organization's feed, so the customer's own activity is where they find out an admin was in there. Expiry writes no row: nothing runs when a cookie lapses, so the "started" row carries the expiry it was entered with instead of a later row claiming a moment nobody was present for.
+**Why every write names who did it.** An emulated session's activity rows are written with actor type `admin` (`sessionActor`, `lib/dashboard/session.ts`), which renders as "Name (Pouch admin)" with a shield rather than as a member. Entering and leaving are rows of their own, in the emulated organization's feed, so the customer's own activity is where they find out an admin was in there. Expiry writes no row: nothing runs when a cookie lapses, so the "started" row carries the expiry it was entered with instead of a later row claiming a moment nobody was present for.
 
 **What an admin sees while emulating:** the organization as an owner sees it. Support reproduces a report, and half a screen doesn't reproduce anything.
 
@@ -394,7 +394,7 @@ Deleting an account cascades its memberships, so `deleteUserAccount` refuses whe
 - **Mail waiting to send** — anything `queued` or `deferred`. It's mail Pouch has accepted and still owes. The way out is to wait, or to suspend the organization, which fails the queue with a reason.
 - **The domain system mail sends from.** Deleting it would take password reset down for the whole install, and the setting only says so at send time. Point the system from address elsewhere first.
 
-**The cascade's order is not left to Postgres.** `messages.domain_id`, `lists.domain_id`, `batches.domain_id` and `dns_provider_records.dns_provider_account_id` are `restrict` against a sibling that cascades from the organization too, so a plain `DELETE FROM organizations` depends on which cascade trigger fires first. The delete removes each child explicitly instead.
+**The cascade's order isn't left to Postgres.** `messages.domain_id`, `lists.domain_id`, `batches.domain_id` and `dns_provider_records.dns_provider_account_id` are `restrict` against a sibling that cascades from the organization too, so a plain `DELETE FROM organizations` depends on which cascade trigger fires first. The delete removes each child explicitly instead.
 
 **A shared provider survives.** It carries a null `organization_id` ("A null organization means the row belongs to the service"), so neither the cascade nor `releaseProviders` can select one. The organization's own row on it — its tenant — is torn down through the adapter, the same call `offboardOrganization` makes.
 
@@ -733,7 +733,7 @@ Pouch shows what's running — workers, their heartbeats, queue depth, dependenc
 
 A queued export (past the row ceiling in `lib/exports/limits.ts`) writes its finished file to the private bucket and deletes it 7 days after it's ready, whatever the organization's `body_retention_days` says. The row then reads `expired`, not `ready`.
 
-**Why:** the artifact is a second, unencrypted copy of content the retention setting otherwise governs — for a `bodies` export, decrypted message bodies a second time over. Tying its lifetime to that setting would mean a body already shredded from `messages.body_key` still sitting, readable, in an export bundle from before the shred. A short fixed window keeps it closer to a download link than to a second archive: long enough to actually download, short enough that nobody mistakes it for a place data lives.
+**Why:** the artifact is a second, unencrypted copy of content the retention setting otherwise governs — for a `bodies` export, decrypted message bodies a second time over. Tying its lifetime to that setting would mean a body already shredded from `messages.body_key` still sitting, readable, in an export bundle from before the shred. A short fixed window keeps it closer to a download link than to a second archive: long enough to download, short enough that nobody mistakes it for a place data lives.
 
 **Revisit when** a real caller needs longer than a week to pick up a large archive — the fix there is a longer TTL as a setting, following "defaults follow convention" above, not an unbounded one.
 
@@ -786,9 +786,9 @@ Everything a recipient or an external system reads the product's name out of com
 
 **`X-` stays** even though RFC 6648 deprecates it for new headers. Nothing enforces that for mail, and `X-` is what consumers expect.
 
-`tests/unit/wire.test.ts` pins the token and everything built from it, so a change has to be deliberate. It's a test of a constant on purpose — that's what a wire contract is.
+`tests/unit/wire.test.ts` pins the token and everything built from it, so a change has to be deliberate.
 
-**Revisit when** a consumer is actually parsing these and a break has to be coordinated, not before. Renaming the product is not a reason.
+**Revisit when** a consumer is parsing these and a break has to be coordinated, not before. Renaming the product isn't a reason.
 
 ## Inbound's domain webhook reuses `webhook_endpoints`, not a second table
 
@@ -802,7 +802,7 @@ Everything a recipient or an external system reads the product's name out of com
 
 `lib/providers/adapters/mailpace.ts`'s `inbound.records()` proposes a CNAME (`inbound.<domain>` → `inbound.mailpace.com`), never an MX.
 
-**Why:** #6's framing described inbound DNS generically as "MX rows," which is true for SES and Cloudflare but not Mailpace — its own docs are explicit that inbound routes through a CNAME to `inbound.mailpace.com`, not a mail-exchanger record. Every adapter proposes whatever its provider's current docs actually say, `required: false` in every case, since inbound is opt-in and never gates a domain's own send verification.
+**Why:** #6's framing described inbound DNS generically as "MX rows," which is true for SES and Cloudflare but not Mailpace — its own docs are explicit that inbound routes through a CNAME to `inbound.mailpace.com`, not a mail-exchanger record. Every adapter proposes whatever its provider's current docs say, `required: false` in every case, since inbound is opt-in and never gates a domain's own send verification.
 
 ## Inbound recipients: SES has the envelope, Mailpace doesn't
 
