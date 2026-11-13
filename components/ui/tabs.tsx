@@ -2,14 +2,13 @@
 
 import { createContext, useContext } from "react";
 import * as RadixTabs from "@radix-ui/react-tabs";
-import { cardVariants } from "@/components/ui/card";
 import { FOCUS_RING } from "@/components/ui/focus-ring";
 import { cn } from "@/lib/utils";
 
 // Tabs — a segmented pill control. The track reads as a recessed groove
-// (pill-card-recessed) with the active trigger sitting up out of it like a
+// (the Well recipe) with the active trigger sitting up out of it like a
 // small pill-card of its own — the same raised/recessed pairing the rest of
-// Quiet Canvas uses, just at pill scale. Radix owns keyboard nav (arrow keys
+// the kit uses, just at pill scale. Radix owns keyboard nav (arrow keys
 // move focus — up/down instead of left/right once `orientation="vertical"`
 // is passed to TabsRoot, which is all switching layouts takes) and ARIA.
 // Orientation drives layout entirely off Radix's own `data-orientation`
@@ -33,8 +32,7 @@ export function TabsList({ size = "md", className, ...props }: RadixTabs.TabsLis
     <TabsSizeContext.Provider value={size}>
       <RadixTabs.List
         className={cn(
-          cardVariants({ variant: "recessed" }),
-          "inline-flex items-center gap-1 rounded-full p-1",
+          "well inline-flex items-center gap-1 rounded-full p-1",
           size === "sm" && "max-w-full overflow-x-auto overscroll-x-contain [scrollbar-width:none]",
           "data-[orientation=vertical]:flex-col data-[orientation=vertical]:items-stretch data-[orientation=vertical]:rounded-2xl",
           className,

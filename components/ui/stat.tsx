@@ -7,9 +7,7 @@ import { EASE_OUT_CSS } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 // Stat — a generic animated numeral + label (metrics grids, pricing pages,
-// "years in business" callouts). Distinct from hero/score-card.tsx's
-// bespoke gauge, which owns its own conic-ring, pointer-tilt and glow — this
-// is just the count-up numeral on its own, for anywhere a plain number needs
+// "years in business" callouts). The count-up numeral on its own, for anywhere a plain number needs
 // to feel alive when it enters or changes.
 //
 // Two faces, one component: `numeral` (the default — mono, tabular, the

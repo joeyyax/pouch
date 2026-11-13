@@ -42,7 +42,7 @@ export function CopyButton({
     <IconButton
       icon={copied ? "check" : "copy"}
       label={copied ? `${label} copied` : `Copy ${label}`}
-      variant="bare"
+      variant="ghost"
       size={size}
       onClick={handleClick}
       className={cn("text-muted-foreground hover:text-foreground", className)}

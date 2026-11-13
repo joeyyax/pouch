@@ -1,47 +1,39 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
-import type { VariantProps } from "class-variance-authority";
-import { cardVariants } from "@/components/ui/card";
-import { FOCUS_RING } from "@/components/ui/focus-ring";
+import { buttonAttrs, type ButtonAxes } from "@/components/ui/button";
 import { Icon, type IconName } from "@/components/ui/icon";
 import { Tooltip } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
-const SIZE = {
-  xs: "size-7",
-  sm: "size-9",
-  md: "size-10",
-  lg: "size-11",
-};
-
-// IconButton — the one shape every icon-only button on the site should
-// render through: a card-styled circle, a consistent touch target, the
-// branded focus ring, and a Tooltip carrying the same string as the
-// accessible name (so sighted mouse users get the label sighted-reader
-// users already had via aria-label). `children` renders before the icon —
-// room for a decoration layered under it, like a countdown ring.
-// `variant="bare"` drops the card surface for a close/copy/dismiss glyph
-// that sits inside another surface.
+// A Button circle whose required label is also its tooltip; `children` render under the icon.
 export function IconButton({
   icon,
   label,
+  variant = "soft",
+  tone,
+  depth,
   size = "md",
-  variant = "recessed",
+  press,
   strokeWidth = 2,
   filled = false,
   pressed,
+  loading = false,
   tooltip = true,
   className,
   iconClassName,
   children,
+  disabled,
+  onClick,
+  type = "button",
   ...props
 }: {
   icon: IconName;
   label: string;
-  size?: keyof typeof SIZE;
-  variant?: VariantProps<typeof cardVariants>["variant"] | "bare";
+  size?: Exclude<ButtonAxes["size"], "none">;
   strokeWidth?: number;
   filled?: boolean;
   pressed?: boolean;
+  /** Swaps the glyph for a spinner and sets aria-busy, as Button's `loading` does; the size holds. */
+  loading?: boolean;
   /** Off for a button that takes focus on mount. Radix's tooltip layer sits above the dialog's
    * and swallows the first Escape, so a focused close button with a tooltip breaks Escape. */
   tooltip?: boolean;
@@ -50,28 +42,27 @@ export function IconButton({
    * `className` so rotating the glyph never rotates the button/its decoration. */
   iconClassName?: string;
   children?: ReactNode;
-} & Omit<ButtonHTMLAttributes<HTMLButtonElement>, "className">) {
+} & Omit<ButtonAxes, "shape" | "size"> &
+  Omit<ButtonHTMLAttributes<HTMLButtonElement>, "className">) {
+  const { className: base, ...data } = buttonAttrs({ variant, tone, depth, size, press, shape: "circle" });
+  const glyph = size === "2xs" ? "size-3" : "size-4";
   const button = (
     <button
-      type="button"
       aria-label={label}
       aria-pressed={pressed}
-      className={cn(
-        variant === "bare" ? null : cardVariants({ variant }),
-        "press relative grid place-items-center rounded-full text-foreground transition-colors disabled:cursor-not-allowed disabled:opacity-50",
-        FOCUS_RING,
-        SIZE[size],
-        className,
-      )}
+      className={cn(base, className)}
+      {...data}
+      // Loading stays focusable and goes inert without handlers, as Button does.
+      disabled={disabled}
+      aria-disabled={loading || undefined}
+      aria-busy={loading || undefined}
       {...props}
+      type={loading ? "button" : type}
+      onClick={loading ? undefined : onClick}
     >
       {children}
-      <Icon
-        name={icon}
-        strokeWidth={strokeWidth}
-        filled={filled}
-        className={cn("size-4", iconClassName)}
-      />
+      <Icon name={icon} strokeWidth={strokeWidth} filled={filled} className={cn(glyph, iconClassName)} />
+      {loading ? <span aria-hidden className={cn("btn-spin", glyph)} /> : null}
     </button>
   );
 

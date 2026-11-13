@@ -49,11 +49,11 @@ export function ConfirmDialog({
       description={consequence}
       footer={
         <>
-          <Button ref={cancelRef} variant="secondary" size="md" onClick={() => onOpenChange(false)}>
+          <Button ref={cancelRef} variant="soft" depth="lifted" size="md" onClick={() => onOpenChange(false)}>
             {cancelLabel}
           </Button>
           <Button
-            variant={tone === "destructive" ? "danger" : "primary"}
+            tone={tone === "destructive" ? "danger" : "primary"}
             size="md"
             loading={loading}
             onClick={onConfirm}

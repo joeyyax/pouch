@@ -2,7 +2,8 @@ import type { ReactNode } from "react";
 import type { ChipTone } from "@/components/ui/chip";
 import { cn } from "@/lib/utils";
 
-export type StatusDotTone = Exclude<ChipTone, "value">;
+/** Chip tones plus `stopped`: deliberately off, drawn as the media stop square. */
+export type StatusDotTone = Exclude<ChipTone, "value"> | "stopped";
 
 // The mark's shape changes with the state, so meaning never rides on color alone.
 const MARK_COLOR: Record<StatusDotTone, string> = {
@@ -12,6 +13,7 @@ const MARK_COLOR: Record<StatusDotTone, string> = {
   neutral: "text-muted-foreground/50",
   signal: "text-primary",
   info: "text-info",
+  stopped: "text-muted-foreground",
 };
 
 /** The mark alone, for a row that carries its own text. */
@@ -28,6 +30,8 @@ export function StatusMark({ tone, pending = false }: { tone: StatusDotTone; pen
         />
       ) : tone === "warn" ? (
         <path d="M6 1.6 10.6 9.6H1.4Z" stroke="currentColor" strokeWidth="1" strokeLinejoin="round" />
+      ) : tone === "stopped" ? (
+        <rect x="3.25" y="3.25" width="5.5" height="5.5" rx="1.25" />
       ) : (
         <circle cx="6" cy="6" r="3" />
       )}
@@ -40,7 +44,7 @@ export function sentenceCase(label: string): string {
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
-/** A state in its own column: a mark and a label on every row. Only a neutral label is muted. */
+/** A state in its own column: a mark and a label on every row. Neutral and stopped labels are muted. */
 export function StatusDot({
   tone = "neutral",
   pending = false,
@@ -59,7 +63,7 @@ export function StatusDot({
   return (
     <span className={cn("inline-flex items-baseline gap-1.5 whitespace-nowrap text-sm", className)} title={title}>
       <StatusMark tone={tone} pending={pending} />
-      <span className={tone === "neutral" ? "text-muted-foreground" : "text-foreground"}>
+      <span className={tone === "neutral" || tone === "stopped" ? "text-muted-foreground" : "text-foreground"}>
         {typeof children === "string" ? sentenceCase(children) : children}
       </span>
     </span>

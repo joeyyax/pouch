@@ -57,7 +57,7 @@ export function FilterBar({
         </ul>
       ) : null}
       {showClear ? (
-        <Button variant="ghost" className="px-2 py-1 text-sm" onClick={onClearAll}>
+        <Button variant="text" className="px-2 py-1 text-sm" onClick={onClearAll}>
           {clearLabel}
         </Button>
       ) : null}

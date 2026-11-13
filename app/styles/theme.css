@@ -42,8 +42,7 @@
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
 
-  /* Quiet Canvas — cream ground, ink-navy text, cobalt as a strictly-signal
-     accent, calm warm severity ramp. Tokens are named
+  /* Tokens are named
      by role, not literal color — --primary-strong (AA-contrast text variant
      of primary), --danger/--warning/--success (solid ink) each pair with a
      -soft background variant, --tertiary (the workhorse text-emphasis tier),
@@ -108,7 +107,7 @@
 
   /* Overlay elevation — floating-surface shadows (popover/toast/modal/
      tooltip), a near-black ink family (rgba(4,6,18,…)) distinct from
-     --shadow-card's warmer ink-navy tint since these sit ABOVE the page,
+     --shadow-card since these sit ABOVE the page,
      not on it. Three tiers by how much surface they lift: tooltip's small
      bubble needs the least; popover/toast (identical today) share the
      middle tier; modal's full-screen backdrop needs the most. Sheet-host's

@@ -37,7 +37,7 @@ export function Terminal({
         <IconButton
           icon={copied ? "check" : "copy"}
           label={copied ? "Command copied" : "Copy command"}
-          variant="bare"
+          variant="ghost"
           size="xs"
           onClick={() => copy(command)}
           className="text-muted-foreground hover:text-foreground"

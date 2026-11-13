@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 // Popover — click-triggered floating panel for richer content than a
 // Tooltip (forms, menus, detail cards). Radix owns positioning, focus
 // management, and outside-click/Esc dismissal; this only supplies the
-// Quiet Canvas skin plus the same starting-style entrance Tooltip uses.
+// kit skin plus the same starting-style entrance Tooltip uses.
 
 export const PopoverRoot = RadixPopover.Root;
 export const PopoverTrigger = RadixPopover.Trigger;

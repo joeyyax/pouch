@@ -1,7 +1,7 @@
 "use client";
 
 import * as RadixToast from "@radix-ui/react-toast";
-import { useSyncExternalStore } from "react";
+import { useSyncExternalStore, type CSSProperties } from "react";
 import { cardVariants } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
 import { IconButton } from "@/components/ui/icon-button";
@@ -58,7 +58,7 @@ function ToastRow({ item }: { item: ToastItem }) {
         <IconButton
           icon="close"
           label="Dismiss"
-          variant="bare"
+          variant="ghost"
           size="xs"
           className="-m-1.5 shrink-0 text-muted-foreground hover:text-foreground"
           iconClassName="size-3.5"
@@ -68,14 +68,33 @@ function ToastRow({ item }: { item: ToastItem }) {
   );
 }
 
-export function ToastHost() {
+/**
+ * The stack sits `--toast-offset-bottom` (default 0) above the bottom edge, to clear a
+ * consumer's own fixed bottom bar. Set it in brand.css or on a wrapper, or pass `offsetBottom`.
+ */
+export function ToastHost({
+  offsetBottom,
+  className,
+}: {
+  /** Sets `--toast-offset-bottom` on the viewport, as a CSS length or px. */
+  offsetBottom?: number | string;
+  /** Classes on the viewport. */
+  className?: string;
+} = {}) {
   const items = useSyncExternalStore(subscribeToasts, getToasts, getServerToasts);
+  const offset = typeof offsetBottom === "number" ? `${offsetBottom}px` : offsetBottom;
   return (
     <RadixToast.Provider swipeDirection="right">
       {items.map((item) => (
         <ToastRow key={item.id} item={item} />
       ))}
-      <RadixToast.Viewport className="fixed bottom-0 right-0 z-[60] m-0 flex w-full max-w-sm list-none flex-col gap-2.5 p-5 outline-none sm:p-6" />
+      <RadixToast.Viewport
+        style={offset === undefined ? undefined : ({ "--toast-offset-bottom": offset } as CSSProperties)}
+        className={cn(
+          "fixed bottom-[var(--toast-offset-bottom,0px)] right-0 z-[60] m-0 flex w-full max-w-sm list-none flex-col gap-2.5 p-5 outline-none sm:p-6",
+          className,
+        )}
+      />
     </RadixToast.Provider>
   );
 }

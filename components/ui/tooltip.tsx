@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 
 // Tooltip — short, non-interactive hints on hover/focus. Radix owns the
 // delay, hover/focus intent tracking, positioning and ARIA (describedby);
-// this only supplies the Quiet Canvas skin and a starting-style fade+scale
+// this only supplies the kit skin and a starting-style fade+scale
 // entrance (CSS only — no JS animation needed for a one-way, no-exit pop-in,
 // and it's already covered by the site's global reduced-motion transition
 // guard in globals.css).

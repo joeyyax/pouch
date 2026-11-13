@@ -22,7 +22,7 @@
     border: 1px solid var(--border);
   }
 
-  /* The card recipe — layers over borders. White surface lifted off the cream
+  /* The card recipe — layers over borders. White surface lifted off the
      ground by the two-tier shadow; NO hairline in light. Dark keeps a 1px
      border because shadows die on dark grounds. */
   .pill-card {
@@ -73,7 +73,17 @@
     }
   }
 
-  /* Cobalt sibling of .pill-card — a true-signal surface, not a ground.
+  /* Solid when the system asks for less transparency or more contrast. */
+  @media (prefers-reduced-transparency: reduce), (prefers-contrast: more), (forced-colors: active) {
+    .pill-card-glass,
+    .dark .pill-card-glass {
+      background-color: var(--card);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+  }
+
+  /* Brand sibling of .pill-card — a true-signal surface, not a ground.
      Reserved for the rare card that needs to visibly outrank everything
      around it. Paints from `--background`/`--foreground`, not `--primary`/
      `--primary-foreground` — `Card variant="brand"` also applies the

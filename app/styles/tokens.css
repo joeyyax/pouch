@@ -15,14 +15,14 @@
   );
   --ease-exit: cubic-bezier(0.4, 0, 1, 1);
 
-  /* Card elevation: a tight contact tier and a wide ambient tier, tinted ink-navy. */
-  --shadow-card-value: 0 1px 3px rgba(18, 26, 64, 0.05), 0 8px 22px rgba(18, 26, 64, 0.06);
-  --shadow-card-hover-value: 0 2px 5px rgba(18, 26, 64, 0.06), 0 16px 36px rgba(18, 26, 64, 0.1);
+  /* Card elevation: a tight contact tier and a wide ambient tier. A brand tints them in its brand.css. */
+  --shadow-card-value: 0 1px 3px rgba(0, 0, 0, 0.05), 0 8px 22px rgba(0, 0, 0, 0.06);
+  --shadow-card-hover-value: 0 2px 5px rgba(0, 0, 0, 0.06), 0 16px 36px rgba(0, 0, 0, 0.1);
   /* Scroll-stack depth: a soft upward glow on an incoming layer's top edge. */
-  --shadow-stack-value: 0 -20px 44px -16px rgba(18, 26, 64, 0.16);
+  --shadow-stack-value: 0 -20px 44px -16px rgba(0, 0, 0, 0.16);
 }
 
-/* Ink-navy dark mode — a real dark room, not an inversion. Class strategy on
+/* Dark mode — a real dark room, not an inversion. Class strategy on
    <html>, persisted in localStorage, seeded from prefers-color-scheme by the
    no-flash script in layout.tsx. */
 @media screen {
@@ -39,25 +39,11 @@
   }
 }
 
-/* Cobalt brand surface — the same trick as `.dark` above (re-declare the role
-   tokens so every descendant that reads them via plain utilities/`.type-*`
-   recipes resolves correctly), scoped to the cobalt ground instead of a dark
-   room. `Section tone="brand"` and `Card variant="brand"` apply this class.
-   Before this existed, `bg-primary text-primary-foreground` set the surface
-   but never re-scoped `--tertiary`/`--foreground-soft`/etc., so anything
-   using those (`.type-kicker`, a subhead) rendered its cream-calibrated color
-   — illegible on cobalt — which is why CtaBand hand-patched a `!important`
-   kicker override instead of just working like `.dark` already did.
-
-   `--primary`/`--primary-foreground` invert meaning in here: outside this
-   scope `--primary` IS the cobalt signal; inside it we're already standing
-   on the signal, so `--primary` becomes "the color that pops off this
-   ground" — white — and a `variant="primary"` Button turns into a white pill
-   with cobalt text automatically (the "Book a call" treatment that used to
-   be a manual tone-swap to `secondary`). `--background`/`--foreground`
-   become the ground itself (cobalt/white), same relationship `.dark`'s
-   `--background`/`--foreground` have to the dark room. Contrast ratios below
-   are measured against Quiet Canvas's cobalt ground (oklch(50.3% 0.26 265.5), #1d46f5). */
+/* Brand surface — the same trick as `.dark` above, scoped to the --brand
+   ground. `Section tone="brand"` and `Card variant="brand"` apply this class.
+   Inside it `--primary` becomes the color that pops off the ground (white), so
+   a primary Button turns into a white pill with brand-colored text. Contrast
+   ratios below are measured on the starter's near-black ground, oklch(20.5% 0 0). */
 @media screen {
   .surface-brand {
     --background: var(--brand); /* the signal color, now a ground */
@@ -71,21 +57,71 @@
        color itself — same white as the primary pair. */
     --primary-strong: oklch(100% 0 0);
     /* Kept darker than the +8% card so the quiet text-tertiary that rides this
-       fill (neutral Chip, `muted` List row) clears AA on cobalt — ~4.6:1 at +5%;
-       the +10% it used to be only reached 4.1:1. Still lifts clear of the ground. */
+       fill (neutral Chip, `muted` List row) clears AA on a mid-tone brand. 11.3:1 here. */
     --secondary: color-mix(in oklch, white 5%, var(--background));
     --secondary-foreground: oklch(100% 0 0);
     --muted: color-mix(in oklch, white 3%, var(--background));
-    --muted-foreground: color-mix(in oklch, white 82%, var(--background)); /* ~4.95:1 */
+    --muted-foreground: color-mix(in oklch, white 82%, var(--background)); /* 11.6:1 */
     --accent: color-mix(in oklch, white 14%, var(--background));
     --accent-foreground: oklch(100% 0 0);
     --border: color-mix(in oklch, white 22%, var(--background));
     --ring: oklch(100% 0 0);
 
-    --foreground-soft: color-mix(in oklch, white 90%, var(--background)); /* ~5.6:1 */
+    --foreground-soft: color-mix(in oklch, white 90%, var(--background)); /* 14.2:1 */
     /* the workhorse text-emphasis tier — MUST clear AA here since
        `.type-kicker` (every section kicker) rides this token directly. */
-    --tertiary: color-mix(in oklch, white 85%, var(--background)); /* ~5.2:1 */
+    --tertiary: color-mix(in oklch, white 85%, var(--background)); /* 12.5:1 */
+  }
+}
+
+/* Depth and control tokens for controls.css: one fill, edge and shadow set per level. */
+:root,
+.surface-brand {
+  --raised-fill: var(--card);
+  --raised-edge:
+    inset 0 1px 0 rgb(255 255 255 / 0.9),
+    inset 0 0 0 1px rgb(0 0 0 / 0.12),
+    inset 0 -2px 0 rgb(0 0 0 / 0.07);
+  --raised-shadow: 0 1px 1px rgb(0 0 0 / 0.14), 0 2px 3px rgb(0 0 0 / 0.08);
+  --lifted-fill: var(--card);
+  --lifted-edge: 0 0 #0000;
+  --lifted-shadow: var(--shadow-card-value);
+  --lifted-shadow-hover: var(--shadow-card-hover-value);
+  --well-fill: var(--background-deep);
+  --well-edge: 0 0 #0000;
+  --well-shadow: inset 0 1px 2px rgb(0 0 0 / 0.08);
+  /* Soft fills: the tint behind a soft button and its hover. */
+  --soft: 8%;
+  --soft-hover: 14%;
+  --field-soft: 5%;
+  --field-edge: var(--border);
+  --surface-edge: 0 0 #0000;
+  /* Level 0 surface radius; each nested level halves it. */
+  --radius-surface: 2rem;
+  --corner-shape: squircle;
+  --btn-sm-px: 1rem;
+  --btn-sm-fs: 0.875rem;
+}
+
+@media screen {
+  .dark {
+    --raised-fill: color-mix(in oklch, var(--foreground) 12%, var(--card));
+    --raised-edge:
+      inset 0 1px 0 color-mix(in oklab, var(--foreground) 22%, transparent),
+      inset 0 0 0 1px var(--border);
+    --raised-shadow: 0 1px 3px rgb(0 0 0 / 0.35);
+    --lifted-fill: var(--card);
+    --lifted-edge: inset 0 0 0 1px var(--border);
+    --lifted-shadow: var(--shadow-card-value);
+    --lifted-shadow-hover: var(--shadow-card-hover-value);
+    --well-fill: color-mix(in oklch, black 28%, var(--card));
+    --well-edge: inset 0 0 0 1px var(--border);
+    --well-shadow: inset 0 1px 2px rgb(0 0 0 / 0.25);
+    --soft: 10%;
+    --soft-hover: 18%;
+    --field-soft: 12%;
+    --field-edge: color-mix(in oklab, var(--foreground) 16%, transparent);
+    --surface-edge: inset 0 0 0 1px var(--border);
   }
 }
 

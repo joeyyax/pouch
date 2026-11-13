@@ -18,12 +18,12 @@ import {
   YAxis,
   type TooltipContentProps,
 } from "recharts";
-import { useReducedMotion } from "framer-motion";
+import { useReducedMotionSafe } from "@/hooks/use-reduced-motion-safe";
 import { cva } from "class-variance-authority";
 import { cardVariants } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-// Quiet Canvas chart set — thin, token-only wrappers over Recharts so a call
+// The kit chart set — thin, token-only wrappers over Recharts so a call
 // site stays declarative (`<LineChart data={rows} dataKey="visits" />`) and
 // never touches a hex code. Law of Prägnanz: charts default to the simplest
 // legible form — no vertical gridlines, no per-slice labels, no axis lines,
@@ -197,7 +197,7 @@ export function LineChart({
   dataKey,
   series,
 }: LineChartProps) {
-  const reduced = useReducedMotion();
+  const reduced = useReducedMotionSafe();
   const descId = useId();
   const resolved = useMemo(() => resolveSeries({ dataKey, series }), [dataKey, series]);
   const showLegend = legend ?? resolved.length > 1;
@@ -241,7 +241,7 @@ export function LineChart({
                   strokeWidth={dense ? 1.5 : 2}
                   dot={false}
                   activeDot={{ r: 4 }}
-                  isAnimationActive={!reduced}
+                  isAnimationActive={reduced === false}
                   animationDuration={500}
                 />
               ) : (
@@ -254,7 +254,7 @@ export function LineChart({
                   strokeWidth={dense ? 1.5 : 2}
                   dot={false}
                   activeDot={{ r: 4 }}
-                  isAnimationActive={!reduced}
+                  isAnimationActive={reduced === false}
                   animationDuration={500}
                 />
               ),
@@ -300,7 +300,7 @@ export function BarChart({
   dataKey,
   series,
 }: BarChartProps) {
-  const reduced = useReducedMotion();
+  const reduced = useReducedMotionSafe();
   const descId = useId();
   const resolved = useMemo(() => resolveSeries({ dataKey, series }), [dataKey, series]);
   const showLegend = legend ?? resolved.length > 1;
@@ -342,7 +342,7 @@ export function BarChart({
                 // segment carves notches out of the bar.
                 radius={stacked && s.key !== resolved[resolved.length - 1]?.key ? 0 : dense ? [3, 3, 0, 0] : [4, 4, 0, 0]}
                 maxBarSize={dense ? 32 : 48}
-                isAnimationActive={!reduced}
+                isAnimationActive={reduced === false}
                 animationDuration={500}
               />
             ))}
@@ -392,7 +392,7 @@ export function DonutChart({
   summary,
   className,
 }: DonutChartProps) {
-  const reduced = useReducedMotion();
+  const reduced = useReducedMotionSafe();
   const descId = useId();
   const resolved = useMemo(
     () =>
@@ -430,7 +430,7 @@ export function DonutChart({
               strokeWidth={2}
               label={false}
               labelLine={false}
-              isAnimationActive={!reduced}
+              isAnimationActive={reduced === false}
               animationDuration={500}
             >
               {resolved.map((r) => (
@@ -481,7 +481,7 @@ export function Sparkline({
   summary,
   className,
 }: SparklineProps) {
-  const reduced = useReducedMotion();
+  const reduced = useReducedMotionSafe();
   const descId = useId();
   const gradId = useId().replace(/:/g, "");
 
@@ -517,7 +517,7 @@ export function Sparkline({
             strokeWidth={1.75}
             fill={area ? `url(#${gradId})` : "none"}
             dot={false}
-            isAnimationActive={!reduced}
+            isAnimationActive={reduced === false}
             animationDuration={500}
           />
         </RechartsAreaChart>

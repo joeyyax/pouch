@@ -64,7 +64,7 @@ export function Alert({
         <IconButton
           icon="close"
           label="Dismiss"
-          variant="bare"
+          variant="ghost"
           size="xs"
           onClick={() => setDismissed(true)}
           className="-m-1.5 shrink-0 text-muted-foreground hover:text-foreground"

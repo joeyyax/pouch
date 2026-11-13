@@ -69,7 +69,7 @@ export function AppShellMore({
         <div className="flex shrink-0 items-center justify-between gap-3 py-2 pl-5 pr-2">
           <ModalTitle className="text-lg sm:text-lg">{label}</ModalTitle>
           <ModalClose asChild>
-            <IconButton icon="close" label="Close" tooltip={false} variant="bare" size="lg" />
+            <IconButton icon="close" label="Close" tooltip={false} variant="ghost" size="lg" />
           </ModalClose>
         </div>
         <MoreSheetContext.Provider value={close}>

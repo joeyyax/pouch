@@ -67,7 +67,7 @@ export function SecretReveal({
 
       <div className="flex justify-end">
         <Button
-          variant="secondary"
+          variant="soft" depth="lifted"
           size="md"
           onClick={() => (everCopied ? onClose() : setConfirming(true))}
         >
