@@ -15,7 +15,7 @@ type State = "ready" | "invalid" | "error";
 export function LinkExpired({ missing = false }: { missing?: boolean }) {
   return (
     <div className="flex flex-col gap-6">
-      <Callout tone="danger" title={missing ? "This link has no token" : "This link has expired or was already used"}>
+      <Callout tone="danger" title={missing ? "This link is incomplete" : "This link has expired or was already used"}>
         {missing
           ? "Open the link from the sign-in email again, or request a new one."
           : "Sign-in links work once and expire after 10 minutes. Request a new one."}

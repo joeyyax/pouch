@@ -113,8 +113,8 @@ export function ProviderScreen({ provider }: { provider: AdminProviderDetail }) 
       ) : null}
 
       {provider.issues.includes("quota") ? (
-        <Callout tone="warn" title="Quota 80%">
-          This provider has used most of its daily send quota. <TextLink href="/admin/settings/system">See Status</TextLink>.
+        <Callout tone="warn" title="Daily quota at 80% or more">
+          This provider has used at least 80% of its daily send quota. <TextLink href="/admin/settings/system">See Status</TextLink>.
         </Callout>
       ) : null}
 

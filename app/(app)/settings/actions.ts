@@ -140,7 +140,7 @@ export async function removeMemberAction(_previous: ActionState, form: FormData)
     revalidatePath("/settings/members");
     return succeeded("Removed from the organization.");
   } catch (error) {
-    return failed(error, "They couldn't be removed.");
+    return failed(error, "The member couldn't be removed.");
   }
 }
 

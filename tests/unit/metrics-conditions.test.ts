@@ -125,7 +125,7 @@ describe("the held condition", () => {
 describe("the backlog condition under a suspension that fails the queue", () => {
   it("says the queued mail fails instead of promising it sends", () => {
     const [condition] = evaluateConditions(input({ oldestDueMs: 20 * 60_000, dueCount: 3, queueFails: true }));
-    expect(condition).toMatchObject({ key: "backlog", title: "Queued mail will fail", tone: "danger" });
+    expect(condition).toMatchObject({ key: "backlog", title: "Queued mail fails", tone: "danger" });
     expect(condition?.body).toBe("3 messages queued while sending is suspended. They fail instead of sending.");
     expect(condition?.body).not.toContain("They send");
   });

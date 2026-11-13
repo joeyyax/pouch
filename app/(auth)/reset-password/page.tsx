@@ -20,7 +20,7 @@ export default async function ResetPasswordPage({ searchParams }: { searchParams
       {typeof token === "string" && token ? (
         <ResetPasswordForm token={token} />
       ) : (
-        <Callout tone="danger" title="This link has no token">
+        <Callout tone="danger" title="This link is incomplete">
           Open the link from the reset email again, or <TextLink href="/forgot-password">request a new one</TextLink>.
         </Callout>
       )}

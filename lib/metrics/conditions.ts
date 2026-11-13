@@ -132,7 +132,7 @@ export function evaluateConditions(input: ConditionInput): Condition[] {
   if (input.queueFails && input.dueCount > 0) {
     conditions.push({
       key: "backlog",
-      title: "Queued mail will fail",
+      title: "Queued mail fails",
       body: `${count(input.dueCount, "message")} queued while sending is suspended. They fail instead of sending.`,
       links: [{ href: messagesHref({ statuses: ["queued"] }), label: "See queued messages" }],
       tone: "danger",

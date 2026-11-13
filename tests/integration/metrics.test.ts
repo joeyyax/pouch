@@ -400,7 +400,7 @@ describe("the queue reading", () => {
     expect(overview.queue.held).toBe(0);
     expect(overview.queue.organizationHeld).toBe(false);
     expect(overview.queue.organizationFails).toBe(true);
-    expect(overview.conditions.find((condition) => condition.key === "backlog")?.title).toBe("Queued mail will fail");
+    expect(overview.conditions.find((condition) => condition.key === "backlog")?.title).toBe("Queued mail fails");
   });
 
   it("ages the oldest due message, since depth on its own says nothing", async () => {
