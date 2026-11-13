@@ -1,6 +1,6 @@
 # Migrating from Postmark
 
-Postmark isn't one of Pouch's backing providers, so this migration moves your domain's sending to the SES or Mailpace account assigned to your Pouch organization (see the [index](./index.md)). The API call changes at the same time.
+Postmark isn't one of Pouch's backing providers, so this migration moves your domain's sending to the provider assigned to your Pouch organization: Amazon SES, Mailpace or Cloudflare Email Service (see the [index](./index.md)). The API call changes at the same time.
 
 Postmark's docs: [email API](https://postmarkapp.com/developer/api/email-api), [webhooks overview](https://postmarkapp.com/developer/webhooks/webhooks-overview) (check current URL — moved since writing), [suppressions API](https://postmarkapp.com/developer/api/suppressions-api).
 
@@ -69,11 +69,11 @@ Postmark authenticates a domain against its own infrastructure ("Sender Signatur
 2. Publish the DNS records it lists. The domain verifies on its own once they resolve.
 3. Remove Postmark's DKIM and Return-Path CNAMEs once cutover is complete. SPF needs Postmark's `include:` dropped and the new provider's added.
 
-`GET /v1/providers` lists the assigned provider with `assigned: true`. Self-hosting, you're the admin: add an SES or Mailpace account and assign it to your organization first (`docs/engineering.md`, "Providers").
+`GET /v1/providers` lists your organization's providers; the default, which a new domain binds to, has `assigned: true`. Self-hosting, you're the admin: add an SES, Mailpace or Cloudflare provider and assign it to your organization first (`docs/engineering.md`, "Providers").
 
 ## Webhooks
 
-Register a webhook on the Pouch key (dashboard, key detail page). There's no webhook management API. Map Postmark's webhook types to Pouch's:
+Register a webhook endpoint on the Pouch key (dashboard, key detail page, or `POST /v1/webhook_endpoints` with its `key_id`). Map Postmark's webhook types to Pouch's:
 
 | Postmark webhook | Pouch event |
 |---|---|

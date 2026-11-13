@@ -1,6 +1,6 @@
 # Migrating from SendGrid
 
-SendGrid isn't one of Pouch's backing providers, so this migration moves your domain's sending to the SES or Mailpace account assigned to your Pouch organization (see the [index](./index.md)). The API call changes at the same time.
+SendGrid isn't one of Pouch's backing providers, so this migration moves your domain's sending to the provider assigned to your Pouch organization: Amazon SES, Mailpace or Cloudflare Email Service (see the [index](./index.md)). The API call changes at the same time.
 
 SendGrid's docs: [mail-send](https://www.twilio.com/docs/sendgrid/api-reference/mail-send/mail-send), [event webhook](https://www.twilio.com/docs/sendgrid/for-developers/tracking-events/event), [bounces API](https://www.twilio.com/docs/sendgrid/api-reference/bounces-api/retrieve-all-bounces).
 
@@ -70,11 +70,11 @@ SendGrid authenticates a domain against its own shared infrastructure; Pouch aut
 2. Publish the DNS records it lists. The domain verifies on its own once they resolve.
 3. Remove SendGrid's CNAME records (its domain authentication and link branding) once cutover is complete. SPF needs SendGrid's `include:` dropped and the new provider's added, since a name can carry only one SPF record (`docs/api/conventions.md`, "Moving a domain to another provider").
 
-`GET /v1/providers` lists the assigned provider with `assigned: true`. Self-hosting, you're the admin: add an SES or Mailpace account and assign it to your organization first (`docs/engineering.md`, "Providers").
+`GET /v1/providers` lists your organization's providers; the default, which a new domain binds to, has `assigned: true`. Self-hosting, you're the admin: add an SES, Mailpace or Cloudflare provider and assign it to your organization first (`docs/engineering.md`, "Providers").
 
 ## Webhooks
 
-Register a webhook on the Pouch key (dashboard, key detail page). There's no webhook management API. Map SendGrid's event webhook types to Pouch's:
+Register a webhook endpoint on the Pouch key (dashboard, key detail page, or `POST /v1/webhook_endpoints` with its `key_id`). Map SendGrid's event webhook types to Pouch's:
 
 | SendGrid event | Pouch event |
 |---|---|

@@ -1,6 +1,6 @@
 # Migrating from useSend
 
-useSend is, like Pouch, a small self-hostable transactional layer over a real provider. The shift here is from useSend's own domain and contact management to Pouch's, backed by the SES or Mailpace account assigned to your organization.
+useSend is, like Pouch, a small self-hostable transactional layer over a real provider. The shift here is from useSend's own domain and contact management to Pouch's, backed by the provider assigned to your organization: Amazon SES, Mailpace or Cloudflare Email Service.
 
 useSend's docs: [get-started/nodejs](https://docs.usesend.com/get-started/nodejs), domains (`GET/POST/PUT /v1/domains`), [webhooks overview](https://docs.usesend.com/llms.txt). **Unconfirmed:** useSend's exact webhook event names and its DNS record requirements weren't reachable in current docs at the time of writing — confirm both against `docs.usesend.com` before cutover.
 
@@ -67,13 +67,13 @@ useSend verifies domains against its own backing provider (SES, in useSend's def
 2. Publish the DNS records it lists. The domain verifies on its own once they resolve.
 3. Remove useSend's records once nothing sends through it, keeping any the new records repeat.
 
-`GET /v1/providers` lists the assigned provider with `assigned: true`. Self-hosting, you're the admin: add an SES or Mailpace account and assign it to your organization first (`docs/engineering.md`, "Providers").
+`GET /v1/providers` lists your organization's providers; the default, which a new domain binds to, has `assigned: true`. Self-hosting, you're the admin: add an SES, Mailpace or Cloudflare provider and assign it to your organization first (`docs/engineering.md`, "Providers").
 
 If useSend sent through the same SES account, SES already has the identity and the add returns `domain_unavailable`. An admin adopts it instead, which keeps its DKIM and its published records (see the [SES guide](./ses.md#domains-and-dns)).
 
 ## Webhooks
 
-Register a webhook on the Pouch key (dashboard, key detail page). useSend's exact event names are unconfirmed as of writing (check the webhooks page on `docs.usesend.com` before mapping), but by category:
+Register a webhook endpoint on the Pouch key (dashboard, key detail page, or `POST /v1/webhook_endpoints` with its `key_id`). useSend's exact event names are unconfirmed as of writing (check the webhooks page on `docs.usesend.com` before mapping), but by category:
 
 | useSend event category | Pouch event |
 |---|---|

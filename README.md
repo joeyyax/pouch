@@ -20,7 +20,7 @@ values. Generate real ones with `openssl rand -base64 32` for anything deployed.
 `pnpm dev:all` runs `pnpm bootstrap` first: migrations every time, then `pnpm seed` and
 `pnpm dev:data` on an empty database only. Once the admin exists it leaves the data alone, so a
 restart never clears messages you sent by hand. `pnpm seed` prints the first API key — it scrolls
-past in the bootstrap output, and `pnpm dev:data` prints the sign-in providers and their shared
+past in the bootstrap output, and `pnpm dev:data` prints the sign-in accounts and their shared
 password.
 
 `pnpm dev:data` fills the database with six months of seeded, reproducible history relative to now:
@@ -48,7 +48,7 @@ that isn't set up, or the mail doesn't arrive, `pnpm reset:admin` sets a new pas
 RESET_ADMIN_EMAIL=you@example.com RESET_ADMIN_PASSWORD='...' pnpm reset:admin
 ```
 
-It refuses to create a provider and revokes every session that one holds. In a container:
+It refuses to create an account and revokes every session that account holds. In a container:
 `docker compose exec mail sh -c 'RESET_ADMIN_EMAIL=... RESET_ADMIN_PASSWORD=... pnpm reset:admin'`.
 
 ## Sending
@@ -92,7 +92,7 @@ the inert objects. MinIO locally, R2 in production. Nothing puts a body in Postg
 ## Tests
 
 ```bash
-pnpm test        # typecheck, lint and vitest
+pnpm test        # observations check, typecheck, lint, check:docs and vitest
 pnpm test:unit   # unit tests only; still needs the compose stack
 ```
 

@@ -1,6 +1,6 @@
 # Migrating from Resend
 
-Pouch's send API is shaped like Resend's on purpose (`docs/product/brief.md`), so this is the smallest field mapping of the seven. The gap is what sits around sending: Resend backs its own domains, and Pouch doesn't — your domain binds to the SES or Mailpace account an admin assigned to your organization (see the [index](./index.md)).
+Pouch's send API is shaped like Resend's on purpose (`docs/product/brief.md`), so this is the smallest field mapping of the seven. The gap is what sits around sending: Resend backs its own domains, and Pouch doesn't — your domain binds to a provider an admin assigned to your organization: Amazon SES, Mailpace or Cloudflare Email Service (see the [index](./index.md)).
 
 Resend's docs: [api-reference/emails/send-email](https://resend.com/docs/api-reference/emails/send-email), [webhooks/event-types](https://resend.com/docs/dashboard/webhooks/event-types), [api-reference/suppressions](https://resend.com/docs/api-reference/suppressions/list-suppressions).
 
@@ -69,11 +69,11 @@ Resend hosts your domain's sending setup itself. Pouch asks your organization's 
 2. Publish the DNS records it lists: DKIM, plus whatever else the provider needs. The domain verifies on its own once they resolve.
 3. Remove Resend's DKIM and verification records once nothing sends through Resend. SPF and DMARC generally stay, with the new provider's `include:` added if its records ask for one.
 
-`GET /v1/providers` lists the assigned provider with `assigned: true`. Self-hosting, you're the admin: add an SES or Mailpace account and assign it to your organization first (`docs/engineering.md`, "Providers").
+`GET /v1/providers` lists your organization's providers; the default, which a new domain binds to, has `assigned: true`. Self-hosting, you're the admin: add an SES, Mailpace or Cloudflare provider and assign it to your organization first (`docs/engineering.md`, "Providers").
 
 ## Webhooks
 
-Register a webhook on the Pouch key that will send this traffic (dashboard, key detail page). There's no webhook management API. Map Resend's events to Pouch's:
+Register a webhook endpoint on the Pouch key that will send this traffic (dashboard, key detail page, or `POST /v1/webhook_endpoints` with its `key_id`). Map Resend's events to Pouch's:
 
 | Resend event | Pouch event |
 |---|---|
