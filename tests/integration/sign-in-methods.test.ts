@@ -205,7 +205,7 @@ describe("magic link verification", () => {
     await db.insert(verifications).values({
       id: "ver_unknown",
       identifier: `magic-link:${createHash("sha256").update(token).digest("base64url")}`,
-      value: JSON.stringify({ email: "nobody@example.net" }),
+      value: JSON.stringify({ type: "magic-link", email: "nobody@example.net" }),
       expiresAt: new Date(Date.now() + 60_000),
     });
 
