@@ -88,7 +88,7 @@ export function PasskeysSection({ passkeys, hasPassword, canAdd }: { passkeys: P
                 </div>
                 <Button
                   type="button"
-                  variant="secondary"
+                  variant="soft" depth="lifted"
                   size="sm"
                   disabled={soleCredential}
                   title={soleCredential ? "Add a password or another passkey before removing this one." : undefined}

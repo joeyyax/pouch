@@ -37,7 +37,7 @@ export function EmulationBanner({ organizationName, expiresAt }: { organizationN
         title={`You're emulating ${organizationName}`}
         action={
           <form action={formAction}>
-            <Button type="submit" size="sm" variant="secondary" loading={pending}>
+            <Button type="submit" size="sm" variant="soft" depth="lifted" loading={pending}>
               Exit emulation
             </Button>
           </form>

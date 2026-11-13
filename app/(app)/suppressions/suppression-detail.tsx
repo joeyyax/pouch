@@ -80,12 +80,12 @@ export function SuppressionDetailScreen({
         }
         actions={
           <>
-            <Button as="a" variant="secondary" size="md" href={historyHref}>
+            <Button as="a" variant="soft" depth="lifted" size="md" href={historyHref}>
               Recent messages
             </Button>
             <RoleGate allowed={canRemove} reason="Your role doesn't let you remove a suppression.">
               <Button
-                variant="danger"
+                tone="danger"
                 size="md"
                 onClick={(event) => {
                   opener.remember(event);

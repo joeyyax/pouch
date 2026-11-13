@@ -125,7 +125,7 @@ export function DnsPlanCardView({
           <form action={apply.formAction}>
             <input type="hidden" name="id" value={domainId} />
             <RoleGate allowed={canManage} reason="Your role doesn't let you publish DNS records.">
-              <Button type="submit" variant="primary" size="sm" disabled={apply.pending}>
+              <Button type="submit" size="sm" disabled={apply.pending}>
                 {apply.pending ? "Publishing…" : `Publish ${publishable} ${publishable === 1 ? "record" : "records"}`}
               </Button>
             </RoleGate>

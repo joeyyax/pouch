@@ -152,7 +152,7 @@ export function DomainDetail({
               <form action={release.formAction}>
                 <input type="hidden" name="id" value={domain.id} />
                 <RoleGate allowed={canManage} reason="Your role doesn't let you resume sending.">
-                  <Button type="submit" variant="secondary" size="sm" disabled={release.pending}>
+                  <Button type="submit" variant="soft" depth="lifted" size="sm" disabled={release.pending}>
                     {release.pending ? "Releasing…" : "Release"}
                   </Button>
                 </RoleGate>

@@ -160,7 +160,7 @@ function CreateOrganizationDialog({
       description="Creates a new organization and switches you into it."
       footer={
         <>
-          <Button type="button" variant="secondary" size="md" onClick={() => onOpenChange(false)}>
+          <Button type="button" variant="soft" depth="lifted" size="md" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
           <Button type="submit" form="create-organization" size="md" loading={pending}>

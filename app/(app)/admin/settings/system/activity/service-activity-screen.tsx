@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { buttonVariants } from "@/components/ui/button";
+import { buttonAttrs } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { cursorToQuery } from "@/lib/activity/filter";
@@ -49,14 +49,14 @@ export function ServiceActivityScreen({
       {paged || nextCursor ? (
         <div className="flex items-center justify-between text-sm">
           {paged ? (
-            <Link href={PATH} className={buttonVariants({ variant: "ghost", size: "sm" })}>
+            <Link href={PATH} {...buttonAttrs({ variant: "ghost", size: "sm" })}>
               Newest
             </Link>
           ) : (
             <span />
           )}
           {nextCursor ? (
-            <Link href={`${PATH}?${cursorToQuery(nextCursor)}`} className={buttonVariants({ variant: "ghost", size: "sm" })}>
+            <Link href={`${PATH}?${cursorToQuery(nextCursor)}`} {...buttonAttrs({ variant: "ghost", size: "sm" })}>
               Older
             </Link>
           ) : null}

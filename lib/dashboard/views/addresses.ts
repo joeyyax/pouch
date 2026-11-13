@@ -81,7 +81,7 @@ export function expiringSoon(address: Pick<SerializedAddress, "status" | "expire
 }
 
 /** `issue` at the cap, where mail drops; `warn` close to it; `neutral` otherwise. */
-export function capTone(received: number, cap: number | null): StatusDotTone {
+export function capTone(received: number, cap: number | null): Exclude<StatusDotTone, "stopped"> {
   if (cap === null) return "neutral";
   if (received >= cap) return "issue";
   return received >= cap * NEAR_CAP ? "warn" : "neutral";

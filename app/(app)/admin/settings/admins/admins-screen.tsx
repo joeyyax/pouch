@@ -55,7 +55,7 @@ export function AdminsScreen({
                 <RoleGate allowed={admin.id !== currentUserId} reason={SELF}>
                   <Button
                     type="button"
-                    variant="secondary"
+                    variant="soft" depth="lifted"
                     size="sm"
                     onClick={(event) => {
                       opener.remember(event);

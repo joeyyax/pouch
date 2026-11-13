@@ -165,7 +165,7 @@ export function ConfigFileHeader({ configFile }: { configFile: string }) {
         </>
       }
       actions={
-        <Button as="a" href={SETTINGS_EXPORT_PATH} download variant="secondary" size="md">
+        <Button as="a" href={SETTINGS_EXPORT_PATH} download variant="soft" depth="lifted" size="md">
           Export settings
         </Button>
       }

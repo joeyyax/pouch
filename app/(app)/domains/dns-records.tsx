@@ -134,7 +134,7 @@ function CopyZoneFile({ value }: { value: string }) {
     else toast({ title: "Couldn’t copy the zone file", description: "Your browser blocked the clipboard.", variant: "error" });
   }
   return (
-    <Button type="button" variant="secondary" size="sm" onClick={handleClick}>
+    <Button type="button" variant="soft" depth="lifted" size="sm" onClick={handleClick}>
       {copied ? "Copied" : "Copy as zone file"}
     </Button>
   );

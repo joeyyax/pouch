@@ -342,7 +342,7 @@ export function SuppressionsScreen({
                     : "No suppression matches every filter above."
                 }
                 action={
-                  <Button variant="secondary" size="md" onClick={clearAll}>
+                  <Button variant="soft" depth="lifted" size="md" onClick={clearAll}>
                     Clear filters
                   </Button>
                 }
@@ -370,7 +370,7 @@ export function SuppressionsScreen({
           </p>
           <div className="flex items-center gap-2">
             <Button
-              variant="secondary"
+              variant="soft" depth="lifted"
               size="sm"
               disabled={page <= 1}
               onClick={() => setParam("page", String(page - 1))}
@@ -381,7 +381,7 @@ export function SuppressionsScreen({
               Page {page} of {pageCount}
             </span>
             <Button
-              variant="secondary"
+              variant="soft" depth="lifted"
               size="sm"
               disabled={page >= pageCount}
               onClick={() => setParam("page", String(page + 1))}
@@ -501,7 +501,7 @@ function AddForm({ onDone }: { onDone: () => void }) {
         </div>
 
         <div className="flex justify-end gap-2">
-          <Button type="button" variant="secondary" size="md" onClick={onDone}>
+          <Button type="button" variant="soft" depth="lifted" size="md" onClick={onDone}>
             Cancel
           </Button>
           <Button type="submit" size="md" disabled={pending}>

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { buttonVariants } from "@/components/ui/button";
+import { buttonAttrs } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -155,14 +155,14 @@ export function InboundScreen({
       {paged || nextCursor ? (
         <div className="mt-4 flex items-center justify-between text-sm">
           {paged ? (
-            <Link href={inboundHref({ domain: domainId })} className={buttonVariants({ variant: "ghost", size: "sm" })}>
+            <Link href={inboundHref({ domain: domainId })} {...buttonAttrs({ variant: "ghost", size: "sm" })}>
               Newest
             </Link>
           ) : (
             <span />
           )}
           {nextCursor ? (
-            <Link href={inboundHref({ domain: domainId, cursor: nextCursor })} className={buttonVariants({ variant: "ghost", size: "sm" })}>
+            <Link href={inboundHref({ domain: domainId, cursor: nextCursor })} {...buttonAttrs({ variant: "ghost", size: "sm" })}>
               Older
             </Link>
           ) : null}

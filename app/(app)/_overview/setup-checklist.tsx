@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { buttonVariants } from "@/components/ui/button";
+import { buttonAttrs } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
 import type { SetupStep } from "@/lib/dashboard/views/setup";
@@ -53,10 +53,8 @@ export function SetupChecklist({ steps, sendSnippets }: { steps: SetupStep[]; se
                 {step.href && step.action ? (
                   <Link
                     href={step.href}
-                    className={cn(
-                      buttonVariants({ variant: primary ? "primary" : "secondary", size: "sm" }),
-                      "shrink-0 self-start whitespace-nowrap",
-                    )}
+                    {...buttonAttrs(primary ? { size: "sm" } : { variant: "soft", depth: "lifted", size: "sm" })}
+                    className={cn(buttonAttrs().className, "shrink-0 self-start whitespace-nowrap")}
                   >
                     {step.action}
                   </Link>

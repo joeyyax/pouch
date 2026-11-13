@@ -15,7 +15,7 @@ export function CodeCard({ code, children, className }: { code: string; children
         <IconButton
           icon={copied ? "check" : "copy"}
           label={copied ? "Code copied" : "Copy code"}
-          variant="bare"
+          variant="ghost"
           size="xs"
           onClick={() => copy(code)}
           className="text-muted-foreground hover:text-foreground"

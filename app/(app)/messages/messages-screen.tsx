@@ -461,7 +461,7 @@ export function MessagesScreen({
                     ? `Search matches ids, addresses and subjects from the last ${spellDays(query.days)}.`
                     : "Widen the range or clear the filters."}
                 action={
-                  <Button variant="secondary" size="md" onClick={clearAll}>
+                  <Button variant="soft" depth="lifted" size="md" onClick={clearAll}>
                     Clear filters
                   </Button>
                 }

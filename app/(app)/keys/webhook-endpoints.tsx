@@ -64,7 +64,7 @@ export function WebhookEndpoints({
         title="Webhooks"
         actions={
           <RoleGate allowed={canManage} reason="Your role doesn't let you create a webhook endpoint.">
-            <Button size="sm" variant="secondary" onClick={() => setCreating(true)}>
+            <Button size="sm" variant="soft" depth="lifted" onClick={() => setCreating(true)}>
               Add endpoint
             </Button>
           </RoleGate>
@@ -177,7 +177,7 @@ function EndpointCard({
         {endpoint.disabled ? (
           <form onSubmit={keepValues(toggleDisabled.formAction, { ...ids, disable: "false" })}>
             <RoleGate allowed={canManage} reason="Your role doesn't let you enable a webhook endpoint.">
-              <Button type="submit" size="sm" variant="secondary" disabled={toggleDisabled.pending}>
+              <Button type="submit" size="sm" variant="soft" depth="lifted" disabled={toggleDisabled.pending}>
                 Enable
               </Button>
             </RoleGate>
@@ -185,7 +185,7 @@ function EndpointCard({
         ) : (
           <form onSubmit={keepValues(sendTest.formAction, ids)}>
             <RoleGate allowed={canManage} reason="Your role doesn't let you send a test event.">
-              <Button type="submit" size="sm" variant="secondary" disabled={sendTest.pending}>
+              <Button type="submit" size="sm" variant="soft" depth="lifted" disabled={sendTest.pending}>
                 Send test event
               </Button>
             </RoleGate>
@@ -346,7 +346,7 @@ function EditEndpointDialog({
       title="Edit endpoint"
       footer={
         <>
-          <Button type="button" variant="secondary" size="md" onClick={() => onOpenChange(false)}>
+          <Button type="button" variant="soft" depth="lifted" size="md" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
           <Button type="submit" form={formId} size="md" disabled={pending}>
@@ -435,11 +435,11 @@ function RevealDialog({
       description={description}
       footer={
         <>
-          <Button type="button" variant="secondary" size="md" onClick={() => onOpenChange(false)}>
+          <Button type="button" variant="soft" depth="lifted" size="md" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
           <form onSubmit={keepValues(formAction, { keyId: apiKeyId, endpointId })}>
-            <Button type="submit" variant={destructive ? "danger" : "primary"} size="md" loading={pending}>
+            <Button type="submit" tone={destructive ? "danger" : "primary"} size="md" loading={pending}>
               {confirmLabel}
             </Button>
           </form>
@@ -547,7 +547,7 @@ function CreateEndpointDialog({
       description="It gets a signed POST for each event it subscribes to."
       footer={
         <>
-          <Button type="button" variant="secondary" size="md" onClick={close}>
+          <Button type="button" variant="soft" depth="lifted" size="md" onClick={close}>
             Cancel
           </Button>
           <Button type="submit" form="create-webhook-endpoint" size="md" disabled={pending}>

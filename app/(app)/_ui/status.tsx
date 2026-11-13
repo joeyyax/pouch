@@ -13,6 +13,9 @@ import { Term } from "./term";
 /** Chip beside a title or as a flag in a cell; dot and label in a state's own column. A normal state skips the chip. */
 export type StatusShape = "chip" | "dot";
 
+/** Tones a Chip can wear too. */
+type Tone = Exclude<StatusDotTone, "stopped">;
+
 function Stateful({
   shape,
   tone,
@@ -25,7 +28,7 @@ function Stateful({
   quiet = false,
 }: {
   shape: StatusShape;
-  tone: StatusDotTone;
+  tone: Tone;
   pending?: boolean;
   label: string;
   term?: GlossaryTerm;
@@ -77,7 +80,7 @@ function Stateful({
 
 // Color encodes the class of state, not the individual state, so seven
 // lifecycle words read as four meanings at a glance.
-const MESSAGE_TONE: Record<MessageStatus, StatusDotTone> = {
+const MESSAGE_TONE: Record<MessageStatus, Tone> = {
   queued: "neutral",
   sent: "neutral",
   delivered: "good",
@@ -117,7 +120,7 @@ export function StatusChip({
   );
 }
 
-const DOMAIN_TONE: Record<DomainStatus, StatusDotTone> = {
+const DOMAIN_TONE: Record<DomainStatus, Tone> = {
   pending: "warn",
   verified: "good",
   failed: "issue",
@@ -127,7 +130,7 @@ export function DomainChip({ status, shape = "chip" }: { status: DomainStatus; s
   return <Stateful shape={shape} tone={DOMAIN_TONE[status]} pending={status === "pending"} label={status} />;
 }
 
-const STANDING_TONE: Record<Standing, StatusDotTone> = {
+const STANDING_TONE: Record<Standing, Tone> = {
   healthy: "good",
   watch: "warn",
   at_risk: "issue",

@@ -46,7 +46,7 @@ function ObservationRow({ observation, canManage }: { observation: ObservationSe
               <form action={unmute.formAction}>
                 <input type="hidden" name="muteId" value={mute.id} />
                 <RoleGate allowed={canManage} reason={OWNER_REASON}>
-                  <Button type="submit" variant="secondary" size="sm" loading={unmute.pending}>
+                  <Button type="submit" variant="soft" depth="lifted" size="sm" loading={unmute.pending}>
                     Unmute
                   </Button>
                 </RoleGate>

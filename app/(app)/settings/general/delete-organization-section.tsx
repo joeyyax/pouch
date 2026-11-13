@@ -42,7 +42,7 @@ export function DeleteOrganizationSection({
           <RoleGate allowed={canManage} reason={OWNER_ONLY}>
             <Button
               type="button"
-              variant="danger"
+              tone="danger"
               size="md"
               disabled={blocked !== null}
               onClick={(event) => {

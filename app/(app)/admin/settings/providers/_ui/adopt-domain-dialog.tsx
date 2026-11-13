@@ -69,7 +69,7 @@ export function AdoptDomainDialog({
             </Button>
           ) : (
             <>
-              <Button type="button" variant="secondary" size="md" disabled={pending} onClick={onClose}>
+              <Button type="button" variant="soft" depth="lifted" size="md" disabled={pending} onClick={onClose}>
                 Cancel
               </Button>
               <Button type="submit" size="md" loading={pending}>

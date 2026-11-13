@@ -67,7 +67,7 @@ function AddAdminDialog({ onClose, onCloseAutoFocus }: { onClose: () => void; on
           />
         </Field>
         <div className="flex justify-end gap-2">
-          <Button type="button" variant="secondary" size="md" onClick={onClose}>
+          <Button type="button" variant="soft" depth="lifted" size="md" onClick={onClose}>
             Cancel
           </Button>
           <Button type="submit" size="md" loading={promote.pending}>

@@ -3,7 +3,7 @@
 import { keepValues } from "../../../../_ui/keep-values";
 import Link from "next/link";
 import { useState } from "react";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button, buttonAttrs } from "@/components/ui/button";
 import { Callout } from "@/components/ui/callout";
 import { Field, fieldClasses } from "@/components/ui/field";
 import { Modal } from "@/components/ui/modal";
@@ -50,10 +50,10 @@ export function AddProviderDialog({
             </Callout>
           )}
           <div className="flex justify-end gap-2">
-            <Button variant="secondary" size="md" onClick={onClose}>
+            <Button variant="soft" depth="lifted" size="md" onClick={onClose}>
               Close
             </Button>
-            <Link href={`/admin/settings/providers/${created.id}`} className={buttonVariants({ size: "md" })}>
+            <Link href={`/admin/settings/providers/${created.id}`} {...buttonAttrs({ size: "md" })}>
               Open provider
             </Link>
           </div>
@@ -98,7 +98,7 @@ export function AddProviderDialog({
           ) : null}
 
           <div className="flex flex-wrap items-center justify-end gap-2">
-            <Button type="button" variant="secondary" size="md" onClick={onClose}>
+            <Button type="button" variant="soft" depth="lifted" size="md" onClick={onClose}>
               Cancel
             </Button>
             <Button type="submit" size="md" loading={pending}>

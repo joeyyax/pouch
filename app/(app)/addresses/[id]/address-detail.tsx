@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { Alert } from "@/components/ui/alert";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button, buttonAttrs } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Chip } from "@/components/ui/chip";
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
@@ -210,7 +210,7 @@ export function AddressDetail({
             <>
               <RoleGate allowed={canManage} reason={denied}>
                 <Button
-                  variant="secondary"
+                  variant="soft" depth="lifted"
                   size="md"
                   onClick={(event) => {
                     opener.remember(event);
@@ -222,7 +222,7 @@ export function AddressDetail({
               </RoleGate>
               <RoleGate allowed={canManage} reason={denied}>
                 <Button
-                  variant="danger"
+                  tone="danger"
                   size="md"
                   onClick={(event) => {
                     opener.remember(event);
@@ -347,14 +347,14 @@ export function AddressDetail({
           {paged || nextCursor ? (
             <div className="flex items-center justify-between text-sm">
               {paged ? (
-                <Link href={`/addresses/${address.id}`} className={buttonVariants({ variant: "ghost", size: "sm" })}>
+                <Link href={`/addresses/${address.id}`} {...buttonAttrs({ variant: "ghost", size: "sm" })}>
                   Newest
                 </Link>
               ) : (
                 <span />
               )}
               {nextCursor ? (
-                <Link href={`/addresses/${address.id}?${new URLSearchParams({ cursor: nextCursor }).toString()}`} className={buttonVariants({ variant: "ghost", size: "sm" })}>
+                <Link href={`/addresses/${address.id}?${new URLSearchParams({ cursor: nextCursor }).toString()}`} {...buttonAttrs({ variant: "ghost", size: "sm" })}>
                   Older
                 </Link>
               ) : null}

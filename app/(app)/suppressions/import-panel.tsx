@@ -71,7 +71,7 @@ export function ImportPanel({ onDone }: { onDone: () => void }) {
           </Button>
         ) : (
           <>
-            <Button type="button" variant="secondary" size="md" onClick={onDone}>
+            <Button type="button" variant="soft" depth="lifted" size="md" onClick={onDone}>
               Cancel
             </Button>
             <Button type="submit" form={`${id}-form`} size="md" loading={pending} disabled={!file}>

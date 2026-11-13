@@ -115,7 +115,7 @@ export function ConvertDialog({
             </Button>
           ) : (
             <>
-              <Button type="button" variant="secondary" size="md" disabled={pending} onClick={onClose}>
+              <Button type="button" variant="soft" depth="lifted" size="md" disabled={pending} onClick={onClose}>
                 Cancel
               </Button>
               <form action={formAction}>

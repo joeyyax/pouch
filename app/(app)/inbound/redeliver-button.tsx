@@ -10,7 +10,7 @@ export function RedeliverButton({ id }: { id: string }) {
   return (
     <form action={formAction}>
       <input type="hidden" name="id" value={id} />
-      <Button type="submit" variant="secondary" size="sm" disabled={pending}>
+      <Button type="submit" variant="soft" depth="lifted" size="sm" disabled={pending}>
         {pending ? "Redelivering…" : "Redeliver"}
       </Button>
     </form>

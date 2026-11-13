@@ -126,7 +126,7 @@ export function ProviderScreen({ provider }: { provider: AdminProviderDetail }) 
             shared ? (
               <Button
                 size="sm"
-                variant="secondary"
+                variant="soft" depth="lifted"
                 disabled={provider.assignable.length === 0}
                 onClick={(event) => {
                   opener.remember(event);
@@ -189,7 +189,7 @@ export function ProviderScreen({ provider }: { provider: AdminProviderDetail }) 
           <CredentialsStatus provider={provider} />
           <div className="flex flex-wrap gap-2">
             <TestButton id={provider.id} />
-            <Button size="sm" variant="secondary" onClick={() => setDialog("rotate")}>
+            <Button size="sm" variant="soft" depth="lifted" onClick={() => setDialog("rotate")}>
               Rotate credentials
             </Button>
           </div>
@@ -209,7 +209,7 @@ export function ProviderScreen({ provider }: { provider: AdminProviderDetail }) 
                 </p>
                 <Button
                   size="sm"
-                  variant="secondary"
+                  variant="soft" depth="lifted"
                   loading={setup.pending}
                   onClick={() => submit(setup.formAction, {})}
                 >
@@ -249,12 +249,12 @@ export function ProviderScreen({ provider }: { provider: AdminProviderDetail }) 
             Quota and reputation rates are on <TextLink href="/admin/settings/system">Status</TextLink>.
           </p>
           <div className="flex flex-wrap gap-2">
-            <Button size="sm" variant="secondary" onClick={() => setDialog("rename")}>
+            <Button size="sm" variant="soft" depth="lifted" onClick={() => setDialog("rename")}>
               Rename
             </Button>
             <Button
               size="sm"
-              variant="secondary"
+              variant="soft" depth="lifted"
               disabled={!canDelete}
               title={canDelete ? undefined : "Unassign every organization first."}
               onClick={(event) => {
@@ -403,7 +403,7 @@ function TestButton({ id }: { id: string }) {
   return (
     <form action={formAction} className="flex flex-wrap items-center gap-2">
       <input type="hidden" name="id" value={id} />
-      <Button type="submit" size="sm" variant="secondary" loading={pending}>
+      <Button type="submit" size="sm" variant="soft" depth="lifted" loading={pending}>
         Test
       </Button>
       {state.status === "tested" ? (
@@ -442,7 +442,7 @@ function WebhookSection({ id, webhook }: { id: string; webhook: { url: string; k
               className={`${fieldClasses({ shape: "compact", size: "md" })} w-full font-mono`}
             />
           </Field>
-          <Button type="submit" size="md" variant="secondary" loading={save.pending}>
+          <Button type="submit" size="md" variant="soft" depth="lifted" loading={save.pending}>
             Save key
           </Button>
         </form>

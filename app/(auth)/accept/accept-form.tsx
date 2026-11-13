@@ -121,7 +121,7 @@ function AddPasskey({ canSkip }: { canSkip: boolean }) {
         Add a passkey
       </Button>
       {canSkip ? (
-        <Button type="button" variant="secondary" size="md" onClick={finish} className="w-full justify-center">
+        <Button type="button" variant="soft" depth="lifted" size="md" onClick={finish} className="w-full justify-center">
           Skip, I&apos;ll use sign-in links
         </Button>
       ) : null}
