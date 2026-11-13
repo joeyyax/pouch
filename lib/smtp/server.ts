@@ -77,7 +77,10 @@ export function startSmtpServers(tls: SmtpTlsConfig | null): SmtpListener[] {
   }
 
   for (const listener of listeners) {
-    listener.server.on("error", (err) => log.error(`listener on :${listener.port} error:`, err));
+    listener.server.on("error", (err: Error & { report?: boolean }) => {
+      if (err.report === false) return;
+      log.error(`listener on :${listener.port} error:`, err);
+    });
     listener.server.listen(listener.port, () => log.info(`listening on :${listener.port}`));
   }
 

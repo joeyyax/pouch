@@ -103,7 +103,7 @@ describe("POST /api/auth/sign-in/magic-link", () => {
 
     const [row] = await db.select().from(verifications);
     expect(row!.identifier).not.toContain(token);
-    expect(row!.identifier).toBe(createHash("sha256").update(token).digest("base64url"));
+    expect(row!.identifier).toBe(`magic-link:${createHash("sha256").update(token).digest("base64url")}`);
     const ttlMs = row!.expiresAt.getTime() - row!.createdAt.getTime();
     expect(Math.abs(ttlMs - 10 * 60 * 1000)).toBeLessThan(5000);
   });
@@ -204,7 +204,7 @@ describe("magic link verification", () => {
     const token = randomBytes(16).toString("hex");
     await db.insert(verifications).values({
       id: "ver_unknown",
-      identifier: createHash("sha256").update(token).digest("base64url"),
+      identifier: `magic-link:${createHash("sha256").update(token).digest("base64url")}`,
       value: JSON.stringify({ email: "nobody@example.net" }),
       expiresAt: new Date(Date.now() + 60_000),
     });
