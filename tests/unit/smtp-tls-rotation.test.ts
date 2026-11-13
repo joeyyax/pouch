@@ -25,6 +25,7 @@ afterEach(async () => {
 });
 
 function listen(server: SMTPServer): Promise<SmtpListener> {
+  server.on("error", () => {});
   return new Promise((resolve) => {
     const netServer = server.listen(0, () => {
       const address = netServer.address();
