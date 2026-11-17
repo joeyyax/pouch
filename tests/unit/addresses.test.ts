@@ -61,3 +61,17 @@ describe("isEmailAddress", () => {
     expect(isEmailAddress(input)).toBe(expected);
   });
 });
+
+describe("formatAddress quoting", () => {
+  it("quotes a name with a comma so it stays one mailbox", () => {
+    expect(formatAddress({ name: "Joey Yax, LLC", address: "joey@usescope.net" })).toBe('"Joey Yax, LLC" <joey@usescope.net>');
+  });
+
+  it("round-trips through parseAddress", () => {
+    expect(parseAddress(formatAddress({ name: "Joey Yax, LLC", address: "joey@usescope.net" }))).toEqual({ name: "Joey Yax, LLC", address: "joey@usescope.net" });
+  });
+
+  it("escapes quotes and backslashes", () => {
+    expect(formatAddress({ name: 'A "B" C', address: "a@b.co" })).toBe('"A \\"B\\" C" <a@b.co>');
+  });
+});
