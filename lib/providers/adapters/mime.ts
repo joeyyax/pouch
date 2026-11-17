@@ -27,7 +27,8 @@ export function displayName(name: string): string {
   return SPECIALS.test(clean) ? `"${clean.replace(/(["\\])/g, "\\$1")}"` : clean;
 }
 
-function formatAddress(address: OutboundAddress): string {
+/** `Name <address>` for a header or a provider field, with the name quoted or encoded as needed. */
+export function formatMailbox(address: OutboundAddress): string {
   if (!address.name) return oneLine(address.address);
   return `${displayName(address.name)} <${oneLine(address.address)}>`;
 }
@@ -139,7 +140,7 @@ function bodyPart(message: OutboundMessage): Part {
 export function buildMime(message: OutboundMessage, now = new Date()): string {
   const content = bodyPart(message);
   const headers = [
-    `From: ${formatAddress(message.from)}`,
+    `From: ${formatMailbox(message.from)}`,
     `To: ${message.to.map(oneLine).join(", ")}`,
     ...(message.cc.length > 0 ? [`Cc: ${message.cc.map(oneLine).join(", ")}`] : []),
     ...(message.replyTo.length > 0 ? [`Reply-To: ${message.replyTo.map(oneLine).join(", ")}`] : []),

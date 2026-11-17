@@ -126,3 +126,10 @@ describe("quoted-printable", () => {
     expect(decodedPart(buildMime(outbound({ text: source })), "text/plain")).toBe(source);
   });
 });
+
+describe("formatMailbox", () => {
+  it("quotes a name with a comma", async () => {
+    const { formatMailbox } = await import("@/lib/providers/adapters/mime");
+    expect(formatMailbox({ name: "Joey Yax, LLC", address: "joey@usescope.net" })).toBe('"Joey Yax, LLC" <joey@usescope.net>');
+  });
+});

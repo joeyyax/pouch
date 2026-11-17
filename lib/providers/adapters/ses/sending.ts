@@ -1,6 +1,6 @@
 import { GetConfigurationSetCommand, GetTenantCommand, SendEmailCommand } from "@aws-sdk/client-sesv2";
 import { brand } from "@/lib/brand";
-import { buildMime } from "../mime";
+import { buildMime, formatMailbox } from "../mime";
 import type { LostSetup, OutboundMessage, Receipt } from "../types";
 import type { SesContext } from "./client";
 import {
@@ -42,7 +42,7 @@ export function createSending(context: SesContext) {
     try {
       const response = await sesClient.send(
         new SendEmailCommand({
-          FromEmailAddress: message.from.name ? `${message.from.name} <${message.from.address}>` : message.from.address,
+          FromEmailAddress: formatMailbox(message.from),
           Destination: {
             ToAddresses: message.to,
             CcAddresses: message.cc,

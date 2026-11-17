@@ -30,8 +30,14 @@ export function domainOf(address: string): string {
   return normalizeAddress(address).split("@")[1] ?? "";
 }
 
+/** RFC 5322 specials, which a display name can only carry inside quotes. */
+const SPECIALS = /[()<>[\]:;@\\,."]/;
+
 export function formatAddress(parsed: ParsedAddress): string {
-  return parsed.name ? `${parsed.name} <${parsed.address}>` : parsed.address;
+  if (!parsed.name) return parsed.address;
+  const name = parsed.name.replace(/[\r\n]+/g, " ").trim();
+  const phrase = SPECIALS.test(name) ? `"${name.replace(/(["\\])/g, "\\$1")}"` : name;
+  return `${phrase} <${parsed.address}>`;
 }
 
 const EMAIL = /^[^\s@,<>"]+@[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/;
