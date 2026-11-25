@@ -188,7 +188,7 @@ describe("Domains → Add domain", () => {
 
     const page = await addDomainScreen();
     expect(page).toContain("This organization can't send yet");
-    expect(page).toMatch(/<button[^>]*type="submit"[^>]*disabled=""/);
+    expect(page).toMatch(/<button(?=[^>]*type="submit")[^>]*disabled=""/);
 
     const result = await addDomainAction({ status: "idle" }, form({ name: "new.example.com" }));
     expect(result).toEqual({

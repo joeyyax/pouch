@@ -120,7 +120,7 @@ export function DnsCleanupCardView({
             {refused > 0 ? ` ${refused} left alone.` : ""}
           </p>
           <RoleGate allowed={canManage} reason="Your role doesn't let you remove DNS records.">
-            <Button type="button" variant="danger" size="sm" onClick={() => setConfirming(true)} disabled={remove.pending}>
+            <Button type="button" tone="danger" size="sm" onClick={() => setConfirming(true)} disabled={remove.pending}>
               Review and remove
             </Button>
           </RoleGate>

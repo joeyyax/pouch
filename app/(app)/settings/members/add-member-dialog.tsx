@@ -86,7 +86,7 @@ function AddMemberDialog({ onClose, onCloseAutoFocus }: { onClose: () => void; o
           </SelectRoot>
         </Field>
         <div className="flex justify-end gap-2">
-          <Button type="button" variant="secondary" size="md" onClick={onClose}>
+          <Button type="button" variant="soft" depth="lifted" size="md" onClick={onClose}>
             Cancel
           </Button>
           <Button type="submit" size="md" loading={invite.pending}>

@@ -3,6 +3,7 @@
 import * as RadixSelect from "@radix-ui/react-select";
 import { cardVariants } from "@/components/ui/card";
 import { fieldClasses } from "@/components/ui/field";
+import { joinIds, useFieldControl } from "@/components/ui/field-control";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/utils";
 
@@ -10,18 +11,26 @@ export const SelectRoot = RadixSelect.Root;
 export const SelectGroup = RadixSelect.Group;
 export const SelectValue = RadixSelect.Value;
 
+/** Inside a Field, takes the Field's id, message and error state unless set here. */
 export function SelectTrigger({
   className,
   children,
   shape = "cozy",
   size = "lg",
+  id,
+  "aria-describedby": ariaDescribedBy,
+  "aria-invalid": ariaInvalid,
   ...props
 }: RadixSelect.SelectTriggerProps & {
   shape?: "cozy" | "compact" | "pill";
   size?: "sm" | "md" | "lg";
 }) {
+  const field = useFieldControl();
   return (
     <RadixSelect.Trigger
+      id={id ?? field?.id}
+      aria-describedby={joinIds(ariaDescribedBy, field?.describedBy)}
+      aria-invalid={ariaInvalid ?? (field?.invalid || undefined)}
       className={cn(
         fieldClasses({ shape, size }),
         "flex w-full items-center justify-between gap-2 text-left data-[placeholder]:text-muted-foreground",

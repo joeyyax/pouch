@@ -118,7 +118,7 @@ export function LoginForm({ enabled, mailReady, method }: { enabled: SignInMetho
   if (link.kind === "sent") {
     return (
       <MagicLinkSent email={link.email}>
-        <Button type="button" variant="secondary" size="md" onClick={() => setLink({ kind: "idle" })} className="w-full justify-center">
+        <Button type="button" variant="soft" depth="lifted" size="md" onClick={() => setLink({ kind: "idle" })} className="w-full justify-center">
           Use another way to sign in
         </Button>
       </MagicLinkSent>
@@ -128,7 +128,8 @@ export function LoginForm({ enabled, mailReady, method }: { enabled: SignInMetho
   const linkButton = (primary: boolean) => (
     <Button
       type={primary ? "submit" : "button"}
-      variant={primary ? "primary" : "secondary"}
+      variant={primary ? "solid" : "soft"}
+      depth={primary ? "flat" : "lifted"}
       size="md"
       loading={linkPending}
       onClick={primary ? undefined : onLink}
@@ -144,7 +145,8 @@ export function LoginForm({ enabled, mailReady, method }: { enabled: SignInMetho
   const passkeyButton = passkeys ? (
     <Button
       type={passkeyOnly ? "submit" : "button"}
-      variant={passkeyOnly ? "primary" : "secondary"}
+      variant={passkeyOnly ? "solid" : "soft"}
+      depth={passkeyOnly ? "flat" : "lifted"}
       size="md"
       loading={passkeyPending}
       onClick={passkeyOnly ? undefined : onPasskey}

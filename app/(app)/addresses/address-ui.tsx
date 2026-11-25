@@ -80,7 +80,7 @@ export function ExtendDialog({ address, onClose }: { address: SerializedAddress;
       }
       footer={
         <>
-          <Button type="button" variant="secondary" size="md" onClick={onClose}>
+          <Button type="button" variant="soft" depth="lifted" size="md" onClick={onClose}>
             Cancel
           </Button>
           <Button type="submit" form="extend-address" size="md" loading={extend.pending} disabled={!choice}>

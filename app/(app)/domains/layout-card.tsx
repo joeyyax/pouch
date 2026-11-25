@@ -38,7 +38,7 @@ export function LayoutCard({
         <div className="flex items-baseline justify-between gap-3">
           <h2 className="type-title text-base text-foreground">Layout</h2>
           <RoleGate allowed={canManage} reason="Your role doesn't let you change this domain's layout.">
-            <Button variant="secondary" size="sm" onClick={() => setEditing(true)}>
+            <Button variant="soft" depth="lifted" size="sm" onClick={() => setEditing(true)}>
               {layout ? "Edit" : "Set a layout"}
             </Button>
           </RoleGate>
@@ -298,7 +298,7 @@ function LayoutForm({
           </Field>
 
           <div className="flex flex-wrap items-center justify-end gap-2">
-            <Button type="button" variant="secondary" size="md" onClick={onDone}>
+            <Button type="button" variant="soft" depth="lifted" size="md" onClick={onDone}>
               Cancel
             </Button>
             <Button type="submit" size="md" disabled={pending}>
@@ -312,7 +312,7 @@ function LayoutForm({
 
       {layout ? (
         <div className="flex justify-end border-t border-border pt-4">
-          <Button type="button" variant="danger" size="sm" disabled={pending} onClick={() => setConfirmingRemove(true)}>
+          <Button type="button" tone="danger" size="sm" disabled={pending} onClick={() => setConfirmingRemove(true)}>
             Remove layout
           </Button>
         </div>

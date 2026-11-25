@@ -6,7 +6,7 @@ import { FORM_CONTROL_BASE } from "@/components/ui/form-control-base";
 import { cn } from "@/lib/utils";
 
 // Radix owns the interaction (keyboard, indeterminate, aria) — we only
-// supply the Quiet Canvas skin.
+// supply the kit skin.
 export function Checkbox({
   className,
   ...props

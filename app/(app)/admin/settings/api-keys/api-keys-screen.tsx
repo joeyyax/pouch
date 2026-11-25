@@ -85,7 +85,7 @@ export function ApiKeysScreen({ keys }: { keys: AdminKeyListItem[] }) {
                   </div>
                   <Button
                     type="button"
-                    variant="secondary"
+                    variant="soft" depth="lifted"
                     size="sm"
                     onClick={(event) => {
                       opener.remember(event);
@@ -213,7 +213,7 @@ function CreateDialog({ onClose }: { onClose: () => void }) {
           />
         </Field>
         <div className="flex justify-end gap-2">
-          <Button type="button" variant="secondary" size="md" onClick={onClose}>
+          <Button type="button" variant="soft" depth="lifted" size="md" onClick={onClose}>
             Cancel
           </Button>
           <Button type="submit" size="md" loading={pending}>

@@ -104,7 +104,7 @@ export function DmarcReportsCard({ view }: { view: DmarcReportHostView }) {
               ))}
             </ul>
             <form action={check.formAction}>
-              <Button type="submit" size="md" variant="secondary" loading={check.pending}>
+              <Button type="submit" size="md" variant="soft" depth="lifted" loading={check.pending}>
                 Check again
               </Button>
             </form>

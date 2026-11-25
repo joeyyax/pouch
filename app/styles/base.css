@@ -11,9 +11,13 @@
     /* Prevent orphans/widows in running copy site-wide; headings override
        with text-wrap: balance in their recipes. Degrades gracefully. */
     text-wrap: pretty;
+    /* Decorative bleeds never scroll the page sideways; clip, unlike hidden, keeps sticky working. */
+    overflow-x: clip;
   }
   html {
     @apply font-sans;
+    /* Keeps body's clip on body: an html left visible hands it to the viewport, where clip means auto. */
+    overflow-x: clip;
   }
 
   /* Respect the OS "reduce motion" setting — neutralize transitions, CSS

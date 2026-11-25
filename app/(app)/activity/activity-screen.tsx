@@ -350,7 +350,7 @@ export function ActivityScreen({
               title="Nothing matches these filters"
               description="Widen the filters or clear them."
               action={
-                <Button variant="secondary" size="md" onClick={clearAll}>
+                <Button variant="soft" depth="lifted" size="md" onClick={clearAll}>
                   Clear filters
                 </Button>
               }

@@ -10,7 +10,7 @@ export const chipVariants = cva(
   {
     variants: {
       tone: {
-        // Status ramp — warm fills, calm text per Quiet Canvas.
+        // Status ramp — warm fills, calm text.
         issue: "bg-danger-soft text-danger inset-ring inset-ring-danger-edge",
         warn: "bg-warning-soft text-warning inset-ring inset-ring-warning-edge",
         good: "bg-success-soft text-success-ink inset-ring inset-ring-success-edge",
@@ -19,7 +19,7 @@ export const chipVariants = cva(
         neutral: "bg-secondary text-tertiary",
         // Measured values — mono for data.
         value: "bg-muted font-mono tabular-nums text-muted-foreground",
-        // Cobalt tint — a true signal.
+        // Signal tint.
         signal: "bg-accent text-primary-strong",
       },
       // Small caps suit a one-word status. A sentence, a date or an address set in them is

@@ -57,7 +57,8 @@
     .pill-card,
     .pill-card-glass,
     .pill-card-recessed,
-    .pill-card-brand {
+    .pill-card-brand,
+    .surface {
       box-shadow: none !important;
       border: 1px solid #999 !important;
       /* A card split across a page break loses the thing that made it one
@@ -104,8 +105,18 @@
     .pill-card,
     .pill-card-glass,
     .pill-card-recessed,
-    .pill-card-brand {
+    .pill-card-brand,
+    .surface,
+    .well,
+    .field-group,
+    .kbd,
+    .depth-raised,
+    .depth-lifted,
+    .depth-well {
       border: 1px solid CanvasText;
+    }
+    .btn:not([data-variant="text"]) {
+      border: 1px solid ButtonText;
     }
 
     /* Texture and marker washes carry no meaning and render as flat blocks
@@ -123,7 +134,8 @@
 @media (prefers-contrast: more) {
   :root:root,
   .dark.dark,
-  .surface-brand.surface-brand {
+  .surface-brand.surface-brand,
+  .surface-hud.surface-hud {
     --muted-foreground: var(--foreground);
     --foreground-soft: var(--foreground);
     --tertiary: var(--foreground);

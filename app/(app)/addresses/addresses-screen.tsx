@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Alert } from "@/components/ui/alert";
-import { buttonVariants } from "@/components/ui/button";
+import { buttonAttrs } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -221,7 +221,7 @@ export function AddressesScreen({
           title="No addresses yet"
           description="Create one with POST /v1/addresses or the create_address MCP tool. It shows up here with its countdown and counts."
           action={
-            <Link href={referenceUrl({ method: "POST", path: "/v1/addresses" })} className={buttonVariants({ variant: "secondary", size: "md" })}>
+            <Link href={referenceUrl({ method: "POST", path: "/v1/addresses" })} {...buttonAttrs({ variant: "soft", depth: "lifted", size: "md" })}>
               Read POST /v1/addresses
             </Link>
           }
@@ -241,14 +241,14 @@ export function AddressesScreen({
       {paged || nextCursor ? (
         <div className="mt-4 flex items-center justify-between text-sm">
           {paged ? (
-            <Link href={addressesHref({ status })} className={buttonVariants({ variant: "ghost", size: "sm" })}>
+            <Link href={addressesHref({ status })} {...buttonAttrs({ variant: "ghost", size: "sm" })}>
               Newest
             </Link>
           ) : (
             <span />
           )}
           {nextCursor ? (
-            <Link href={addressesHref({ status, cursor: nextCursor })} className={buttonVariants({ variant: "ghost", size: "sm" })}>
+            <Link href={addressesHref({ status, cursor: nextCursor })} {...buttonAttrs({ variant: "ghost", size: "sm" })}>
               Older
             </Link>
           ) : null}

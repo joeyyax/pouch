@@ -22,7 +22,7 @@ export function ResendButton({ messageId, blocked }: { messageId: string; blocke
       <RoleGate allowed={blocked === null} reason={blocked ?? ""}>
         <Button
           type="button"
-          variant="secondary"
+          variant="soft" depth="lifted"
           size="sm"
           loading={resend.pending}
           aria-description={blocked ?? undefined}

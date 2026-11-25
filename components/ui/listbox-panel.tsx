@@ -1,7 +1,8 @@
 "use client";
 
 import { type ReactNode } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { useReducedMotionSafe } from "@/hooks/use-reduced-motion-safe";
 import { cardVariants } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
 import { Skeleton, SkeletonGroup } from "@/components/ui/skeleton";
@@ -42,7 +43,7 @@ export function ListboxPanel({
   loadingLabel?: string;
   multiselectable?: boolean;
 }) {
-  const reduced = useReducedMotion();
+  const reduced = useReducedMotionSafe();
   const empty = !loading && options.length === 0;
 
   return (

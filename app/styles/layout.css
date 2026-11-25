@@ -8,6 +8,7 @@
    * Tailwind v4's built-in `container` utility caps max-width at the current
    * breakpoint but doesn't center or pad (v4 dropped the `center`/`padding`
    * config), so this redefines the name instead of inventing a new one.
+   * Ported from Vardo (`app/globals.css` in vardo-console).
    */
   .container {
     @apply mx-auto w-full;

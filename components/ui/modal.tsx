@@ -4,6 +4,7 @@ import {
   createContext,
   useContext,
   useEffect,
+  useRef,
   useState,
   type ComponentProps,
   type ReactNode,
@@ -14,9 +15,9 @@ import {
   AnimatePresence,
   motion,
   useDragControls,
-  useReducedMotion,
   type TargetAndTransition,
 } from "framer-motion";
+import { useReducedMotionSafe } from "@/hooks/use-reduced-motion-safe";
 import { cardVariants } from "@/components/ui/card";
 import { IconButton } from "@/components/ui/icon-button";
 import { EASE_OUT } from "@/lib/motion";
@@ -31,12 +32,8 @@ import { cn } from "@/lib/utils";
 // page behind it), scrolling (overflow-y-auto on the panel, body scroll
 // lock while open), and mobile (widths/heights are viewport-clamped, see
 // SHEET_SIZE) all come for free on both shapes, not re-implemented per
-// variant. The site's three bespoke homepage sheets
-// (components/sheets/sheet-host.tsx — contact/tiers/scan) stay on their
-// own hand-tuned implementation — different slide direction, ground
-// tones, and close-button placement — and only import DialogBackdrop/
-// DialogCloseButton below for the two bits that are genuinely identical.
-// This is the general-purpose version for anything new.
+// variant. A bespoke sheet can import DialogBackdrop and DialogCloseButton
+// alone.
 
 export const ModalTrigger = RadixDialog.Trigger;
 export const ModalClose = RadixDialog.Close;
@@ -130,10 +127,7 @@ const SHEET_MOTION: Record<ModalSide, { hidden: TargetAndTransition; shown: Targ
   right: { hidden: { x: "100%" }, shown: { x: 0 } },
 };
 
-// Shared with components/sheets/sheet-host.tsx, which wraps its own
-// RadixDialog.Overlay/Content rather than rendering <ModalContent> — the
-// backdrop and close button are the only two bits truly identical between the
-// two implementations, so only those get pulled out here.
+// Exported for bespoke dialogs that wrap their own RadixDialog.Overlay and Content.
 export function DialogBackdrop({ animateIn = true }: { animateIn?: boolean }) {
   return (
     <motion.div
@@ -148,10 +142,11 @@ export function DialogBackdrop({ animateIn = true }: { animateIn?: boolean }) {
 }
 
 export function DialogCloseButton({
-  variant = "bare",
+  variant = "ghost",
+  depth,
   size = "sm",
   className,
-}: Pick<ComponentProps<typeof IconButton>, "variant" | "size" | "className">) {
+}: Pick<ComponentProps<typeof IconButton>, "variant" | "depth" | "size" | "className">) {
   return (
     <RadixDialog.Close asChild>
       <IconButton
@@ -159,6 +154,7 @@ export function DialogCloseButton({
         label="Close"
         tooltip={false}
         variant={variant}
+        depth={depth}
         size={size}
         className={className}
       />
@@ -186,7 +182,9 @@ export function ModalContent({
   handle,
   handleClassName,
   animateIn = true,
+  align = "center",
   onOpenAutoFocus,
+  onCloseAutoFocus,
   ...props
 }: RadixDialog.DialogContentProps & {
   variant?: ModalVariant;
@@ -206,16 +204,21 @@ export function ModalContent({
   handleClassName?: string;
   /** Off appears in place: for a panel replacing one just like it. Exit still animates. */
   animateIn?: boolean;
+  /** Where a centered dialog sits. "top" keeps it clear of a phone keyboard. */
+  align?: "center" | "top";
 }) {
   const { open, setOpen } = useContext(ModalOpenContext);
-  const reduced = useReducedMotion();
+  const reduced = useReducedMotionSafe();
   const dragControls = useDragControls();
   const isSheet = variant === "sheet";
   const isFull = isSheet && size === "full";
   const motionVector = isSheet ? SHEET_MOTION[side] : null;
   const showHandle = isSheet && side === "bottom" && (handle ?? !isFull);
 
+  const opener = useRef<HTMLElement | null>(null);
+
   function focusOnOpen(event: Event) {
+    opener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     onOpenAutoFocus?.(event);
     if (event.defaultPrevented || initialFocus === "first") return;
     event.preventDefault();
@@ -223,12 +226,22 @@ export function ModalContent({
     target?.focus({ preventScroll: true });
   }
 
+  // Radix only returns focus to a ModalTrigger; this covers a dialog opened any other way.
+  function focusOnClose(event: Event) {
+    onCloseAutoFocus?.(event);
+    const target = opener.current;
+    opener.current = null;
+    if (event.defaultPrevented || !target?.isConnected || target === document.body) return;
+    event.preventDefault();
+    target.focus({ preventScroll: true });
+  }
+
   const closeButton = showClose ? (
     <DialogCloseButton className="absolute right-4 top-4 text-muted-foreground hover:text-foreground" />
   ) : null;
 
   const inner = (
-    <RadixDialog.Content asChild forceMount onOpenAutoFocus={focusOnOpen} {...props}>
+    <RadixDialog.Content asChild forceMount onOpenAutoFocus={focusOnOpen} onCloseAutoFocus={focusOnClose} {...props}>
       <motion.div
         key="modal-content"
         drag={showHandle ? "y" : false}
@@ -287,7 +300,14 @@ export function ModalContent({
           {isSheet ? (
             inner
           ) : (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">{inner}</div>
+            <div
+              className={cn(
+                "fixed inset-0 z-50 flex justify-center p-4 sm:p-6",
+                align === "top" ? "items-start sm:pt-[12dvh]" : "items-center",
+              )}
+            >
+              {inner}
+            </div>
           )}
         </RadixDialog.Portal>
       ) : null}

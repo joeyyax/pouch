@@ -14,7 +14,7 @@ export interface InboundDelivery {
   attempts: number;
 }
 
-export const DELIVERY_TONE: Record<WebhookDeliveryStatus, StatusDotTone> = {
+export const DELIVERY_TONE: Record<WebhookDeliveryStatus, Exclude<StatusDotTone, "stopped">> = {
   pending: "neutral",
   succeeded: "good",
   failed: "warn",

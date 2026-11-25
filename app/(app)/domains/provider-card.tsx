@@ -96,7 +96,7 @@ export function ProviderCard({
 
         <div className="flex justify-end">
           <RoleGate allowed={canManage} reason="Your role doesn't let you cancel a domain move.">
-            <Button variant="secondary" size="sm" onClick={() => setCancelling(true)}>
+            <Button variant="soft" depth="lifted" size="sm" onClick={() => setCancelling(true)}>
               Cancel move
             </Button>
           </RoleGate>
@@ -127,7 +127,7 @@ export function ProviderCard({
       <div className="flex items-baseline justify-between gap-3">
         <h2 className="type-title text-base text-foreground">Provider</h2>
         {!choosing && usable.length > 0 && canManage ? (
-          <Button variant="secondary" size="sm" onClick={() => setChoosing(true)}>
+          <Button variant="soft" depth="lifted" size="sm" onClick={() => setChoosing(true)}>
             Move to another provider
           </Button>
         ) : null}
@@ -159,7 +159,7 @@ export function ProviderCard({
             {domainName} keeps sending on {current.name} until the new provider verifies.
           </p>
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="secondary" size="sm" onClick={() => setChoosing(false)}>
+            <Button type="button" variant="soft" depth="lifted" size="sm" onClick={() => setChoosing(false)}>
               Cancel
             </Button>
             <Button type="submit" size="sm" disabled={move.pending}>

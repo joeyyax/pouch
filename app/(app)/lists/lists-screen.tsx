@@ -3,7 +3,7 @@
 import { keepValues } from "../_ui/keep-values";
 import Link from "next/link";
 import { useState } from "react";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button, buttonAttrs } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { StatusDot } from "@/components/ui/status-dot";
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
@@ -143,7 +143,7 @@ export function ListsScreen({
       {paged || nextCursor ? (
         <div className="mt-4 flex items-center justify-between text-sm">
           {paged ? (
-            <Link href="/lists" className={buttonVariants({ variant: "ghost", size: "sm" })}>
+            <Link href="/lists" {...buttonAttrs({ variant: "ghost", size: "sm" })}>
               Newest
             </Link>
           ) : (
@@ -152,7 +152,7 @@ export function ListsScreen({
           {nextCursor ? (
             <Link
               href={`/lists?${new URLSearchParams({ cursor: nextCursor }).toString()}`}
-              className={buttonVariants({ variant: "ghost", size: "sm" })}
+              {...buttonAttrs({ variant: "ghost", size: "sm" })}
             >
               Older
             </Link>
@@ -197,7 +197,7 @@ export function ListsScreen({
               Double opt-in. New members confirm before they receive a batch.
             </label>
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="secondary" size="md" onClick={() => setCreating(false)}>
+              <Button type="button" variant="soft" depth="lifted" size="md" onClick={() => setCreating(false)}>
                 Cancel
               </Button>
               <Button type="submit" size="md" loading={pending} disabled={verified.length === 0}>

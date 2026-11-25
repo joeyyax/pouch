@@ -3,7 +3,7 @@
 import { keepValues } from "../../_ui/keep-values";
 import Link from "next/link";
 import { startTransition, useState } from "react";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button, buttonAttrs } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Chip } from "@/components/ui/chip";
 import { StatusDot, type StatusDotTone } from "@/components/ui/status-dot";
@@ -184,7 +184,7 @@ export function ListDetail({
               Double opt-in. New members confirm before they receive a batch. Members already on the list keep the mode they joined under.
             </label>
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="secondary" size="md" onClick={() => setEditing(false)}>
+              <Button type="button" variant="soft" depth="lifted" size="md" onClick={() => setEditing(false)}>
                 Cancel
               </Button>
               <Button type="submit" size="md" loading={edit.pending}>
@@ -221,7 +221,7 @@ export function ListDetail({
                 : "This list is single opt-in, so the address can receive a batch right away."}
             </p>
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="secondary" size="md" onClick={() => setAdding(false)}>
+              <Button type="button" variant="soft" depth="lifted" size="md" onClick={() => setAdding(false)}>
                 Cancel
               </Button>
               <Button type="submit" size="md" loading={add.pending}>
@@ -246,7 +246,7 @@ export function ListDetail({
               <Button size="md" onClick={() => setAdding(true)}>
                 Add member
               </Button>
-              <Button variant="secondary" size="md" onClick={importer.choose} disabled={importer.pending}>
+              <Button variant="soft" depth="lifted" size="md" onClick={importer.choose} disabled={importer.pending}>
                 {importer.pending ? "Importing…" : "Import CSV"}
               </Button>
             </div>
@@ -294,7 +294,7 @@ export function ListDetail({
       {paged || nextCursor ? (
         <div className="mt-4 flex items-center justify-between text-sm">
           {paged ? (
-            <Link href={membersHref(list.id, { status })} className={buttonVariants({ variant: "ghost", size: "sm" })}>
+            <Link href={membersHref(list.id, { status })} {...buttonAttrs({ variant: "ghost", size: "sm" })}>
               Newest
             </Link>
           ) : (
@@ -303,7 +303,7 @@ export function ListDetail({
           {nextCursor ? (
             <Link
               href={membersHref(list.id, { status, cursor: nextCursor })}
-              className={buttonVariants({ variant: "ghost", size: "sm" })}
+              {...buttonAttrs({ variant: "ghost", size: "sm" })}
             >
               Older
             </Link>
@@ -412,7 +412,7 @@ function AttributesDialog({
       size="md"
       footer={
         <>
-          <Button type="button" variant="secondary" size="md" onClick={onClose}>
+          <Button type="button" variant="soft" depth="lifted" size="md" onClick={onClose}>
             Cancel
           </Button>
           <Button type="submit" form="member-attributes" size="md" disabled={save.pending}>

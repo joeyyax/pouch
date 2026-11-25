@@ -150,7 +150,7 @@ export function RecipientsScreen({ results, search }: { results: RecipientPage; 
             title="No matching addresses"
             description={`Nothing sent to an address like “${search}”.`}
             action={
-              <Button variant="secondary" size="md" onClick={() => setParam("address", "")}>
+              <Button variant="soft" depth="lifted" size="md" onClick={() => setParam("address", "")}>
                 Clear search
               </Button>
             }
@@ -166,13 +166,13 @@ export function RecipientsScreen({ results, search }: { results: RecipientPage; 
 
       {pageCount > 1 ? (
         <nav aria-label="Pagination" className="flex items-center justify-between gap-3 pt-4">
-          <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setParam("page", String(page - 1))}>
+          <Button variant="soft" depth="lifted" size="sm" disabled={page <= 1} onClick={() => setParam("page", String(page - 1))}>
             Previous
           </Button>
           <span className="type-body-sm text-muted-foreground">
             Page {page} of {pageCount}
           </span>
-          <Button variant="secondary" size="sm" disabled={page >= pageCount} onClick={() => setParam("page", String(page + 1))}>
+          <Button variant="soft" depth="lifted" size="sm" disabled={page >= pageCount} onClick={() => setParam("page", String(page + 1))}>
             Next
           </Button>
         </nav>

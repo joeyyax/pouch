@@ -48,7 +48,7 @@ export function RotateCredentialsDialog({
           <CredentialFields specs={provider.credentialFieldSpecs} idPrefix="rotate" />
           {error ? <p className="type-body-sm text-danger">{error.message}</p> : null}
           <div className="flex flex-wrap items-center justify-end gap-2">
-            <Button type="button" variant="secondary" size="md" onClick={onClose}>
+            <Button type="button" variant="soft" depth="lifted" size="md" onClick={onClose}>
               Cancel
             </Button>
             <Button type="submit" size="md" loading={pending}>

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Alert } from "@/components/ui/alert";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button, buttonAttrs } from "@/components/ui/button";
 import { Field, fieldClasses } from "@/components/ui/field";
 import { Modal } from "@/components/ui/modal";
 import { FORWARD_TARGET_LIMIT } from "@/lib/addresses/constants";
@@ -29,7 +29,7 @@ function Blocked({ title, children, href, cta }: { title: string; children: stri
         {children}
       </Alert>
       <div className="flex justify-end">
-        <Link href={href} className={buttonVariants({ size: "md" })}>
+        <Link href={href} {...buttonAttrs({ size: "md" })}>
           {cta}
         </Link>
       </div>
@@ -191,7 +191,7 @@ function CreateAddressForm({ options, onCancel }: { options: AddressCreateOption
       </Field>
 
       <div className="flex justify-end gap-2">
-        <Button type="button" variant="secondary" size="md" onClick={onCancel}>
+        <Button type="button" variant="soft" depth="lifted" size="md" onClick={onCancel}>
           Cancel
         </Button>
         <Button type="submit" size="md" loading={pending} disabled={!key || !domain}>

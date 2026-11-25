@@ -1,5 +1,6 @@
 import { cloneElement, isValidElement, type ReactElement, type ReactNode } from "react";
 import { cva } from "class-variance-authority";
+import { FieldControlProvider } from "@/components/ui/field-control";
 import { FieldMessage } from "@/components/ui/field-message";
 import { Label } from "@/components/ui/label";
 
@@ -15,13 +16,20 @@ export const fieldClasses = cva(
   // measured 2.38:1 on the page ground and 2.46:1 on a card, against the 4.5:1
   // placeholder text has to meet; full strength is 5.44:1 and still reads
   // clearly lighter than entered text, which is --foreground at ~13:1.
-  "border border-border bg-background text-foreground outline-none transition-shadow placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring aria-invalid:border-danger aria-invalid:focus-visible:ring-danger disabled:cursor-not-allowed disabled:opacity-50",
+  "border text-foreground outline-none transition-shadow placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring aria-invalid:border-danger aria-invalid:focus-visible:ring-danger disabled:cursor-not-allowed disabled:opacity-50",
   {
     variants: {
+      fill: {
+        outline: "border-border bg-background",
+        // A foreground tint and a hairline, for fields on a card or the HUD.
+        soft: "field-soft",
+      },
       shape: {
         cozy: "squircle rounded-2xl px-5",
         compact: "squircle rounded-xl px-4",
         pill: "rounded-full px-5",
+        // The radius of a surface nested two levels in.
+        inner: "rounded-[calc(var(--radius-surface)/4)] px-3 [corner-shape:var(--corner-shape)]",
       },
       size: {
         sm: "py-2 text-sm",
@@ -29,7 +37,7 @@ export const fieldClasses = cva(
         lg: "py-3.5 text-15",
       },
     },
-    defaultVariants: { shape: "cozy", size: "lg" },
+    defaultVariants: { fill: "outline", shape: "cozy", size: "lg" },
   },
 );
 
@@ -87,7 +95,8 @@ export function Field({
       <Label htmlFor={id} required={required}>
         {label}
       </Label>
-      {field}
+      {/* For controls whose labelable element isn't the child itself, such as SelectRoot. */}
+      <FieldControlProvider value={{ id, describedBy: msgId, invalid: Boolean(error) }}>{field}</FieldControlProvider>
       {error ? (
         <FieldMessage id={msgId} tone="error">
           {error}

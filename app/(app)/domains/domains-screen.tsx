@@ -258,7 +258,7 @@ export function AddDomainForm({
       ) : null}
 
       <div className="flex flex-wrap items-center justify-end gap-2">
-        <Button type="button" variant="secondary" size="md" onClick={onCancel}>
+        <Button type="button" variant="soft" depth="lifted" size="md" onClick={onCancel}>
           Cancel
         </Button>
         <Button type="submit" size="md" disabled={pending || blocked}>

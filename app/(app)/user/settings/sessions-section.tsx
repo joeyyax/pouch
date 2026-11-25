@@ -53,7 +53,7 @@ export function SessionsSection({ sessions }: { sessions: SessionSummary[] }) {
             ) : (
               <Button
                 type="button"
-                variant="secondary"
+                variant="soft" depth="lifted"
                 size="sm"
                 onClick={(event) => {
                   opener.remember(event);
@@ -70,7 +70,7 @@ export function SessionsSection({ sessions }: { sessions: SessionSummary[] }) {
       {others.length > 0 ? (
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-5 py-3">
           {collapsed ? (
-            <Button type="button" variant="ghost" className="text-sm" onClick={() => setExpanded(true)}>
+            <Button type="button" variant="text" className="text-sm" onClick={() => setExpanded(true)}>
               Show all {formatNumber(sessions.length)}
             </Button>
           ) : (
@@ -78,7 +78,7 @@ export function SessionsSection({ sessions }: { sessions: SessionSummary[] }) {
           )}
           <Button
             type="button"
-            variant="secondary"
+            variant="soft" depth="lifted"
             size="sm"
             loading={revokeOthers.pending}
             onClick={(event) => {

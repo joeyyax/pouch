@@ -208,7 +208,7 @@ export function ExportMenu() {
   return (
     <PopoverRoot>
       <PopoverTrigger asChild>
-        <Button variant="secondary" size="md">
+        <Button variant="soft" depth="lifted" size="md">
           Export
         </Button>
       </PopoverTrigger>

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button, buttonAttrs } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Chip } from "@/components/ui/chip";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -56,14 +56,14 @@ export function ServiceMailScreen({
         {paged || nextCursor ? (
           <div className="flex items-center justify-between text-sm">
             {paged ? (
-              <Link href={PATH} className={buttonVariants({ variant: "ghost", size: "sm" })}>
+              <Link href={PATH} {...buttonAttrs({ variant: "ghost", size: "sm" })}>
                 Newest
               </Link>
             ) : (
               <span />
             )}
             {nextCursor ? (
-              <Link href={`${PATH}?before=${encodeURIComponent(nextCursor)}`} className={buttonVariants({ variant: "ghost", size: "sm" })}>
+              <Link href={`${PATH}?before=${encodeURIComponent(nextCursor)}`} {...buttonAttrs({ variant: "ghost", size: "sm" })}>
                 Older
               </Link>
             ) : null}

@@ -145,7 +145,7 @@ export function DetailPanel({
                 icon="close"
                 label={closeLabel}
                 tooltip={false}
-                variant="bare"
+                variant="ghost"
                 size="sm"
                 className="pointer-coarse:size-11"
               />

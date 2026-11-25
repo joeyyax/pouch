@@ -198,11 +198,11 @@ export function OrganizationsScreen({
               </div>
               <div className="flex items-center gap-2 sm:justify-end">
                 {!org.provider && sharedProviders.length > 0 ? (
-                  <Button type="button" variant="secondary" size="sm" onClick={(event) => open(event, { kind: "assign", organization: org })}>
+                  <Button type="button" variant="soft" depth="lifted" size="sm" onClick={(event) => open(event, { kind: "assign", organization: org })}>
                     Assign provider
                   </Button>
                 ) : org.suspension ? (
-                  <Button type="button" variant="secondary" size="sm" onClick={(event) => open(event, { kind: "release", organization: org })}>
+                  <Button type="button" variant="soft" depth="lifted" size="sm" onClick={(event) => open(event, { kind: "release", organization: org })}>
                     Release
                   </Button>
                 ) : null}
@@ -428,7 +428,7 @@ function NewOrganizationDialog({ defaultProvider, onClose }: { defaultProvider: 
           <input id="new-org-slug" name="slug" maxLength={100} autoComplete="off" className={`${inputClass} font-mono`} />
         </Field>
         <div className="flex justify-end gap-2">
-          <Button type="button" variant="secondary" size="md" onClick={onClose}>
+          <Button type="button" variant="soft" depth="lifted" size="md" onClick={onClose}>
             Cancel
           </Button>
           <Button type="submit" size="md" loading={pending}>

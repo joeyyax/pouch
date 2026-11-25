@@ -124,13 +124,13 @@ export function KeyDetail({
           apiKey.revokedAt ? undefined : (
             <>
               <RoleGate allowed={canManage} reason="Your role doesn't let you edit this key.">
-                <Button variant="secondary" size="md" onClick={() => setEditing(true)}>
+                <Button variant="soft" depth="lifted" size="md" onClick={() => setEditing(true)}>
                   Edit key
                 </Button>
               </RoleGate>
               <RoleGate allowed={canManage} reason="Your role doesn't let you revoke this key.">
                 <Button
-                  variant="danger"
+                  tone="danger"
                   size="md"
                   onClick={(event) => {
                     opener.remember(event);
@@ -314,7 +314,7 @@ function EditKeyDialog({
       description="The secret stays the same. If it leaked, revoke this key and create a new one."
       footer={
         <>
-          <Button type="button" variant="secondary" size="md" onClick={() => onOpenChange(false)}>
+          <Button type="button" variant="soft" depth="lifted" size="md" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
           <Button type="submit" form="edit-key" size="md" disabled={pending}>

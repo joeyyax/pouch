@@ -1,0 +1,456 @@
+/* Buttons, depth, wells, field groups and surfaces: plain CSS on tokens.css, no Tailwind. */
+
+@layer components {
+  /* Depth: one named token set per level, usable on any element. */
+  .depth-raised {
+    background-color: var(--raised-fill);
+    box-shadow: var(--raised-edge), var(--raised-shadow);
+  }
+  .depth-lifted {
+    background-color: var(--lifted-fill);
+    box-shadow: var(--lifted-edge), var(--lifted-shadow);
+  }
+  .depth-well {
+    background-color: var(--well-fill);
+    box-shadow: var(--well-edge), var(--well-shadow);
+  }
+
+  /* Button: variant × tone × depth × size × shape, each a data attribute. */
+  .btn {
+    --h: 2.5rem;
+    --px: 1.25rem;
+    --fs: 0.875rem;
+    --ico: 1rem;
+    --tone: var(--foreground);
+    --tone-fg: var(--background);
+    --tone-ink: var(--foreground);
+    --tone-quiet: var(--tertiary);
+    --tone-toward: var(--background);
+    --bg: transparent;
+    --bg-hover: var(--bg);
+    --fg: var(--tone-ink);
+    --fg-hover: var(--fg);
+    --edge: 0 0 #0000;
+    --lift: 0 0 #0000;
+    --lift-hover: var(--lift);
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4em;
+    height: var(--h);
+    margin: 0;
+    padding: 0 var(--px);
+    border: 0;
+    border-radius: 9999px;
+    background: var(--bg);
+    color: var(--fg);
+    box-shadow: var(--edge), var(--lift);
+    font-family: inherit;
+    font-size: var(--fs);
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    text-decoration: none;
+    cursor: pointer;
+    appearance: none;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+      background-color 150ms var(--ease-out),
+      color 150ms var(--ease-out),
+      box-shadow 250ms var(--ease-spring),
+      scale 250ms var(--ease-spring),
+      translate 250ms var(--ease-spring);
+  }
+  .btn > svg {
+    width: var(--ico);
+    height: var(--ico);
+    flex: none;
+  }
+  .btn:hover:not(:disabled, [aria-disabled="true"]) {
+    background: var(--bg-hover);
+    color: var(--fg-hover);
+    box-shadow: var(--edge), var(--lift-hover);
+  }
+  .btn:active:not(:disabled, [aria-disabled="true"]) {
+    scale: 0.97;
+    transition-duration: 150ms;
+    transition-timing-function: var(--ease-out);
+  }
+  .btn:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  .btn:disabled,
+  .btn[aria-disabled="true"] {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .btn[aria-busy="true"] {
+    opacity: 1;
+    cursor: progress;
+  }
+
+  /* Tone: which role tokens the variant reads. Neutral is the base. */
+  .btn[data-tone="primary"] {
+    --tone: var(--primary);
+    --tone-fg: var(--primary-foreground);
+    --tone-ink: var(--primary-strong);
+    --tone-quiet: var(--primary-strong);
+    --tone-toward: var(--foreground);
+  }
+  .btn[data-tone="danger"] {
+    --tone: var(--danger);
+    --tone-fg: var(--background);
+    --tone-ink: var(--danger);
+    --tone-quiet: var(--danger);
+    --tone-toward: var(--foreground);
+  }
+  /* A control on media. */
+  .btn[data-tone="overlay"] {
+    --tone: var(--scrim);
+    --tone-fg: oklch(100% 0 0);
+    --tone-ink: oklch(100% 0 0);
+    --tone-quiet: oklch(100% 0 0);
+    --tone-toward: oklch(0% 0 0);
+  }
+
+  /* Variant: fill, tint, fill on hover only, never a fill. */
+  .btn[data-variant="solid"] {
+    --bg: var(--tone);
+    --fg: var(--tone-fg);
+    --bg-hover: color-mix(in oklab, var(--tone) 86%, var(--tone-toward));
+  }
+  .btn[data-variant="soft"] {
+    --bg: color-mix(in oklab, var(--tone) var(--soft), transparent);
+    --bg-hover: color-mix(in oklab, var(--tone) var(--soft-hover), transparent);
+    --fg: var(--tone-ink);
+  }
+  .btn[data-variant="ghost"] {
+    --fg: var(--tone-quiet);
+    --fg-hover: var(--tone-ink);
+    --bg-hover: color-mix(in oklab, var(--tone) var(--soft), transparent);
+  }
+  .btn[data-variant="text"] {
+    --fg: var(--tone-quiet);
+    --fg-hover: var(--tone-ink);
+    border-radius: 0.25rem;
+    font-weight: 500;
+    line-height: calc(var(--fs) + 0.375rem);
+  }
+  .btn[data-variant="text"][data-underline] {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  /* Depth: solid keeps its fill; soft and ghost become the level's surface. */
+  .btn[data-depth="raised"] {
+    --edge: var(--raised-edge);
+    --lift: var(--raised-shadow);
+  }
+  .btn[data-depth="raised"]:is([data-variant="soft"], [data-variant="ghost"]) {
+    --bg: var(--raised-fill);
+    --bg-hover: color-mix(in oklab, var(--raised-fill) 92%, var(--foreground));
+    --fg: var(--tone-ink);
+    --fg-hover: var(--tone-ink);
+  }
+  .btn[data-depth="lifted"] {
+    --edge: var(--lifted-edge);
+    --lift: var(--lifted-shadow);
+    --lift-hover: var(--lifted-shadow-hover);
+  }
+  .btn[data-depth="lifted"]:is([data-variant="soft"], [data-variant="ghost"]) {
+    --bg: var(--lifted-fill);
+    --bg-hover: var(--lifted-fill);
+    --fg: var(--tone-ink);
+    --fg-hover: var(--tone-ink);
+  }
+  @media (hover: hover) {
+    .btn[data-depth="lifted"]:hover:not(:disabled, [aria-disabled="true"]) {
+      translate: 0 -3px;
+    }
+  }
+
+  /* Pressed: soft and ghost rise to raised; data-press="tint" takes the primary tint instead. */
+  .btn:is([data-variant="soft"], [data-variant="ghost"]):is([aria-pressed="true"], [aria-checked="true"], [aria-expanded="true"], [data-state="on"], [data-state="active"]):not([data-press="tint"], [data-depth="lifted"]) {
+    --bg: var(--raised-fill);
+    --bg-hover: var(--raised-fill);
+    --fg: var(--tone-ink);
+    --fg-hover: var(--tone-ink);
+    --edge: var(--raised-edge);
+    --lift: var(--raised-shadow);
+    --lift-hover: var(--raised-shadow);
+  }
+  .btn:is([aria-pressed="true"], [aria-checked="true"], [aria-expanded="true"], [data-state="on"], [data-state="active"]):not([data-press="tint"], [data-variant="solid"]) > svg {
+    color: var(--primary);
+  }
+  .btn[data-press="tint"]:is([aria-pressed="true"], [aria-checked="true"], [data-state="on"]) {
+    --bg: color-mix(in oklab, var(--primary) 22%, transparent);
+    --bg-hover: var(--bg);
+    --fg: var(--foreground);
+    --fg-hover: var(--foreground);
+    --edge: inset 0 0 0 1px color-mix(in oklab, var(--primary) 55%, transparent);
+  }
+
+  /* Size: 24, 28, 36, 40 (base), 44. */
+  .btn[data-size="2xs"] {
+    --h: 1.5rem;
+    --px: 0.5rem;
+    --fs: 0.6875rem;
+    --ico: 0.75rem;
+  }
+  .btn[data-size="xs"] {
+    --h: 1.75rem;
+    --px: 0.625rem;
+    --fs: 0.75rem;
+    --ico: 0.875rem;
+  }
+  .btn[data-size="sm"] {
+    --h: 2.25rem;
+    --px: var(--btn-sm-px);
+    --fs: var(--btn-sm-fs);
+  }
+  .btn[data-size="lg"] {
+    --h: 2.75rem;
+    --px: 1.5rem;
+    --fs: 0.9375rem;
+  }
+  .btn[data-size="none"] {
+    --h: auto;
+    --px: 0;
+  }
+  .btn[data-shape="circle"] {
+    width: var(--h);
+    padding: 0;
+  }
+  /* Text ignores depth and padding. */
+  .btn[data-variant="text"] {
+    --h: auto;
+    --px: 0;
+    --edge: 0 0 #0000;
+    --lift: 0 0 #0000;
+    --lift-hover: 0 0 #0000;
+  }
+
+  /* Coarse pointers: a 44px hit area, visual size unchanged. */
+  @media (pointer: coarse) {
+    .btn::after {
+      content: "";
+      position: absolute;
+      inset: min(0px, calc((var(--h) - 2.75rem) / 2));
+    }
+  }
+
+  /* Loading keeps the label's width. */
+  .btn[aria-busy="true"] > :not(.btn-spin, .sr-only) {
+    visibility: hidden;
+  }
+  .btn-spin {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 1em;
+    height: 1em;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 9999px;
+    animation: btn-spin 0.7s linear infinite;
+  }
+
+  /* Well: the recessed track a segmented control or tab list sits in. */
+  .well {
+    --well-h: 2.25rem;
+    --well-pad: 3px;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: var(--well-pad);
+    border-radius: 9999px;
+    background-color: var(--well-fill);
+    box-shadow: var(--well-edge), var(--well-shadow);
+  }
+  .well[data-size="xs"] {
+    --well-h: 1.75rem;
+  }
+  .well[data-size="md"] {
+    --well-h: 2.5rem;
+  }
+  .well > .btn {
+    --h: calc(var(--well-h) - 2 * var(--well-pad));
+  }
+
+  /* Keycap. */
+  .kbd {
+    display: inline-grid;
+    place-items: center;
+    min-width: 1.5rem;
+    height: 1.375rem;
+    padding: 0 0.375rem;
+    border-radius: 0.375rem;
+    background-color: var(--raised-fill);
+    box-shadow: var(--raised-edge), var(--raised-shadow);
+    color: var(--foreground);
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    line-height: 1;
+  }
+  .kbd[data-size="sm"] {
+    min-width: 1.25rem;
+    height: 1.125rem;
+    padding: 0 0.3125rem;
+    font-size: 0.625rem;
+  }
+
+  /* Soft field fill: a foreground tint and a hairline instead of a border color and ground. */
+  .field-soft {
+    border-color: var(--field-edge);
+    background-color: color-mix(in oklab, var(--foreground) var(--field-soft), transparent);
+  }
+
+  /* Field group: a field-styled box with start and end slots; focus-within draws the ring. */
+  .field-group {
+    --field-h: 2.75rem;
+    --field-pad: 0.25rem;
+    display: flex;
+    align-items: flex-end;
+    gap: 0.25rem;
+    min-height: var(--field-h);
+    padding: var(--field-pad);
+    border-radius: calc(var(--field-h) / 2);
+    background-color: color-mix(in oklab, var(--foreground) var(--field-soft), transparent);
+    box-shadow: inset 0 0 0 1px var(--field-edge);
+    color: var(--foreground);
+    transition: box-shadow 150ms var(--ease-out);
+  }
+  .field-group[data-size="sm"] {
+    --field-h: 2.25rem;
+  }
+  .field-group[data-fill="outline"] {
+    background-color: var(--background);
+    box-shadow: inset 0 0 0 1px var(--border);
+  }
+  .field-group[data-shape="inner"] {
+    border-radius: calc(var(--radius-surface) / 4);
+    corner-shape: var(--corner-shape);
+  }
+  .field-group:focus-within {
+    box-shadow: inset 0 0 0 2px var(--ring);
+  }
+  .field-group > .btn {
+    --h: calc(var(--field-h) - 2 * var(--field-pad));
+  }
+  .field-group :is(input, textarea) {
+    flex: 1;
+    min-width: 0;
+    min-height: calc(var(--field-h) - 2 * var(--field-pad));
+    margin: 0;
+    padding: 0.5rem 0.25rem;
+    border: 0;
+    outline: 0;
+    resize: none;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 0.9375rem;
+    line-height: 1.4;
+  }
+  .field-group input {
+    height: calc(var(--field-h) - 2 * var(--field-pad));
+    padding-block: 0;
+  }
+  .field-group :is(input, textarea):first-child {
+    padding-inline-start: 0.75rem;
+  }
+  .field-group :is(input, textarea):last-child {
+    padding-inline-end: 0.75rem;
+  }
+  .field-group :is(input, textarea)::placeholder {
+    color: var(--muted-foreground);
+  }
+  .field-group[data-grow] textarea {
+    field-sizing: content;
+    max-height: calc(var(--max-rows, 6) * 1lh + 1rem);
+  }
+  @supports (animation-timeline: scroll()) {
+    .field-group[data-grow] textarea {
+      mask-image: linear-gradient(to bottom, transparent, #000 var(--field-fade));
+      animation: field-fade linear both;
+      animation-timeline: scroll(self);
+      animation-range: 0 1rem;
+    }
+  }
+
+  /* Surface: a card on the level radius rule, 32/16/8 by nesting. */
+  .surface,
+  .surface-level {
+    --surface-radius: var(--radius-surface);
+    border-radius: var(--surface-radius);
+    corner-shape: var(--corner-shape);
+  }
+  :is(.surface, .surface-level)[data-level="1"] {
+    --surface-radius: calc(var(--radius-surface) / 2);
+  }
+  :is(.surface, .surface-level)[data-level="2"] {
+    --surface-radius: calc(var(--radius-surface) / 4);
+  }
+  .surface {
+    background-color: var(--card);
+    color: var(--card-foreground);
+    box-shadow: var(--surface-edge), var(--shadow-card-value);
+  }
+  /* Glass at the top level of the HUD; nested levels stay solid. */
+  .surface-hud.surface:not([data-level="1"], [data-level="2"]) {
+    background-color: var(--glass);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    box-shadow: var(--surface-edge), var(--shadow-float);
+  }
+  @media (prefers-reduced-transparency: reduce), (prefers-contrast: more), (forced-colors: active) {
+    .surface-hud.surface:not([data-level="1"], [data-level="2"]) {
+      background-color: var(--card);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn {
+      transition-duration: 0.01ms;
+    }
+    .btn:active {
+      scale: none;
+    }
+    .btn[data-depth="lifted"]:hover {
+      translate: none;
+    }
+    .btn-spin {
+      animation-duration: 2s;
+    }
+  }
+}
+
+@layer utilities {
+  /* The HUD shows errors as a message only. */
+  .surface-hud :is(input, textarea, select)[aria-invalid="true"] {
+    border-color: var(--field-edge);
+  }
+}
+
+@property --field-fade {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@keyframes field-fade {
+  to {
+    --field-fade: 1rem;
+  }
+}
+
+@keyframes btn-spin {
+  to {
+    rotate: 1turn;
+  }
+}

@@ -308,7 +308,7 @@ function CreateFlow({
         </Field>
 
         <div className="flex flex-wrap items-center justify-end gap-2">
-          <Button type="button" variant="secondary" size="md" onClick={onDone}>
+          <Button type="button" variant="soft" depth="lifted" size="md" onClick={onDone}>
             Cancel
           </Button>
           <Button type="submit" size="md" disabled={pending}>
