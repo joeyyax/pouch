@@ -4,12 +4,12 @@ Transactional email service with a provider-agnostic core. The API is the produc
 
 Read before writing code:
 
-- `docs/engineering.md` — stack, layout, and the rules that hold across the codebase
-- `docs/decisions.md` — what was chosen, why, and what would change it. Read it before undoing one.
-- `docs/product/brief.md` — what it is, what it isn't, principles, concepts
-- `docs/product/model.md` — the nouns, how they relate, what belongs to whom
-- `docs/product/voice.md` — copy, errors, empty states
-- `docs/api/conventions.md` — naming, errors, pagination, webhooks, test mode
+- `docs/engineering.md`: stack, layout and the rules that hold across the codebase
+- `docs/decisions.md`: what was chosen, why, and what would change it. Read it before undoing one.
+- `docs/product/brief.md`: what it is, what it isn't, principles, concepts
+- `docs/product/model.md`: the nouns, how they relate, what belongs to whom
+- `docs/product/voice.md`: copy, errors, empty states
+- `docs/api/conventions.md`: naming, errors, pagination, webhooks, test mode
 
 One GitHub issue per increment.
 
@@ -28,6 +28,6 @@ pnpm db:generate    # new migration
 pnpm db:migrate     # apply migrations
 ```
 
-# This is NOT the Next.js you know
+# This isn't the Next.js you know
 
-Next 16 has breaking changes — APIs, conventions and file structure may differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing code, and heed deprecation notices.
+Next 16 has breaking changes: APIs, conventions and file structure may differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing code, and heed deprecation notices.

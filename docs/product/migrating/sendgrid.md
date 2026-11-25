@@ -1,6 +1,6 @@
 # Migrating from SendGrid
 
-SendGrid isn't one of Pouch's backing providers, so this migration moves your domain's sending to the SES or Mailpace account assigned to your Pouch organization (see the [index](./index.md)) — the API call changes at the same time.
+SendGrid isn't one of Pouch's backing providers, so this migration moves your domain's sending to the provider assigned to your Pouch organization: Amazon SES, Mailpace or Cloudflare Email Service (see the [index](./index.md)). The API call changes at the same time.
 
 SendGrid's docs: [mail-send](https://www.twilio.com/docs/sendgrid/api-reference/mail-send/mail-send), [event webhook](https://www.twilio.com/docs/sendgrid/for-developers/tracking-events/event), [bounces API](https://www.twilio.com/docs/sendgrid/api-reference/bounces-api/retrieve-all-bounces).
 
@@ -58,9 +58,9 @@ curl $POUCH_URL/v1/emails \
 | `template_id`, dynamic template data | *no equivalent* | Pouch has no template store. Render before sending. |
 | `send_at` | *no equivalent* | Pouch sends immediately. |
 | `tracking_settings` (open/click/subscription tracking) | *no equivalent* | Pouch doesn't track opens or clicks; unsubscribe handling is built into bulk mode instead, not a per-message setting. |
-| — | `layout` | No SendGrid equivalent: wraps `html` in the domain's logo/accent/footer frame. |
-| — | `subscribe` | No SendGrid equivalent: adds `to` recipients to a list at send time. |
-| SendGrid Marketing Campaigns, contacts, segments | Pouch lists + `POST /v1/batches` | Much narrower — see `docs/api/conventions.md`, "Bulk". |
+| *(none)* | `layout` | No SendGrid equivalent: wraps `html` in the domain's logo/accent/footer frame. |
+| *(none)* | `subscribe` | No SendGrid equivalent: adds `to` recipients to a list at send time. |
+| SendGrid Marketing Campaigns, contacts, segments | Pouch lists + `POST /v1/batches` | Much narrower; see `docs/api/conventions.md`, "Bulk". |
 
 ## Domains and DNS
 
@@ -70,22 +70,22 @@ SendGrid authenticates a domain against its own shared infrastructure; Pouch aut
 2. Publish the DNS records it lists. The domain verifies on its own once they resolve.
 3. Remove SendGrid's CNAME records (its domain authentication and link branding) once cutover is complete. SPF needs SendGrid's `include:` dropped and the new provider's added, since a name can carry only one SPF record (`docs/api/conventions.md`, "Moving a domain to another provider").
 
-`GET /v1/providers` lists the assigned provider with `assigned: true`. Self-hosting, you're the admin: add an SES or Mailpace account and assign it to your organization first (`docs/engineering.md`, "Providers").
+`GET /v1/providers` lists your organization's providers; the default, which a new domain binds to, has `assigned: true`. Self-hosting, you're the admin: add an SES, Mailpace or Cloudflare provider and assign it to your organization first (`docs/engineering.md`, "Providers").
 
 ## Webhooks
 
-Register a webhook on the Pouch key (dashboard, key detail page) — there's no webhook management API. Map SendGrid's event webhook types to Pouch's:
+Register a webhook endpoint on the Pouch key (dashboard, key detail page, or `POST /v1/webhook_endpoints` with its `key_id`). Map SendGrid's event webhook types to Pouch's:
 
 | SendGrid event | Pouch event |
 |---|---|
 | `delivered` | `email.delivered` |
 | `bounce` | `email.bounced` |
-| `dropped` | *no direct equivalent* — closest is `email.failed`, readable via `GET /v1/emails/:id` or the SSE stream, not a webhook |
+| `dropped` | *no direct equivalent*: closest is `email.failed`, readable via `GET /v1/emails/:id` or the SSE stream, not a webhook |
 | `deferred` | reflected as `status: "deferred"`, not a separate webhook |
 | `spamreport` | `email.complained` |
 | `unsubscribe`, `group_unsubscribe`, `group_resubscribe` | `email.unsubscribed` — Pouch has no group/topic concept, only per-list and per-domain unsubscribe |
-| `processed` | *no equivalent* — closest is `status: "queued"` on accept |
-| `open`, `click` | *no equivalent* — Pouch doesn't track opens or clicks |
+| `processed` | *no equivalent*: closest is `status: "queued"` on accept |
+| `open`, `click` | *no equivalent*: Pouch doesn't track opens or clicks |
 | `provider_status_change` | *no equivalent* |
 
 Full Pouch event catalog and payload shape: `docs/api/conventions.md`, "Outbound webhooks".

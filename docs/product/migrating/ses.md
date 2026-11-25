@@ -61,10 +61,10 @@ curl $POUCH_URL/v1/emails \
 | `EmailTags` | `tags` | SES tags are key/value; Pouch's are a flat string array. |
 | `Content.Raw` (raw MIME, for attachments) | `attachments` | Pouch takes `{ filename, content, content_type }` and builds the MIME itself — no raw message to assemble. |
 | `ConfigurationSetName` | *implicit* | Pouch's provider plumbing configures the equivalent event destination for you at setup. |
-| — | `layout` | No SES equivalent: wraps `html` in the domain's logo/accent/footer frame. |
-| — | `subscribe` | No SES equivalent: adds `to` recipients to a list at send time. |
-| SES's contact lists / list management | Pouch lists + `POST /v1/batches` | Narrower feature set — see `docs/api/conventions.md`, "Bulk". |
-| — | *no equivalent* | Scheduled sends, templates, open/click tracking — SES doesn't have most of these either; where it does (contact list preferences), Pouch doesn't match it feature for feature. |
+| *(none)* | `layout` | No SES equivalent: wraps `html` in the domain's logo/accent/footer frame. |
+| *(none)* | `subscribe` | No SES equivalent: adds `to` recipients to a list at send time. |
+| SES's contact lists / list management | Pouch lists + `POST /v1/batches` | Narrower feature set; see `docs/api/conventions.md`, "Bulk". |
+| *(none)* | *no equivalent* | Scheduled sends, templates, open/click tracking — SES doesn't have most of these either; where it does (contact list preferences), Pouch doesn't match it feature for feature. |
 
 ## Domains and DNS
 
@@ -73,7 +73,7 @@ An admin assigns your organization a provider, and you add the domain and publis
 1. Add the domain: **Domains → Add domain**, or `POST /v1/domains` with `name`. It binds to your organization's assigned provider. With none assigned, it returns `422 provider_unassigned` until an admin assigns one.
 2. Publish the DKIM CNAMEs it lists, plus the optional MAIL FROM MX and TXT. The domain verifies on its own once they resolve.
 
-`GET /v1/providers` lists the assigned provider with `assigned: true`.
+`GET /v1/providers` lists your organization's providers; the default, which a new domain binds to, has `assigned: true`.
 
 **Self-hosting on your own SES account:** as admin, add the provider in Admin settings → Providers with IAM credentials (`docs/engineering.md`, "IAM policies") and assign it to your organization. Your organization gets its own isolated space on it.
 
@@ -83,7 +83,7 @@ SES already has your domain's identity, and Pouch refuses an identity it didn't 
 
 ## Webhooks
 
-SES has no key-scoped webhook concept of its own — it posts bounce, complaint and delivery notifications to an SNS topic (or a configuration set event destination), and you subscribe something to that topic yourself. Pouch replaces that plumbing: register a webhook on the Pouch key (dashboard, key detail page) and Pouch's worker reads the same underlying SES/SNS events on your behalf.
+SES has no key-scoped webhook concept of its own — it posts bounce, complaint and delivery notifications to an SNS topic (or a configuration set event destination), and you subscribe something to that topic yourself. Pouch replaces that plumbing: register a webhook endpoint on the Pouch key (dashboard, key detail page, or `POST /v1/webhook_endpoints` with its `key_id`) and Pouch's worker reads the same underlying SES/SNS events on your behalf.
 
 | SES notification (`notificationType` / `eventType`) | Pouch event |
 |---|---|
@@ -91,7 +91,7 @@ SES has no key-scoped webhook concept of its own — it posts bounce, complaint 
 | `Bounce` (`Permanent`) | `email.bounced` |
 | `Bounce` (`Transient`) | reflected as `status: "deferred"`, not a separate webhook |
 | `Complaint` | `email.complained` |
-| `Send`, `Reject`, `Open`, `Click`, `RenderingFailure`, `DeliveryDelay`, `Subscription` | *no Pouch equivalent* — Pouch doesn't track opens or clicks, and doesn't expose SES's other configuration-set events as webhooks |
+| `Send`, `Reject`, `Open`, `Click`, `RenderingFailure`, `DeliveryDelay`, `Subscription` | *no Pouch equivalent*: Pouch doesn't track opens or clicks, and doesn't expose SES's other configuration-set events as webhooks |
 
 Full Pouch event catalog and payload shape: `docs/api/conventions.md`, "Outbound webhooks".
 

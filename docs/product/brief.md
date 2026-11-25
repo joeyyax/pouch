@@ -20,7 +20,7 @@ A **transactional email service** with a provider-agnostic core, and a bulk mode
 - Inbound per domain, delivered to a webhook and held briefly, and programmable addresses on it that code creates with an expiry, reads, replies from and forwards to mailboxes that confirmed
 - Bulk: batches to a list or an inline recipient array, with unsubscribe handled per domain
 
-## What Pouch is not
+## What Pouch isn't
 
 - A mail server. It runs no MTA, owns no IPs and manages no reputation. Providers do that.
 - A marketing platform. No segments, no contact profiles, no campaign builder, no automation. Bulk mode sends to a list and honors unsubscribes.

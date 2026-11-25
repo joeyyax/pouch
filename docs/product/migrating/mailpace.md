@@ -47,9 +47,9 @@ curl $POUCH_URL/v1/emails \
 | `subject`, `htmlbody`, `textbody` | `subject`, `html`, `text` | |
 | `tags` | `tags` | Both flat string arrays. |
 | `attachments` | `attachments` | Both `{ name/filename, content, content_type }`, base64. |
-| *(none — Mailpace drops custom headers in transit)* | `headers` | Pouch accepts `headers` on every domain, but a domain backed by Mailpace still can't carry them — the provider drops them, so Pouch never sends what it can't deliver. This also means Mailpace-backed domains can't use `List-Unsubscribe` past the bulk fan-out threshold; see "Bulk" below. |
-| — | `layout` | No Mailpace equivalent: wraps `html` in the domain's logo/accent/footer frame. |
-| — | `subscribe` | No Mailpace equivalent: adds `to` recipients to a list at send time. |
+| *(none; Mailpace drops custom headers in transit)* | `headers` | Pouch accepts `headers` on every domain, but a domain backed by Mailpace still can't carry them — the provider drops them, so Pouch never sends what it can't deliver. This also means Mailpace-backed domains can't use `List-Unsubscribe` past the bulk fan-out threshold; see "Bulk" below. |
+| *(none)* | `layout` | No Mailpace equivalent: wraps `html` in the domain's logo/accent/footer frame. |
+| *(none)* | `subscribe` | No Mailpace equivalent: adds `to` recipients to a list at send time. |
 | *(Mailpace has no bulk endpoint)* | `POST /v1/batches` | Also unavailable on a Mailpace-backed domain: Mailpace's own terms are transactional-only, and Pouch enforces `bulk_allowed: false` for domains whose provider can't do bulk (`422 bulk_not_allowed`). Move the domain to SES for bulk. |
 
 ## Domains and DNS
@@ -59,7 +59,7 @@ An admin assigns your organization a provider, and you add the domain and publis
 1. Add the domain: **Domains → Add domain**, or `POST /v1/domains` with `name`. It binds to your organization's assigned provider. With none assigned, it returns `422 provider_unassigned` until an admin assigns one.
 2. Publish the DNS records it lists. The domain verifies on its own once they resolve.
 
-`GET /v1/providers` lists the assigned provider with `assigned: true`.
+`GET /v1/providers` lists your organization's providers; the default, which a new domain binds to, has `assigned: true`.
 
 **Self-hosting on your own Mailpace account:** as admin, add the provider in Admin settings → Providers for your organization, with its server token and its organization token, which adding a domain needs. A Mailpace account serves one organization. Mailpace can't register webhooks or remove a domain through its API: the domain's `setup` lists the webhook as a step to finish in Mailpace's dashboard, and `DELETE /v1/domains/:id` leaves the domain at Mailpace. **Unconfirmed:** whether Mailpace accepts a create for a domain it already has.
 
@@ -67,7 +67,7 @@ An admin assigns your organization a provider, and you add the domain and publis
 
 ## Webhooks
 
-Because Mailpace can't register webhooks through its API, this is a one-time manual step in Mailpace's dashboard regardless of whether Pouch or your own code is consuming events — point it at Pouch's webhook receiver rather than your app's. Then register the outbound webhook on the Pouch key (dashboard, key detail page) for your app to consume:
+Because Mailpace can't register webhooks through its API, this is a one-time manual step in Mailpace's dashboard regardless of whether Pouch or your own code is consuming events — point it at Pouch's webhook receiver rather than your app's. Then register a webhook endpoint on the Pouch key (dashboard, key detail page, or `POST /v1/webhook_endpoints` with its `key_id`) for your app to consume:
 
 | Mailpace event | Pouch event |
 |---|---|
@@ -81,7 +81,7 @@ Full Pouch event catalog and payload shape: `docs/api/conventions.md`, "Outbound
 
 ## Suppressions
 
-Export Mailpace's block list from its dashboard (check `mailpace.com/docs` for the current export path — unconfirmed live while writing this).
+Export Mailpace's block list from its dashboard (check `mailpace.com/docs` for the current export path; unconfirmed live while writing this).
 
 Import them with `POST /v1/suppressions` (a key with no domain scope, at most 5,000 rows per call), or upload the CSV from the dashboard's suppressions screen with **Import**. An address that's already suppressed keeps its row, and each invalid row is reported without stopping the rest. See `docs/api/conventions.md`, "Suppressions".
 
@@ -100,4 +100,4 @@ Mailpace has its own SMTP relay; Pouch's ingress is the drop-in replacement for 
 3. Point Mailpace's dashboard webhook at Pouch's receiver, and register the Pouch webhook for your app. Hosted: only register the Pouch webhook.
 4. Swap the direct Mailpace call for `pouch.emails.send(...)`, feature-flagged or on one low-traffic path first.
 5. Send a real message and confirm it reaches `delivered` in Pouch's dashboard.
-6. Leave the Mailpace account and DNS as they are — nothing to remove, since Pouch never took ownership of them. Hosted: remove Mailpace's records and revoke its token once nothing sends through it.
+6. Leave the Mailpace account and DNS as they are. There's nothing to remove, since Pouch never took ownership of them. Hosted: remove Mailpace's records and revoke its token once nothing sends through it.

@@ -1,6 +1,6 @@
 # Migrating from Postmark
 
-Postmark isn't one of Pouch's backing providers, so this migration moves your domain's sending to the SES or Mailpace account assigned to your Pouch organization (see the [index](./index.md)) — the API call changes at the same time.
+Postmark isn't one of Pouch's backing providers, so this migration moves your domain's sending to the provider assigned to your Pouch organization: Amazon SES, Mailpace or Cloudflare Email Service (see the [index](./index.md)). The API call changes at the same time.
 
 Postmark's docs: [email API](https://postmarkapp.com/developer/api/email-api), [webhooks overview](https://postmarkapp.com/developer/webhooks/webhooks-overview) (check current URL — moved since writing), [suppressions API](https://postmarkapp.com/developer/api/suppressions-api).
 
@@ -58,8 +58,8 @@ curl $POUCH_URL/v1/emails \
 | `MessageStream` | *no equivalent* | Pouch has no separate outbound/broadcast streams — one send path per domain. |
 | `TemplateId`, `TemplateModel` | *no equivalent* | Pouch has no template store. Render before sending. |
 | `TrackOpens`, `TrackLinks` | *no equivalent* | Pouch doesn't track opens or clicks. |
-| — | `layout` | No Postmark equivalent: wraps `html` in the domain's logo/accent/footer frame. |
-| — | `subscribe` | No Postmark equivalent: adds `to` recipients to a list at send time. |
+| *(none)* | `layout` | No Postmark equivalent: wraps `html` in the domain's logo/accent/footer frame. |
+| *(none)* | `subscribe` | No Postmark equivalent: adds `to` recipients to a list at send time. |
 
 ## Domains and DNS
 
@@ -69,11 +69,11 @@ Postmark authenticates a domain against its own infrastructure ("Sender Signatur
 2. Publish the DNS records it lists. The domain verifies on its own once they resolve.
 3. Remove Postmark's DKIM and Return-Path CNAMEs once cutover is complete. SPF needs Postmark's `include:` dropped and the new provider's added.
 
-`GET /v1/providers` lists the assigned provider with `assigned: true`. Self-hosting, you're the admin: add an SES or Mailpace account and assign it to your organization first (`docs/engineering.md`, "Providers").
+`GET /v1/providers` lists your organization's providers; the default, which a new domain binds to, has `assigned: true`. Self-hosting, you're the admin: add an SES, Mailpace or Cloudflare provider and assign it to your organization first (`docs/engineering.md`, "Providers").
 
 ## Webhooks
 
-Register a webhook on the Pouch key (dashboard, key detail page) — there's no webhook management API. Map Postmark's webhook types to Pouch's:
+Register a webhook endpoint on the Pouch key (dashboard, key detail page, or `POST /v1/webhook_endpoints` with its `key_id`). Map Postmark's webhook types to Pouch's:
 
 | Postmark webhook | Pouch event |
 |---|---|
@@ -82,7 +82,7 @@ Register a webhook on the Pouch key (dashboard, key detail page) — there's no 
 | Bounce (soft/transient) | reflected as `status: "deferred"`, not a separate webhook |
 | SpamComplaint | `email.complained` |
 | SubscriptionChange | `email.unsubscribed` |
-| Open, Click | *no equivalent* — Pouch doesn't track opens or clicks |
+| Open, Click | *no equivalent*: Pouch doesn't track opens or clicks |
 | InboundMessage | Pouch's own inbound: `inbound.received`, domain-scoped — see `docs/api/conventions.md`, "Inbound" |
 
 Full Pouch event catalog and payload shape: `docs/api/conventions.md`, "Outbound webhooks".

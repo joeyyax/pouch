@@ -35,7 +35,7 @@ export default async function AcceptInvitationPage({
   if (typeof token !== "string" || !token) {
     return (
       <AuthScreen title="Accept an invitation">
-        <Callout tone="danger" title="This link has no token">
+        <Callout tone="danger" title="This link is incomplete">
           Open the link from the invitation email again, or ask an owner to resend it.
         </Callout>
       </AuthScreen>

@@ -1,6 +1,6 @@
 # Migrating from Mailgun
 
-Mailgun isn't one of Pouch's backing providers, so this migration moves your domain's sending to the SES or Mailpace account assigned to your Pouch organization (see the [index](./index.md)) — the API call changes at the same time.
+Mailgun isn't one of Pouch's backing providers, so this migration moves your domain's sending to the provider assigned to your Pouch organization: Amazon SES, Mailpace or Cloudflare Email Service (see the [index](./index.md)). The API call changes at the same time.
 
 Mailgun's docs: [sending messages](https://documentation.mailgun.com/docs/mailgun/user-manual/sending-messages/send-http), [tracking messages / webhooks](https://documentation.mailgun.com/docs/mailgun/user-manual/tracking-messages/). **Unconfirmed:** Mailgun's exact suppression-list endpoint paths (bounces, complaints, unsubscribes) weren't reachable in current docs at the time of writing — confirm against `documentation.mailgun.com` before cutover, and confirm the full webhook event list the same way; only `unsubscribed` was verifiable live.
 
@@ -58,9 +58,9 @@ curl $POUCH_URL/v1/emails \
 | `template`, `t:variables` | *no equivalent* | Pouch has no template store. Render before sending. |
 | `o:deliverytime` | *no equivalent* | Pouch sends immediately. |
 | `o:tracking`, `o:tracking-clicks`, `o:tracking-opens` | *no equivalent* | Pouch doesn't track opens or clicks. |
-| — | `layout` | No Mailgun equivalent: wraps `html` in the domain's logo/accent/footer frame. |
-| — | `subscribe` | No Mailgun equivalent: adds `to` recipients to a list at send time. |
-| Mailgun mailing lists | Pouch lists + `POST /v1/batches` | Narrower — see `docs/api/conventions.md`, "Bulk". |
+| *(none)* | `layout` | No Mailgun equivalent: wraps `html` in the domain's logo/accent/footer frame. |
+| *(none)* | `subscribe` | No Mailgun equivalent: adds `to` recipients to a list at send time. |
+| Mailgun mailing lists | Pouch lists + `POST /v1/batches` | Narrower; see `docs/api/conventions.md`, "Bulk". |
 
 ## Domains and DNS
 
@@ -70,11 +70,11 @@ Mailgun authenticates a domain against its own infrastructure; Pouch authenticat
 2. Publish the DNS records it lists. The domain verifies on its own once they resolve.
 3. Remove Mailgun's DKIM TXT and its tracking CNAME once cutover is complete. SPF needs Mailgun's `include:` dropped and the new provider's added.
 
-`GET /v1/providers` lists the assigned provider with `assigned: true`. Self-hosting, you're the admin: add an SES or Mailpace account and assign it to your organization first (`docs/engineering.md`, "Providers").
+`GET /v1/providers` lists your organization's providers; the default, which a new domain binds to, has `assigned: true`. Self-hosting, you're the admin: add an SES, Mailpace or Cloudflare provider and assign it to your organization first (`docs/engineering.md`, "Providers").
 
 ## Webhooks
 
-Register a webhook on the Pouch key (dashboard, key detail page) — there's no webhook management API. Mailgun's event names are only partly confirmed live (see the note above); by category:
+Register a webhook endpoint on the Pouch key (dashboard, key detail page, or `POST /v1/webhook_endpoints` with its `key_id`). Mailgun's event names are only partly confirmed live (see the note above); by category:
 
 | Mailgun event | Pouch event |
 |---|---|
@@ -83,8 +83,8 @@ Register a webhook on the Pouch key (dashboard, key detail page) — there's no 
 | `temporary_fail` | reflected as `status: "deferred"`, not a separate webhook |
 | `complained` | `email.complained` |
 | `unsubscribed` | `email.unsubscribed` |
-| `opened`, `clicked` | *no equivalent* — Pouch doesn't track opens or clicks |
-| `accepted` | *no equivalent* — closest is `status: "queued"` on accept |
+| `opened`, `clicked` | *no equivalent*: Pouch doesn't track opens or clicks |
+| `accepted` | *no equivalent*: closest is `status: "queued"` on accept |
 
 Full Pouch event catalog and payload shape: `docs/api/conventions.md`, "Outbound webhooks".
 
